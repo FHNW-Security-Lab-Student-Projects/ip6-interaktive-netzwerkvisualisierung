@@ -1,3 +1,9 @@
+## [1.0.2](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.0.1...v1.0.2) (2026-03-04)
+
+### Refactoring
+
+* update server path ([da175c0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/da175c0afe48c68145b38789d28775d23a3a2da3))
+
 ## [1.0.1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.0.0...v1.0.1) (2026-03-04)
 
 ### Refactoring
