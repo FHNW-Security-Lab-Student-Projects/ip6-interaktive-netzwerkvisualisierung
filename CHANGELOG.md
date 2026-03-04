@@ -1,3 +1,13 @@
+## [1.0.1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.0.0...v1.0.1) (2026-03-04)
+
+### Refactoring
+
+* use proper modules with spa ([0782fce](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/0782fcef01e733cf1b262922eced6c36ea0c3ad8))
+
+### Chores
+
+* update example env ([6259db6](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/6259db625732f5d5afe71ebe2325f5595741d77a))
+
 ## 1.0.0 (2026-03-04)
 
 ### Features
