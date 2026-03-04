@@ -2,6 +2,9 @@ import cytoscape from 'cytoscape';
 import image from '../../assets/cisco.png';
 import { getBasegraph } from '../generated/sdk.gen.ts';
 
+export const title = 'Minimal Example';
+export const description = 'Basic network graph loaded from the base graph API. Displays all nodes and edges from the default snapshot with Cisco device icons.';
+
 export async function mount(container: HTMLElement): Promise<void> {
   const { data, error } = await getBasegraph({
     query: {

@@ -1,0 +1,36 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: sans-serif;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+header {
+  flex: none;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd;
+}
+
+header h1 {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+}
+
+header p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+#viz {
+  flex: 1;
+  overflow: hidden;
+}
