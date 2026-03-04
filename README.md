@@ -1,42 +1,39 @@
-# Cytoscape Minimal Example
+<div align="center">
 
-## Prerequisits
+# netviz
 
-1. Install [Docker](https://docs.docker.com/desktop/) and [Devpod](https://devpod.sh/)
+<img src="logo.png" alt="NETVIZ Logo" width="200" />
 
-2. Set Docker as provider in Devpod
+[📚 Project Documentation](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz-docs) | [📚 API Documentation](https://fastapi1.cybersec-fhnw.org/docs) | [🌐 Demo Site](https://fastapi1.cybersec-fhnw.org)
+
+<hr>
+
+[![pipeline status](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/badges/main/pipeline.svg?ignore_skipped=true)](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/-/commits/main) [![Latest Release](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/-/badges/release.svg)](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/-/releases)
+
+</div>
+
+
+## Overview
+
+This project uses [@hey-api/openapi-ts](https://www.npmjs.com/package/@hey-api/openapi-ts) to generate an SDK from the [OpenAPI specification](https://fastapi1.cybersec-fhnw.org/api/openapi.json) of the API (see [API Docs](https://fastapi1.cybersec-fhnw.org/docs)). The generated client is then used to fetch data and visualize it using [Cytoscape.js](https://js.cytoscape.org/).
+
+Visualizations are created in the [`src/visualizations`](src/visualizations) directory and imported into the main [index.html](index.html) file. The project is set up to allow for easy addition of new visualizations by following the existing structure.
 
 ## Getting started
 
-Download and Install [Docker](https://docs.docker.com/desktop/) and [Devpod](https://devpod.sh/) and add Docker as Provider to Devpod.
+Optimal DX is achieved by using [Dev Containers](https://containers.dev/) via the Visual Studio Code [Dev Containers Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers). Just open the project in VSCode and click "Reopen in Container" when prompted. This will set up a consistent development environment across platforms. See the extension documentation for more details.
 
-[![Open in DevPod!](https://devpod.sh/assets/open-in-devpod.svg)](https://devpod.sh/open#https://gitlab.com/heitzli/trafficflow-visualization)
+1. Open the project in VSCode and use the "Reopen in Container" option to set up the development environment.
 
-1. Please use either Devcontainers or preferably DevPod to work on the project. This creates an unified development environment across platforms. Just click on the DevPod badge above.
+2. Copy the `env.example` file to `.env.local` and adjust the parameters to your credentials and base URL.
 
-2. Copy create a file conf.js and copy the content of conf-example.js in it. Adjust the parameters to your credentials and base_url.
+3. Install the dependencies by running `npm install` in the terminal.
 
-3. To start the client run 
-```
-npm run dev
-```
+4. Generate the client code by running `npm run prepare`.
 
-4. For debugging you can use the integrated debugger from for example VSCode or use the Debugger for Firefox plugin. The plugin is installed in the devcontainer but needs also to be added locally. Following config should be placed in .vscode/launch.json
+5. To start the client run `npm run dev`.
 
-```json
-{
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Launch Firefox",
-            "request": "launch",
-            "type": "firefox",
-            "webRoot": "${workspaceFolder}",
-            "url": "http://localhost:4000",
-        }
-    ]
-}
-```
+6. For debugging you can use the integrated debugger from VSCode or use the Debugger for Firefox plugin. The plugin is installed in the devcontainer but needs also to be added locally. [launch.json](.vscode/launch.json) is already configured for debugging with Firefox.
 
 ## Documentation
 
