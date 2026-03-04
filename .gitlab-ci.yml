@@ -1,0 +1,84 @@
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push"
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+stages:
+  - test
+  - build
+  - deploy
+  - release
+
+.node:
+  image: node:lts-alpine
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
+
+"Type-check 🔍":
+  extends: .node
+  stage: test
+  script:
+    - npm ci
+    - npm run type-check
+
+"Lint 🧹":
+  extends: .node
+  stage: test
+  script:
+    - npm ci
+    - npm run lint
+
+"Build 🏗️":
+  extends: .node
+  stage: build
+  needs: ["Type-check 🔍", "Lint 🧹"]
+  script:
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+
+pages:
+  extends: .node
+  stage: deploy
+  needs: ["Build 🏗️"]
+  script:
+    - cp -r dist/ public/
+  artifacts:
+    paths:
+      - public/
+    expire_in: never
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"'
+      when: on_success
+    - when: never
+
+"Release 🚀":
+  extends: .node
+  stage: release
+  needs: ["pages"]
+  variables:
+    GIT_DEPTH: "0"
+  before_script:
+    - npm ci
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+    - git config --global user.email "release-bot@${CI_SERVER_HOST}"
+    - git config --global user.name "semantic-release"
+    - git fetch --tags
+    - git remote set-url origin "https://oauth2:${GL_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+  script:
+    - npx semantic-release
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"'
+      when: on_success
+    - when: never
