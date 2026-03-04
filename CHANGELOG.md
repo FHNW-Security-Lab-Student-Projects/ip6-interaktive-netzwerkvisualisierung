@@ -1,3 +1,13 @@
+## [1.1.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.0.2...v1.1.0) (2026-03-04)
+
+### Features
+
+* add viz title and description ([1b8720f](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/1b8720faaacd81d4e6a7b3e28f158fb02e1762bb))
+
+### Documentation
+
+* add pages deployment demo to readme ([f291af4](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/f291af47852ca7c7f74f6923ea8b092888c7960c))
+
 ## [1.0.2](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.0.1...v1.0.2) (2026-03-04)
 
 ### Refactoring
