@@ -141,10 +141,10 @@ dist
 # SvelteKit build / generate output
 .svelte-kit
 .config.json
-.vscode
-eslint.config.js
 debug
 # End of https://www.toptal.com/developers/gitignore/api/node
-conf.js
 conf.py
 __pycache__
+
+
+src/generated/
