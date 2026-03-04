@@ -1,8 +1,7 @@
 import './api/client.ts';
+import './style.css';
 
-export type Visualization = {
-  mount(container: HTMLElement): Promise<void>;
-};
+import { Visualization } from './types.ts';
 
 const modules = import.meta.glob<Visualization>('./visualizations/*.ts');
 
@@ -33,8 +32,14 @@ async function renderVisualization(name: string): Promise<void> {
     window.location.hash = '';
     return;
   }
-  app.innerHTML = '<div id="viz" style="width: 100vw; height: 100vh;"></div>';
-  const { mount } = await load();
+  const { title, description, mount } = await load();
+  app.innerHTML = `
+    ${title ? `<header>
+      <h1>${title}</h1>
+      ${description ? `<p>${description}</p>` : ''}
+    </header>` : ''}
+    <div id="viz"></div>
+  `;
   await mount(document.getElementById('viz')!);
 }
 

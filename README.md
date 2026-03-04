@@ -4,7 +4,10 @@
 
 <img src="logo.png" alt="NETVIZ Logo" width="200" />
 
-[📚 Project Documentation](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz-docs) | [📚 API Documentation](https://fastapi1.cybersec-fhnw.org/docs) | [🌐 Demo Site](https://fastapi1.cybersec-fhnw.org)
+[📚 Project Documentation](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz-docs) | [📚 API Documentation](https://fastapi1.cybersec-fhnw.org/docs) | [🌐 Narrowin Demo](https://fastapi1.cybersec-fhnw.org)
+
+
+[🌐 Live Demo](https://ip6-26bb_netviz.pages.fhnw.ch/netviz/)
 
 <hr>
 
