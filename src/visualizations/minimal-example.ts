@@ -18,6 +18,11 @@ export async function mount(container: HTMLElement): Promise<void> {
     throw new Error(`Failed to load graph: ${JSON.stringify(error)}`);
   }
 
+  // NOTE:
+  // getBasegraph returns a full graph G=(V, E) (G=data.graph.elements), with V=data.graph.elements.nodes and E=data.graph.elements.edges. Each node has an ID, a type and a label as defined in data.graph.elements.nodes[i].data (there are more fields in data, but not all node_types share them). A node is assigned to a group by setting the parent field of the node to the ID of the parent node (parent node: node_type=group). A relationship (edge) is defined by the source and target fields of the edge, which refer to the IDs of the source and target nodes. 
+
+  // TODO: Find a good way to enumerate all different node_types. Probably use JQ on the response to filter out all unique node_types and their corresponding labels.
+
   const graph = data.data.graph as { elements?: { nodes?: unknown[]; edges?: unknown[] } };
   const nodes = (graph.elements?.nodes ?? []) as cytoscape.ElementDefinition[];
   const edges = (graph.elements?.edges ?? []) as cytoscape.ElementDefinition[];
@@ -45,7 +50,7 @@ export async function mount(container: HTMLElement): Promise<void> {
         selector: 'edge',
         style: {
           'line-color': '#ff0000',
-          'width': 10,
+          'width': 2,
           'z-index': 1,
         },
       },
