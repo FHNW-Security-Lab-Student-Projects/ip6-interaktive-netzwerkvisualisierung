@@ -1,3 +1,13 @@
+## [1.1.1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.1.0...v1.1.1) (2026-03-05)
+
+### Documentation
+
+* add notes to basegraph structure ([8da2b22](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/8da2b22e76bcf4efb6117998ab73f4cba52739a9))
+
+### Chores
+
+* update gitignore ([1e5c417](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/1e5c417ab9c8178aed849dbb474088b7b23ab8f8))
+
 ## [1.1.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.0.2...v1.1.0) (2026-03-04)
 
 ### Features
