@@ -146,5 +146,6 @@ debug
 conf.py
 __pycache__
 
+.DS_Store
 
 src/generated/
