@@ -15,7 +15,13 @@ function toDisplayName(name: string): string {
 
 const app = document.getElementById('app')!;
 
+let currentPositionsKey: string | null = null;
+
 function renderLanding(): void {
+  if (currentPositionsKey) {
+    localStorage.removeItem(currentPositionsKey);
+    currentPositionsKey = null;
+  }
   const names = Object.keys(modules).map(nameFromPath);
   app.innerHTML = `
     <h1>Network Visualizations</h1>
@@ -33,11 +39,15 @@ async function renderVisualization(name: string): Promise<void> {
     return;
   }
   const { title, description, mount } = await load();
+  currentPositionsKey = title ? `netviz-positions-${title}` : null;
   app.innerHTML = `
-    ${title ? `<header>
-      <h1>${title}</h1>
-      ${description ? `<p>${description}</p>` : ''}
-    </header>` : ''}
+    <header>
+      <div>
+        ${title ? `<h1>${title}</h1>` : ''}
+        ${description ? `<p>${description}</p>` : ''}
+      </div>
+      <a href="#" class="back-btn">&larr; Back</a>
+    </header>
     <div id="viz"></div>
   `;
   await mount(document.getElementById('viz')!);
