@@ -1,3 +1,11 @@
+## [1.2.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.1.1...v1.2.0) (2026-05-08)
+
+### Features
+
+* add back button to viz stage ([8c761bb](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/8c761bbe6005e4ed2ae4c9f0226390f0ee2083ab))
+* add graph models and helpers ([fca91b3](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/fca91b35889dee332637021c0a017c939a996d19))
+* add hierarchical visualization examples ([186c1b5](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/186c1b5c5d0e865f2a402434e5deaaa52156f86e))
+
 ## [1.1.1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.1.0...v1.1.1) (2026-03-05)
 
 ### Documentation
