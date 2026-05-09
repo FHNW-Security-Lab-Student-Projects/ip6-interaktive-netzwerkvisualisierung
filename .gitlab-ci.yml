@@ -52,6 +52,20 @@ stages:
       when: never
     - when: on_success
 
+"Build Review 🏗️":
+  extends: .node
+  stage: build
+  needs: ["Type-check 🔍", "Lint 🧹"]
+  script:
+    - npm ci
+    - npx vite build --base "./"
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
 pages:
   extends: .node
   stage: deploy
@@ -66,21 +80,6 @@ pages:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"'
       when: on_success
     - when: never
-
-
-"Build Review 🏗️":
-  extends: .node
-  stage: build
-  needs: ["Type-check 🔍", "Lint 🧹"]
-  script:
-    - npm ci
-    - npx vite build --base "./"
-  artifacts:
-    paths:
-      - dist/
-    expire_in: 1 week
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 "Deploy Review 🔍":
   extends: .node
@@ -115,6 +114,7 @@ pages:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: manual
+    - when: never
 
 "Release 🚀":
   extends: .node
