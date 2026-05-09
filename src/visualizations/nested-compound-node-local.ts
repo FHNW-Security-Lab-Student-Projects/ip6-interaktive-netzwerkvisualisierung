@@ -1,6 +1,6 @@
 import cytoscape from 'cytoscape';
-import image from '../../assets/cisco.png';
-import { createBaseStyles, runLayout, setupExpandCollapse } from '../cytoscape-utils.ts';
+import { runLayout, setupExpandCollapse } from '../cytoscape-utils.ts';
+import { createNetworkStyles } from '../network-styles.ts';
 import { createDeviceNode, createEdge, createGroupNode, createHostNode, NODE_HIERARCHY } from '../node-factory.ts';
 
 export const title = 'Nested Compound Nodes: HQ network hierarchy';
@@ -39,7 +39,7 @@ export function mount(container: HTMLElement): void {
     container,
     zoomingEnabled: true,
     wheelSensitivity: 0.1,
-    style: createBaseStyles(image),
+    style: createNetworkStyles(),
   });
 
   cy.style().update();
