@@ -58,11 +58,11 @@ stages:
   needs: ["Type-check 🔍", "Lint 🧹"]
   script:
     - npm ci
-    - npx vite build --base "./"
+    - npx vite build --base "/netviz/mr-${CI_MERGE_REQUEST_IID}/"
   artifacts:
     paths:
       - dist/
-    expire_in: 1 week
+    expire_in: 2 weeks
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
@@ -70,6 +70,8 @@ pages:
   extends: .node
   stage: deploy
   needs: ["Build 🏗️"]
+  pages:
+    path_prefix: ""
   script:
     - cp -r dist/ public/
   artifacts:
@@ -85,18 +87,19 @@ pages:
   extends: .node
   stage: deploy
   needs: ["Build Review 🏗️"]
+  pages:
+    path_prefix: "mr-${CI_MERGE_REQUEST_IID}"
   script:
     - cp -r dist/ public/
   artifacts:
     paths:
       - public/
-    expose_as: "Review App"
-    expire_in: 1 week
+    expire_in: 2 weeks
   environment:
     name: review/$CI_COMMIT_REF_SLUG
-    url: $CI_JOB_URL/artifacts/raw/public/index.html
+    url: https://ip6-26bb_netviz.pages.fhnw.ch/netviz/mr-${CI_MERGE_REQUEST_IID}/
     on_stop: "Stop Review 🗑️"
-    auto_stop_in: 1 week
+    auto_stop_in: 2 weeks
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: on_success
