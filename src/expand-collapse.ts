@@ -1,82 +1,10 @@
 import cytoscape from 'cytoscape';
-import fcose from 'cytoscape-fcose';
-import type { AnyTypedNode, TypedCytoscapeEdge, HierarchyLevel } from './node-factory.ts';
+import type { AnyTypedNode, TypedCytoscapeEdge, HierarchyLevel, NodeData } from './node-factory.ts';
+import type { LayoutProvider } from './layout-utils.ts';
 
-/** NOTE: 
- * We use fcose for all layouts since it supports compound nodes and produces good results with minimal configuration.
- * It is also more performant than cose-bilkent, which is important since we run it on every expand/collapse.
- * https://github.com/iVis-at-Bilkent/cytoscape.js-fcose
- */
-
-// Register fcose layout once and run on import
-cytoscape.use(fcose);
-
-/**
- * Runs the initial fcose layout and persists node positions to localStorage.
- * On subsequent loads, restores positions via the preset layout.
- * If the graph has changed (new nodes present), clears the stale cache and re-runs fcose.
- *
- * Only operates on visible nodes so hidden nodes (e.g. collapsed children) don't
- * pollute the position cache.
- */
-export function runLayout(cy: cytoscape.Core, positionsKey: string, initialZoom?: number): void {
-  function applyZoom(): void {
-    if (initialZoom === undefined) return;
-    cy.fit();
-    cy.zoom(cy.zoom() * initialZoom);
-    cy.center();
-  }
-
-  const saved = localStorage.getItem(positionsKey);
-
-  if (saved) {
-    const positions = JSON.parse(saved) as Record<string, cytoscape.Position>;
-    const allPresent = cy.nodes(':visible').every(
-      n => positions[(n as cytoscape.NodeSingular).id()] !== undefined,
-    );
-
-    if (allPresent) {
-      cy.layout({ name: 'preset', positions }).run();
-      applyZoom();
-      return;
-    }
-    // Graph has changed (new nodes), clear stale state and re-layout
-    localStorage.removeItem(positionsKey);
-  }
-
-  const layout = cy.layout({
-    name: 'fcose',
-    animate: false,
-    quality: 'proof',
-    idealEdgeLength: 120,
-    nodeSeparation: 75,
-  } as cytoscape.LayoutOptions);
-
-  layout.on('layoutstop', () => {
-    const positions: Record<string, cytoscape.Position> = {};
-    cy.nodes(':visible').forEach(n => {
-      positions[(n as cytoscape.NodeSingular).id()] = (n as cytoscape.NodeSingular).position();
-    });
-    localStorage.setItem(positionsKey, JSON.stringify(positions));
-    applyZoom();
-  });
-
-  layout.run();
-}
-
-/**
- * Runs an animated fcose layout after an expand/collapse event.
- * Does not persist positions — the initial layout positions are what we save.
- */
-export function runExpandCollapseLayout(cy: cytoscape.Core): void {
-  cy.layout({
-    name: 'fcose',
-    animate: true,
-    animationDuration: 400,
-    quality: 'proof',
-    idealEdgeLength: 120,
-    nodeSeparation: 75,
-  } as cytoscape.LayoutOptions).run();
+function runExpandCollapseLayout(cy: cytoscape.Core, layout: LayoutProvider): void {
+  layout.register();
+  cy.layout(layout.expandCollapse()).run();
 }
 
 function getInitialNodes(rootNodes: AnyTypedNode[], hierarchy?: HierarchyLevel[]): AnyTypedNode[] {
@@ -84,9 +12,7 @@ function getInitialNodes(rootNodes: AnyTypedNode[], hierarchy?: HierarchyLevel[]
   for (let i = 0; i < hierarchy.length; i++) {
     const atLevel = rootNodes.filter(n => hierarchy[i].matches(n.data));
     if (atLevel.length > 0) {
-      // Also include root nodes that don't match this level or any higher level —
-      // they're standalone nodes with no parent to collapse under (e.g. switches
-      // in a graph that also has root-level routers).
+      // Also include root nodes that don't match this level or any higher level: they're standalone (e.g. switches in a graph that also has root-level routers).
       const coveredIds = new Set(
         rootNodes
           .filter(n => hierarchy.slice(0, i + 1).some(l => l.matches(n.data)))
@@ -99,25 +25,18 @@ function getInitialNodes(rootNodes: AnyTypedNode[], hierarchy?: HierarchyLevel[]
   return rootNodes;
 }
 
-/**
- * Wires up interactive expand/collapse for compound nodes.
- * Manages graph population: adds only root nodes initially, then adds/removes
- * children on expand/collapse rather than toggling display.
- *
- * - Tap a collapsed node  -> add its direct children to the graph, animate layout
- * - Tap an expanded compound -> remove all descendants (and edges), animate layout
- *
- * The visualization file should NOT call cy.add(), this function owns graph population.
- *
- * @param cy    The Cytoscape instance (elements not yet added).
- * @param nodes Full node list, source of truth for hierarchy.
- * @param edges Full edge list, edges whose endpoints are both present get added automatically.
- */
+// Wires up interactive expand/collapse for compound nodes.
+// Owns graph population: starts with root nodes only, adds/removes children on expand/collapse.
+// Tap collapsed node -> add children + animate layout.
+// Tap expanded compound label -> remove descendants + animate layout.
+// initialExpand: 'none' (default) | 'all' | HierarchyLevel label to expand down to on load.
 export function setupExpandCollapse(
   cy: cytoscape.Core,
   nodes: AnyTypedNode[],
   edges: TypedCytoscapeEdge[],
+  layout: LayoutProvider,
   hierarchy?: HierarchyLevel[],
+  initialExpand?: string | 'all' | 'none',
 ): void {
   function getDirectChildren(nodeId: string): AnyTypedNode[] {
     return nodes.filter(n => n.data.parent === nodeId);
@@ -132,9 +51,7 @@ export function setupExpandCollapse(
     return getDirectChildren(nodeId).length > 0;
   }
 
-  // Returns the deepest ancestor of nodeId that is currently in the graph,
-  // or the node itself if it is present. Returns null if no ancestor is visible.
-  // Used to "lift" edges whose endpoints are hidden inside collapsed compounds.
+  // Returns the deepest visible ancestor of nodeId, or null. Used to lift edges into collapsed compounds.
   function getRepresentative(nodeId: string): string | null {
     if (cy.$id(nodeId).length > 0) return nodeId;
     const nodeData = nodes.find(n => n.data.id === nodeId)?.data;
@@ -142,13 +59,9 @@ export function setupExpandCollapse(
     return getRepresentative(nodeData.parent);
   }
 
-  // Rebuilds all edges from scratch.
-  // - Edges whose both original endpoints are in the graph are added as-is,
-  //   except parent->child edges which are implicit from compound containment.
-  // - Edges whose endpoint is inside a collapsed compound are "lifted" to the
-  //   nearest visible ancestor, so inter-group connectivity is always visible.
-  // - Multiple original edges that lift to the same pair are deduplicated.
-  // Must be called outside cy.batch() so ancestor() lookups reflect committed state.
+  // Rebuilds all edges: lifts endpoints inside collapsed compounds to their nearest visible ancestor,
+  // deduplicates, and skips parent<->child edges (implicit from containment).
+  // Must run outside cy.batch() so ancestor() lookups reflect committed state.
   function syncEdges(): void {
     cy.edges().remove();
     const addedPairs = new Set<string>();
@@ -156,8 +69,6 @@ export function setupExpandCollapse(
       const repSrc = getRepresentative(edge.data.source);
       const repTgt = getRepresentative(edge.data.target);
       if (!repSrc || !repTgt || repSrc === repTgt) return;
-      // Both original endpoints are directly in the graph, skip parent<->child edges
-      // (containment already implies the relationship visually).
       if (repSrc === edge.data.source && repTgt === edge.data.target) {
         const src = cy.$id(repSrc);
         const tgt = cy.$id(repTgt);
@@ -179,19 +90,13 @@ export function setupExpandCollapse(
     });
   }
 
-
-  // Remembers where each node was when it was last visible, so collapsing and
-  // re-expanding restores the same layout rather than recalculating from scratch.
+  // Saved positions: restores layout on re-expand without recalculating from scratch.
   const savedPositions = new Map<string, cytoscape.Position>();
 
-  // Remembers which expandable nodes were in an expanded state when their ancestor
-  // was collapsed. On re-expand, these nodes are automatically re-expanded so the
-  // user sees the same depth they had before without extra clicks.
+  // Expanded nodes within a collapsed subtree, restored on re-expand to preserve depth.
   const savedExpanded = new Set<string>();
 
-
-  // Expands a single collapsed node, then recursively re-expands any children that
-  // were expanded before the subtree was last collapsed.
+  // Expands a collapsed node and recursively restores previously-expanded children.
   function doExpand(node: cytoscape.NodeSingular): void {
     const children = getDirectChildren(node.id());
     const parentPos = node.position();
@@ -211,8 +116,7 @@ export function setupExpandCollapse(
     const dy = parentPos.y - (Math.min(...ys) + Math.max(...ys)) / 2;
     const finalPositions = rawPositions.map(p => ({ x: p.x + dx, y: p.y + dy }));
 
-    // Batch so Cytoscape renders only the final state (no intermediate jump to (0,0)).
-    // syncEdges is called after the batch so ancestor() lookups reflect committed state.
+    // Batch to skip the intermediate (0,0) state; syncEdges runs after so ancestor() is current.
     cy.batch(() => {
       cy.add(children as cytoscape.ElementDefinition[]);
       children.forEach((child, i) => {
@@ -223,7 +127,6 @@ export function setupExpandCollapse(
     });
     syncEdges();
 
-    // Re-expand children that were expanded before this subtree was collapsed.
     children.forEach(child => {
       if (savedExpanded.has(child.data.id)) {
         savedExpanded.delete(child.data.id);
@@ -252,8 +155,7 @@ export function setupExpandCollapse(
     syncEdges();
   }
 
-
-  // Start with only the outermost hierarchy level present among root nodes
+  // Start with only the outermost hierarchy level present among root nodes.
   const allRootNodes = nodes.filter(n => n.data.parent === undefined);
   const rootNodes = getInitialNodes(allRootNodes, hierarchy);
   cy.add(rootNodes as cytoscape.ElementDefinition[]);
@@ -262,11 +164,34 @@ export function setupExpandCollapse(
   });
   syncEdges();
 
+  if (initialExpand && initialExpand !== 'none') {
+    if (initialExpand === 'all') {
+      let collapsed = cy.nodes('.collapsed').toArray() as cytoscape.NodeSingular[];
+      while (collapsed.length > 0) {
+        collapsed.forEach(n => doExpand(n));
+        collapsed = cy.nodes('.collapsed').toArray() as cytoscape.NodeSingular[];
+      }
+    } else {
+      // Expand levels \leq target repeatedly; each expand may reveal more nodes at the same level.
+      const targetIndex = hierarchy?.findIndex(l => l.label === initialExpand) ?? -1;
+      const shouldExpand = (data: NodeData) =>
+        hierarchy!.slice(0, targetIndex + 1).some(l => l.matches(data));
+      let toExpand = cy.nodes('.collapsed').filter(n => {
+        const data = nodes.find(nd => nd.data.id === n.id())?.data;
+        return data ? shouldExpand(data) : false;
+      });
+      while (toExpand.length > 0) {
+        toExpand.forEach(n => doExpand(n));
+        toExpand = cy.nodes('.collapsed').filter(n => {
+          const data = nodes.find(nd => nd.data.id === n.id())?.data;
+          return data ? shouldExpand(data) : false;
+        });
+      }
+    }
+  }
 
-  // Left-click on a collapsed node -> expand.
-  // Left-click on the label badge of an expanded compound -> collapse.
-  // The label sits at text-valign:'top', so we check whether the click's rendered Y
-  // is within LABEL_HIT_PX of the node's top bounding-box edge.
+  // Tap collapsed node -> expand. Tap expanded compound's label badge -> collapse.
+  // Label is at text-valign:'top'; check rendered Y against the top bb edge to hit-test it.
   const LABEL_HIT_PX = 28;
 
   cy.on('tap', 'node', event => {
@@ -275,6 +200,7 @@ export function setupExpandCollapse(
 
     if (node.hasClass('collapsed')) {
       doExpand(node);
+      runExpandCollapseLayout(cy, layout);
       return;
     }
 
@@ -282,7 +208,10 @@ export function setupExpandCollapse(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const clickY: number = (event as any).renderedPosition?.y ?? (event as any).cyRenderedPosition?.y;
       const bb = node.renderedBoundingBox({ includeLabels: false, includeOverlays: false });
-      if (clickY <= bb.y1 + LABEL_HIT_PX) doCollapse(node);
+      if (clickY <= bb.y1 + LABEL_HIT_PX) {
+        doCollapse(node);
+        runExpandCollapseLayout(cy, layout);
+      }
     }
   });
 }

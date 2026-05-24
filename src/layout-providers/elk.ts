@@ -1,6 +1,6 @@
 import cytoscape from 'cytoscape';
 import elk from 'cytoscape-elk';
-import type { LayoutProvider } from '../cytoscape-utils.ts';
+import type { LayoutProvider } from '../layout-utils.ts';
 
 function register() {
   cytoscape.use(elk);

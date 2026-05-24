@@ -1,6 +1,6 @@
 import cytoscape from 'cytoscape';
 import d3Force from 'cytoscape-d3-force';
-import type { LayoutProvider } from '../cytoscape-utils.ts';
+import type { LayoutProvider } from '../layout-utils.ts';
 
 /**
  * D3 force-directed layout.

@@ -1,6 +1,6 @@
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
-import type { LayoutProvider } from '../cytoscape-utils.ts';
+import type { LayoutProvider } from '../layout-utils.ts';
 
 /**
  * Dagre hierarchical layout (port of Graphviz dot).

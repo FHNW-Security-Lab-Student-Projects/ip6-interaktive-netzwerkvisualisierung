@@ -1,6 +1,6 @@
 import cytoscape from 'cytoscape';
 import fcose from 'cytoscape-fcose';
-import type { LayoutProvider } from '../cytoscape-utils.ts';
+import type { LayoutProvider } from '../layout-utils.ts';
 
 function register() {
   cytoscape.use(fcose);

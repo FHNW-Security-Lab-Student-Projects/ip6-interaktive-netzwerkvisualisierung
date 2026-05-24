@@ -1,6 +1,6 @@
 import cytoscape from 'cytoscape';
 import cola from 'cytoscape-cola';
-import type { LayoutProvider } from '../cytoscape-utils.ts';
+import type { LayoutProvider } from '../layout-utils.ts';
 
 /**
  * Cola (WebCola) constraint-based layout.
