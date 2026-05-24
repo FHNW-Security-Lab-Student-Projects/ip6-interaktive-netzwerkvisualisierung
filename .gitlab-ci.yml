@@ -15,34 +15,37 @@ stages:
 
 .node:
   image: node:lts-alpine
+  before_script:
+    - corepack enable
+    - pnpm config set store-dir .pnpm-store
   cache:
     key:
       files:
-        - package-lock.json
+        - pnpm-lock.yaml
     paths:
-      - node_modules/
+      - .pnpm-store/
 
 "Type-check 🔍":
   extends: .node
   stage: test
   script:
-    - npm ci
-    - npm run type-check
+    - pnpm install --frozen-lockfile
+    - pnpm run type-check
 
 "Lint 🧹":
   extends: .node
   stage: test
   script:
-    - npm ci
-    - npm run lint
+    - pnpm install --frozen-lockfile
+    - pnpm run lint
 
 "Build 🏗️":
   extends: .node
   stage: build
   needs: ["Type-check 🔍", "Lint 🧹"]
   script:
-    - npm ci
-    - npm run build
+    - pnpm install --frozen-lockfile
+    - pnpm run build
   artifacts:
     paths:
       - dist/
@@ -57,8 +60,8 @@ stages:
   stage: build
   needs: ["Type-check 🔍", "Lint 🧹"]
   script:
-    - npm ci
-    - npx vite build --base "/netviz/mr-${CI_MERGE_REQUEST_IID}/"
+    - pnpm install --frozen-lockfile
+    - pnpm exec vite build --base "/netviz/mr-${CI_MERGE_REQUEST_IID}/"
   artifacts:
     paths:
       - dist/
@@ -127,14 +130,16 @@ pages:
     GIT_DEPTH: "0"
   before_script:
     - apk add --no-cache git
-    - npm ci
+    - corepack enable
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --frozen-lockfile
     - git config --global --add safe.directory "$CI_PROJECT_DIR"
     - git config --global user.email "release-bot@${CI_SERVER_HOST}"
     - git config --global user.name "semantic-release"
     - git fetch --tags
     - git remote set-url origin "https://oauth2:${GL_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
   script:
-    - npx semantic-release
+    - pnpm exec semantic-release
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"'
       when: on_success
