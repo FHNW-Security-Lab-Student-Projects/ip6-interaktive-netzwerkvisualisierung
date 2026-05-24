@@ -1,10 +1,12 @@
 import cytoscape from 'cytoscape';
-import { runLayout, setupExpandCollapse } from '../cytoscape-utils.ts';
+import { runLayout } from '../layout-utils.ts';
+import { setupExpandCollapse } from '../expand-collapse.ts';
+import { fcoseProvider } from '../layout-providers/fcose.ts';
 import { createNetworkStyles } from '../network-styles.ts';
 import { createDeviceNode, createEdge, createGroupNode, createHostNode, NODE_HIERARCHY } from '../node-factory.ts';
 
-export const title = 'Hierarchy: Components';
-export const description = 'Illustrates different hierarchical components (routers, switches, hosts) with edges between them.';
+export const title = 'Hierarchy: Comparison of Serial vs Nested Grouping';
+export const description = 'This visualization demonstrates the difference between approaches to displaying / grouping nodes in a hierarchical graph: serial, grouping and nested grouping. Both graphs contain the same set of nodes and edges, but the way they are grouped differs.';
 
 const group = createGroupNode({ id: 'group', title: 'Group', label: 'Group' });
 const r1 = createDeviceNode({ id: 'r1', title: 'Router 1', label: 'R1', device_type: 'router' });
@@ -24,7 +26,11 @@ const s3 = createDeviceNode({ id: 's3', title: 'Switch 3', label: 'S3', device_t
 const u3 = createDeviceNode({ id: 'u3', title: 'Unclassified Device 3', label: 'U3', device_type: 'unknown', parent: s3 });
 const h3 = createHostNode({ id: 'h3', title: 'Host 3', label: 'H3', parent: s3 });
 
-const nodes = [group, groupNested, r1, s1, u1, h1, r2, s2, u2, h2, groupCompound, r3, s3, u3, h3];
+const r4 = createDeviceNode({ id: 'r4', title: 'Router 4', label: 'R4', device_type: 'router', parent: groupCompound });
+const s4 = createDeviceNode({ id: 's4', title: 'Switch 4', label: 'S4', device_type: 'switch', parent: r4 });
+
+
+const nodes = [group, groupNested, r1, s1, u1, h1, r2, s2, u2, h2, groupCompound, r3, s3, u3, h3, r4, s4];
 
 const edges = [
   createEdge({ source: r1, target: group }),
@@ -41,6 +47,9 @@ const edges = [
   createEdge({ source: s3, target: r3 }),
   createEdge({ source: u3, target: s3 }),
   createEdge({ source: h3, target: s3 }),
+
+  createEdge({ source: s4, target: r4 }),
+  
 ];
 
 const POSITIONS_KEY = `netviz-positions-${title}`;
@@ -54,6 +63,6 @@ export function mount(container: HTMLElement): void {
   });
 
   cy.style().update();
-  setupExpandCollapse(cy, nodes, edges, NODE_HIERARCHY);
-  runLayout(cy, POSITIONS_KEY, 0.2);
+  setupExpandCollapse(cy, nodes, edges, fcoseProvider, NODE_HIERARCHY);
+  runLayout(cy, POSITIONS_KEY, fcoseProvider, 0.2);
 }
