@@ -30,11 +30,11 @@ Optimal DX is achieved by using [Dev Containers](https://containers.dev/) via th
 
 2. Copy the `env.example` file to `.env.local` and adjust the parameters to your credentials and base URL.
 
-3. Install the dependencies by running `npm install` in the terminal.
+3. Install the dependencies by running `pnpm install` in the terminal.
 
-4. Generate the client code by running `npm run prepare`.
+4. Generate the client code by running `pnpm run prepare`.
 
-5. To start the client run `npm run dev`.
+5. To start the client run `pnpm run dev`.
 
 6. For debugging you can use the integrated debugger from VSCode or use the Debugger for Firefox plugin. The plugin is installed in the devcontainer but needs also to be added locally. [launch.json](.vscode/launch.json) is already configured for debugging with Firefox.
 
