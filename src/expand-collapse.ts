@@ -2,9 +2,46 @@ import cytoscape from 'cytoscape';
 import type { AnyTypedNode, TypedCytoscapeEdge, HierarchyLevel, NodeData } from './node-factory.ts';
 import type { LayoutProvider } from './layout-utils.ts';
 
-function runExpandCollapseLayout(cy: cytoscape.Core, layout: LayoutProvider): void {
+let activeLayout: cytoscape.Layouts | null = null;
+
+function capturePositions(cy: cytoscape.Core): Map<string, cytoscape.Position> {
+  const positions = new Map<string, cytoscape.Position>();
+  cy.nodes(':visible').forEach(n => {
+    positions.set((n as cytoscape.NodeSingular).id(), (n as cytoscape.NodeSingular).position());
+  });
+  return positions;
+}
+
+function runExpandCollapseLayout(
+  cy: cytoscape.Core,
+  layout: LayoutProvider,
+  snapshot: Map<string, cytoscape.Position>,
+  anchorId: string,
+): void {
   layout.register();
-  cy.layout(layout.expandCollapse()).run();
+
+  const bubbleZone = new Set<string>();
+  cy.$id(anchorId).neighborhood('node').forEach(n => {
+    if (snapshot.has((n as cytoscape.NodeSingular).id())) {
+      bubbleZone.add((n as cytoscape.NodeSingular).id());
+    }
+  });
+
+  const options = { ...layout.expandCollapse(), randomize: false };
+  const layoutInstance = cy.layout(options);
+
+  layoutInstance.on('layoutstop', () => {
+    snapshot.forEach((pos, nodeId) => {
+      if (!bubbleZone.has(nodeId) && nodeId !== anchorId) {
+        const node = cy.$id(nodeId);
+        if (node.length) (node as cytoscape.NodeSingular).position(pos);
+      }
+    });
+  });
+
+  activeLayout?.stop();
+  activeLayout = layoutInstance;
+  layoutInstance.run();
 }
 
 function getInitialNodes(rootNodes: AnyTypedNode[], hierarchy?: HierarchyLevel[]): AnyTypedNode[] {
@@ -199,8 +236,9 @@ export function setupExpandCollapse(
     const node = event.target as cytoscape.NodeSingular;
 
     if (node.hasClass('collapsed')) {
+      const snapshot = capturePositions(cy);
       doExpand(node);
-      runExpandCollapseLayout(cy, layout);
+      runExpandCollapseLayout(cy, layout, snapshot, node.id());
       return;
     }
 
@@ -210,7 +248,7 @@ export function setupExpandCollapse(
       const bb = node.renderedBoundingBox({ includeLabels: false, includeOverlays: false });
       if (clickY <= bb.y1 + LABEL_HIT_PX) {
         doCollapse(node);
-        runExpandCollapseLayout(cy, layout);
+        // No runExpandCollapseLayout — collapse removes nodes, remaining positions unchanged.
       }
     }
   });
