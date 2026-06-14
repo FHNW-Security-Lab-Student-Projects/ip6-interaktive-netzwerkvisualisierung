@@ -62,6 +62,11 @@ function getInitialNodes(rootNodes: AnyTypedNode[], hierarchy?: HierarchyLevel[]
   return rootNodes;
 }
 
+export interface ExpandCollapseOptions {
+  onNodeClick?: (nodeId: string, isCompound: boolean) => void;
+  onExpand?: (nodeId: string) => void;
+}
+
 // Wires up interactive expand/collapse for compound nodes.
 // Owns graph population: starts with root nodes only, adds/removes children on expand/collapse.
 // Tap collapsed node -> add children + animate layout.
@@ -74,6 +79,7 @@ export function setupExpandCollapse(
   layout: LayoutProvider,
   hierarchy?: HierarchyLevel[],
   initialExpand?: string | 'all' | 'none',
+  options?: ExpandCollapseOptions,
 ): void {
   function getDirectChildren(nodeId: string): AnyTypedNode[] {
     return nodes.filter(n => n.data.parent === nodeId);
@@ -227,11 +233,11 @@ export function setupExpandCollapse(
     }
   }
 
-  // Tap collapsed node -> expand. Tap expanded compound's label badge -> collapse.
-  // Label is at text-valign:'top'; check rendered Y against the top bb edge to hit-test it.
-  const LABEL_HIT_PX = 28;
+  // Prevent the browser's native context menu on the canvas.
+  cy.container()?.addEventListener('contextmenu', e => e.preventDefault());
 
-  cy.on('tap', 'node', event => {
+  // Right-click: expand collapsed compound / collapse expanded compound.
+  cy.on('cxttap', 'node', event => {
     event.stopPropagation();
     const node = event.target as cytoscape.NodeSingular;
 
@@ -239,17 +245,20 @@ export function setupExpandCollapse(
       const snapshot = capturePositions(cy);
       doExpand(node);
       runExpandCollapseLayout(cy, layout, snapshot, node.id());
+      options?.onExpand?.(node.id());
       return;
     }
 
     if (node.isParent()) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const clickY: number = (event as any).renderedPosition?.y ?? (event as any).cyRenderedPosition?.y;
-      const bb = node.renderedBoundingBox({ includeLabels: false, includeOverlays: false });
-      if (clickY <= bb.y1 + LABEL_HIT_PX) {
-        doCollapse(node);
-        // No runExpandCollapseLayout — collapse removes nodes, remaining positions unchanged.
-      }
+      doCollapse(node);
     }
+  });
+
+  // Left-click: fire onNodeClick for any node (leaf or compound).
+  cy.on('tap', 'node', event => {
+    event.stopPropagation();
+    const node = event.target as cytoscape.NodeSingular;
+    const isCompound = node.isParent() || node.hasClass('collapsed');
+    options?.onNodeClick?.(node.id(), isCompound);
   });
 }

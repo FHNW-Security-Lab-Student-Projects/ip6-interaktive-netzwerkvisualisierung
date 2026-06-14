@@ -48,7 +48,10 @@ async function renderVisualization(name: string): Promise<void> {
       </div>
       <a href="#" class="back-btn">&larr; Back</a>
     </header>
-    <div id="viz"></div>
+    <div id="viz-wrapper">
+      <div id="viz"></div>
+      <aside id="device-panel" hidden></aside>
+    </div>
   `;
   await mount(document.getElementById('viz')!);
 }
