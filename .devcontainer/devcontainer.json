@@ -14,7 +14,7 @@
     // Use 'portsAttributes' to set default properties for specific forwarded ports. 
     // More info: https://containers.dev/implementors/json_reference/#port-attributes
     // Use 'postCreateCommand' to run commands after the container is created.
-    "postCreateCommand": "pip install --upgrade pip && pip install -r requirements.txt && npm install",
+    "postCreateCommand": "pip install --upgrade pip && pip install -r requirements.txt && corepack enable && pnpm install",
     // Configure tool-specific properties.
     "customizations": {
         // Configure properties specific to VS Code.

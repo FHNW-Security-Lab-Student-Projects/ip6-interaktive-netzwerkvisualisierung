@@ -1,6 +1,8 @@
 import cytoscape from 'cytoscape';
-import image from '../../assets/cisco.png';
-import { createBaseStyles, runLayout, setupExpandCollapse } from '../cytoscape-utils.ts';
+import { runLayout } from '../layout-utils.ts';
+import { setupExpandCollapse } from '../expand-collapse.ts';
+import { fcoseProvider } from '../layout-providers/fcose.ts';
+import { createNetworkStyles } from '../network-styles.ts';
 import { createDeviceNode, createEdge, createGroupNode, NODE_HIERARCHY } from '../node-factory.ts';
 
 export const title = 'Hierarchy: Groups of Routers';
@@ -28,10 +30,10 @@ export function mount(container: HTMLElement): void {
     container,
     zoomingEnabled: true,
     wheelSensitivity: 0.1,
-    style: createBaseStyles(image),
+    style: createNetworkStyles(),
   });
 
   cy.style().update();
-  setupExpandCollapse(cy, nodes, edges, NODE_HIERARCHY);
-  runLayout(cy, POSITIONS_KEY, 0.2);
+  setupExpandCollapse(cy, nodes, edges, fcoseProvider, NODE_HIERARCHY);
+  runLayout(cy, POSITIONS_KEY, fcoseProvider, 0.2);
 }

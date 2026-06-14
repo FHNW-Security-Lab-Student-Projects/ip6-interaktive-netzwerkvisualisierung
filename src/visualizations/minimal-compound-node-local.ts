@@ -1,6 +1,7 @@
 import cytoscape from 'cytoscape';
-import image from '../../assets/cisco.png';
-import { createBaseStyles, runLayout } from '../cytoscape-utils.ts';
+import { runLayout } from '../layout-utils.ts';
+import { fcoseProvider } from '../layout-providers/fcose.ts';
+import { createNetworkStyles } from '../network-styles.ts';
 import { createDeviceNode, createEdge, createGroupNode } from '../node-factory.ts';
 
 export const title = 'Minimal Example Local: HQ with 3 routers';
@@ -27,11 +28,11 @@ export function mount(container: HTMLElement): void {
     container,
     zoomingEnabled: true,
     wheelSensitivity: 0.1,
-    style: createBaseStyles(image),
+    style: createNetworkStyles(),
   });
 
   cy.add(nodes as cytoscape.ElementDefinition[]);
   cy.add(edges as cytoscape.ElementDefinition[]);
   cy.style().update();
-  runLayout(cy, POSITIONS_KEY, 1);
+  runLayout(cy, POSITIONS_KEY, fcoseProvider, 1);
 }

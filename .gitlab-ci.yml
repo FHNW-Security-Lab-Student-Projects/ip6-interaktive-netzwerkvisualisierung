@@ -15,43 +15,66 @@ stages:
 
 .node:
   image: node:lts-alpine
+  before_script:
+    - corepack enable
+    - pnpm config set store-dir .pnpm-store
   cache:
     key:
       files:
-        - package-lock.json
+        - pnpm-lock.yaml
     paths:
-      - node_modules/
+      - .pnpm-store/
 
 "Type-check 🔍":
   extends: .node
   stage: test
   script:
-    - npm ci
-    - npm run type-check
+    - pnpm install --frozen-lockfile
+    - pnpm run type-check
 
 "Lint 🧹":
   extends: .node
   stage: test
   script:
-    - npm ci
-    - npm run lint
+    - pnpm install --frozen-lockfile
+    - pnpm run lint
 
 "Build 🏗️":
   extends: .node
   stage: build
   needs: ["Type-check 🔍", "Lint 🧹"]
   script:
-    - npm ci
-    - npm run build
+    - pnpm install --frozen-lockfile
+    - pnpm run build
   artifacts:
     paths:
       - dist/
     expire_in: 1 week
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - when: on_success
+
+"Build Review 🏗️":
+  extends: .node
+  stage: build
+  needs: ["Type-check 🔍", "Lint 🧹"]
+  script:
+    - pnpm install --frozen-lockfile
+    - pnpm exec vite build --base "/netviz/mr-${CI_MERGE_REQUEST_IID}/"
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 2 weeks
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
 pages:
   extends: .node
   stage: deploy
   needs: ["Build 🏗️"]
+  pages:
+    path_prefix: ""
   script:
     - cp -r dist/ public/
   artifacts:
@@ -63,6 +86,42 @@ pages:
       when: on_success
     - when: never
 
+"Deploy Review 🔍":
+  extends: .node
+  stage: deploy
+  needs: ["Build Review 🏗️"]
+  pages:
+    path_prefix: "mr-${CI_MERGE_REQUEST_IID}"
+  script:
+    - cp -r dist/ public/
+  artifacts:
+    paths:
+      - public/
+    expire_in: 2 weeks
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    url: https://ip6-26bb_netviz.pages.fhnw.ch/netviz/mr-${CI_MERGE_REQUEST_IID}/
+    on_stop: "Stop Review 🗑️"
+    auto_stop_in: 2 weeks
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: on_success
+
+"Stop Review 🗑️":
+  image: alpine:latest
+  stage: deploy
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - echo "Review environment for $CI_COMMIT_REF_SLUG stopped."
+  environment:
+    name: review/$CI_COMMIT_REF_SLUG
+    action: stop
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+    - when: never
+
 "Release 🚀":
   extends: .node
   stage: release
@@ -71,14 +130,16 @@ pages:
     GIT_DEPTH: "0"
   before_script:
     - apk add --no-cache git
-    - npm ci
+    - corepack enable
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --frozen-lockfile
     - git config --global --add safe.directory "$CI_PROJECT_DIR"
     - git config --global user.email "release-bot@${CI_SERVER_HOST}"
     - git config --global user.name "semantic-release"
     - git fetch --tags
     - git remote set-url origin "https://oauth2:${GL_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
   script:
-    - npx semantic-release
+    - pnpm exec semantic-release
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"'
       when: on_success

@@ -1,6 +1,6 @@
 import cytoscape from 'cytoscape';
-import image from '../../assets/cisco.png';
 import { getBasegraph } from '../generated/sdk.gen.ts';
+import { createNetworkStyles } from '../network-styles.ts';
 
 export const title = 'Minimal Example';
 export const description = 'Basic network graph loaded from the base graph API. Displays all nodes and edges from the default snapshot with Cisco device icons.';
@@ -31,30 +31,7 @@ export async function mount(container: HTMLElement): Promise<void> {
     container,
     zoomingEnabled: true,
     wheelSensitivity: 0.1,
-    style: [
-      {
-        selector: 'node:childless',
-        style: {
-          'background-opacity': 0,
-          'background-image': image,
-          'background-fit': 'cover',
-          'text-wrap': 'wrap',
-          'label': (ele: cytoscape.NodeSingular) => (ele.data('label') as string) ?? 'Default Label',
-          'font-size': '8px',
-          'text-valign': 'bottom',
-          'text-margin-y': 4,
-          'z-index': 1,
-        },
-      },
-      {
-        selector: 'edge',
-        style: {
-          'line-color': '#ff0000',
-          'width': 2,
-          'z-index': 1,
-        },
-      },
-    ],
+    style: createNetworkStyles(),
   });
 
   cy.add(nodes);
