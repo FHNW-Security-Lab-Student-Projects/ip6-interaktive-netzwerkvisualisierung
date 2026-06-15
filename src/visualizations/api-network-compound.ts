@@ -7,7 +7,7 @@ import type { AnyTypedNode, TypedCytoscapeEdge } from '../node-factory.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
 import basegraph from '../fixtures/basegraph.json';
 import { groupByUpstreamNode } from '../graph-transforms.ts';
-import { NodeDetailPanel } from '../components/index.ts';
+import { setupNodeDetailPanel } from '../components/index.ts';
 
 export const title = 'API Network: Compound Graph';
 export const description =
@@ -59,41 +59,9 @@ export function mount(container: HTMLElement): void {
     style: createNetworkStyles(),
   });
 
-  const panelEl = document.getElementById('device-panel');
-  if (!panelEl) return;
-  const panel = new NodeDetailPanel(panelEl);
-
-  let selectedNodeId: string | null = null;
-
-  const updatePanel = (nodeId: string) => {
-    const node = cy.$id(nodeId);
-    const nodeType = node.data('node_type') as string | undefined;
-    const isCollapsed = node.hasClass('collapsed');
-    if (nodeType === 'group' || isCollapsed) {
-      panel.showPlaceholder(nodeId, node.data('label') as string | undefined);
-    } else {
-      panel.show(nodeId, {
-        networkId: NETWORK_ID,
-        snapshotId: SNAPSHOT_ID,
-        nodeType: node.data('node_type') as string | undefined,
-        deviceType: node.data('device_type') as string | undefined,
-      });
-    }
-  };
-
   cy.style().update();
-  setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'none', {
-    onNodeClick: (nodeId) => {
-      selectedNodeId = nodeId;
-      updatePanel(nodeId);
-    },
-    onExpand: (nodeId) => {
-      if (nodeId === selectedNodeId) updatePanel(nodeId);
-    },
-  });
+  setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'none',
+    setupNodeDetailPanel(cy, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID }),
+  );
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);
-
-  cy.on('tap', event => {
-    if (event.target === cy) panel.hide();
-  });
 }

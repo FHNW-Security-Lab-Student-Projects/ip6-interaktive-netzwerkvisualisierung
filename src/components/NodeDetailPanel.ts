@@ -1,7 +1,44 @@
+import type cytoscape from 'cytoscape';
 import { getDevice } from '../generated/sdk.gen.ts';
 import type { DeviceResponse } from '../generated/types.gen.ts';
+import type { ExpandCollapseOptions } from '../expand-collapse.ts';
 import { buildHeader } from './panel/header.ts';
 import { buildSections } from './panel/sections.ts';
+
+export function setupNodeDetailPanel(
+  cy: cytoscape.Core,
+  opts?: { networkId?: number; snapshotId?: number },
+): ExpandCollapseOptions {
+  const panelEl = document.getElementById('device-panel');
+  if (!panelEl) return {};
+
+  const panel = new NodeDetailPanel(panelEl);
+  let selectedNodeId: string | null = null;
+
+  const updatePanel = (nodeId: string) => {
+    const node = cy.$id(nodeId);
+    const nodeType = node.data('node_type') as string | undefined;
+    const isCollapsed = node.hasClass('collapsed');
+    if (nodeType === 'group' || isCollapsed) {
+      panel.showPlaceholder(nodeId, node.data('label') as string | undefined);
+    } else {
+      panel.show(nodeId, {
+        ...opts,
+        nodeType,
+        deviceType: node.data('device_type') as string | undefined,
+      });
+    }
+  };
+
+  cy.on('tap', event => {
+    if (event.target === cy) panel.hide();
+  });
+
+  return {
+    onNodeClick: (nodeId) => { selectedNodeId = nodeId; updatePanel(nodeId); },
+    onExpand: (nodeId) => { if (nodeId === selectedNodeId) updatePanel(nodeId); },
+  };
+}
 
 export class NodeDetailPanel {
   private container: HTMLElement;
