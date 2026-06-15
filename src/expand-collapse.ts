@@ -4,11 +4,18 @@ import type { LayoutProvider } from './layout-utils.ts';
 
 let activeLayout: cytoscape.Layouts | null = null;
 
-// Iteratively nudges sibling compound bounding boxes apart until no overlaps remain.
+// Iteratively nudges sibling compound bounding boxes apart until no overlaps remain,
+// then animates from the pre-separation positions to the final ones.
 // Nested compounds (one is ancestor of the other) are intentionally skipped.
 function separateSiblingCompounds(cy: cytoscape.Core): void {
   const compounds = cy.nodes(':parent:not(.collapsed)').toArray() as cytoscape.NodeSingular[];
   if (compounds.length < 2) return;
+
+  const allLeaves = cy.nodes(':parent:not(.collapsed)').descendants().not(':parent');
+  const startPos = new Map<string, cytoscape.Position>();
+  allLeaves.forEach(n => {
+    startPos.set((n as cytoscape.NodeSingular).id(), { ...(n as cytoscape.NodeSingular).position() });
+  });
 
   let changed = true;
   let iterations = 0;
@@ -42,12 +49,27 @@ function separateSiblingCompounds(cy: cytoscape.Core): void {
           dy = cAy < cBy ? -push : push;
         }
 
-        // To move a compound, shift all its leaf descendants (compound positions derive from children).
         a.descendants().not(':parent').shift({ x: dx, y: dy });
         b.descendants().not(':parent').shift({ x: -dx, y: -dy });
       }
     }
   }
+
+  // Capture converged positions, restore starts, then animate to finals.
+  const endPos = new Map<string, cytoscape.Position>();
+  allLeaves.forEach(n => {
+    const id = (n as cytoscape.NodeSingular).id();
+    endPos.set(id, { ...(n as cytoscape.NodeSingular).position() });
+    (n as cytoscape.NodeSingular).position(startPos.get(id)!);
+  });
+  allLeaves.forEach(n => {
+    const id = (n as cytoscape.NodeSingular).id();
+    const s = startPos.get(id)!;
+    const e = endPos.get(id)!;
+    if (Math.abs(e.x - s.x) > 0.5 || Math.abs(e.y - s.y) > 0.5) {
+      (n as cytoscape.NodeSingular).animate({ position: e }, { duration: 300 });
+    }
+  });
 }
 
 function capturePositions(cy: cytoscape.Core): Map<string, cytoscape.Position> {
@@ -66,27 +88,34 @@ function runExpandCollapseLayout(
 ): void {
   layout.register();
 
+  // Bubble zone: all visible nodes inside the anchor's immediate parent compound.
+  // If the anchor has no parent (root-level), fall back to edge neighbors.
+  // Everything outside the bubble zone is locked so the expand stays local.
   const bubbleZone = new Set<string>();
-  cy.$id(anchorId).neighborhood('node').forEach(n => {
-    if (snapshot.has((n as cytoscape.NodeSingular).id())) {
-      bubbleZone.add((n as cytoscape.NodeSingular).id());
-    }
-  });
+  const anchorParent = cy.$id(anchorId).parent();
+  if (anchorParent.length) {
+    anchorParent.descendants().forEach(n => {
+      if (snapshot.has((n as cytoscape.NodeSingular).id()))
+        bubbleZone.add((n as cytoscape.NodeSingular).id());
+    });
+  } else {
+    cy.$id(anchorId).neighborhood('node').forEach(n => {
+      if (snapshot.has((n as cytoscape.NodeSingular).id()))
+        bubbleZone.add((n as cytoscape.NodeSingular).id());
+    });
+  }
 
-  // Lock outer nodes at their saved positions before running the layout so
-  // fCOSE treats them as fixed anchors. Without this, fCOSE moves them during
-  // the run and places the expanded children relative to those shifted positions;
-  // restoring the outer nodes afterwards then creates edge crossings because the
-  // children were optimised against the wrong coordinates.
+  // Lock outer leaf nodes. Compound nodes are skipped: fCOSE positions them from
+  // their children, so locking only a compound parent doesn't prevent fCOSE from
+  // moving its children. Locking the leaves achieves the same effect reliably.
   const locked: string[] = [];
   snapshot.forEach((pos, nodeId) => {
-    if (!bubbleZone.has(nodeId) && nodeId !== anchorId) {
-      const node = cy.$id(nodeId);
-      if (!node.length) return;
-      (node as cytoscape.NodeSingular).position(pos);
-      (node as cytoscape.NodeSingular).lock();
-      locked.push(nodeId);
-    }
+    if (bubbleZone.has(nodeId) || nodeId === anchorId) return;
+    const node = cy.$id(nodeId) as cytoscape.NodeSingular;
+    if (!node.length || node.isParent()) return;
+    node.position(pos);
+    node.lock();
+    locked.push(nodeId);
   });
 
   const options = { ...layout.expandCollapse(), randomize: false };

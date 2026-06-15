@@ -61,7 +61,6 @@ export const fcoseLargeProvider: LayoutProvider = {
       idealEdgeLength: 250,
       nodeSeparation: 250,
       nodeRepulsion: 45000,
-      packComponents: true,
       gravityCompound: 0.2,
       gravityRangeCompound: 1.5,
     } as cytoscape.LayoutOptions;
