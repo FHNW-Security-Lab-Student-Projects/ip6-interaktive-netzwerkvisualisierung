@@ -72,7 +72,12 @@ export function mount(container: HTMLElement): void {
     if (nodeType === 'group' || isCollapsed) {
       panel.showPlaceholder(nodeId, node.data('label') as string | undefined);
     } else {
-      panel.show(nodeId, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
+      panel.show(nodeId, {
+        networkId: NETWORK_ID,
+        snapshotId: SNAPSHOT_ID,
+        nodeType: node.data('node_type') as string | undefined,
+        deviceType: node.data('device_type') as string | undefined,
+      });
     }
   };
 

@@ -2,7 +2,7 @@ import ciscoLogo from '../../../assets/cisco.png';
 import type { DeviceResponse } from '../../generated/types.gen.ts';
 import { makeCopyable, makeChip, formatTimestamp, formatDateString } from './utils.ts';
 
-export function buildHeader(device: DeviceResponse): HTMLElement {
+export function buildHeader(device: DeviceResponse, context?: { nodeType?: string; deviceType?: string }): HTMLElement {
   const info = device.data;
   const header = document.createElement('div');
   header.className = 'panel-header';
@@ -48,6 +48,8 @@ export function buildHeader(device: DeviceResponse): HTMLElement {
     makeCopyable(chip, text);
     chips.append(chip);
   };
+  if (context?.nodeType)      addChip(context.nodeType);
+  if (context?.deviceType)    addChip(context.deviceType);
   if (info.version?.vendor)   addChip(info.version.vendor);
   if (info.version?.model)    addChip(info.version.model);
   if (info.version?.software) addChip(info.version.software);

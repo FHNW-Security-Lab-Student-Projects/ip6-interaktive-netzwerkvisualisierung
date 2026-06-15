@@ -39,7 +39,7 @@ export class NodeDetailPanel {
     });
   }
 
-  async show(deviceId: string, opts?: { networkId?: number; snapshotId?: number }): Promise<void> {
+  async show(deviceId: string, opts?: { networkId?: number; snapshotId?: number; nodeType?: string; deviceType?: string }): Promise<void> {
     this.container.removeAttribute('hidden');
     this.setContent(this.buildLoading());
 
@@ -56,7 +56,7 @@ export class NodeDetailPanel {
       return;
     }
 
-    this.setContent(this.buildPanel(data.data));
+    this.setContent(this.buildPanel(data.data, { nodeType: opts?.nodeType, deviceType: opts?.deviceType }));
   }
 
   showPlaceholder(nodeId: string, label?: string): void {
@@ -74,10 +74,10 @@ export class NodeDetailPanel {
     this.content.append(el);
   }
 
-  private buildPanel(device: DeviceResponse): HTMLElement {
+  private buildPanel(device: DeviceResponse, context?: { nodeType?: string; deviceType?: string }): HTMLElement {
     const wrapper = document.createElement('div');
     wrapper.append(
-      buildHeader(device),
+      buildHeader(device, context),
       buildSections(device.data, this.openAccordions, (lbl, isOpen) => {
         if (isOpen) { this.openAccordions.add(lbl); } else { this.openAccordions.delete(lbl); }
       }),
