@@ -1,3 +1,10 @@
+## [1.5.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.4.0...v1.5.0) (2026-06-15)
+
+### Features
+
+* add initial toolbar with recursive expand/collapse support ([d67508e](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/d67508e6e5fee7cca25246d7d4402e3ce8e8f7ba))
+* implement search functionality in toolbar with dropdown support ([888e30d](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/888e30dc86c8b89024302a07925515a9ffe02c1e))
+
 ## [1.4.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.3.0...v1.4.0) (2026-06-15)
 
 ### Features
