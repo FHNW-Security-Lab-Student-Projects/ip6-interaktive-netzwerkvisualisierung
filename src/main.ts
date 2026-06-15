@@ -47,8 +47,8 @@ async function renderVisualization(name: string): Promise<void> {
     </div>
     <footer>
       <div class="footer-top">
-        <a href="#" class="back-btn">&larr; Back</a>
         ${title ? `<h1>${title}</h1>` : ''}
+        <a href="#" class="back-btn">&larr; Back</a>
       </div>
       ${description ? `<p>${description}</p>` : ''}
     </footer>

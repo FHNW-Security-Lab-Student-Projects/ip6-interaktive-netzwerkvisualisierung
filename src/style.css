@@ -33,7 +33,7 @@ footer {
 .footer-top {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
 }
 
 footer h1 {
