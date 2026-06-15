@@ -13,15 +13,6 @@ body {
   height: 100vh;
 }
 
-header {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid #ddd;
-}
-
 .back-btn {
   font-size: 0.85rem;
   color: #555;
@@ -33,13 +24,25 @@ header {
   color: #000;
 }
 
-header h1 {
+footer {
+  flex: none;
+  padding: 12px 16px;
+  border-top: 1px solid #ddd;
+}
+
+.footer-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+footer h1 {
   margin: 0 0 4px;
   font-size: 1.1rem;
 }
 
-header p {
-  margin: 0;
+footer p {
+  margin: 4px 0 0;
   font-size: 0.85rem;
   color: #555;
 }
