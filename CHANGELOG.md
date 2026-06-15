@@ -1,3 +1,22 @@
+## [1.4.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.3.0...v1.4.0) (2026-06-15)
+
+### Features
+
+* enhance NodeDetailPanel and header to support additional context parameters ([aa8154e](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/aa8154ec9887da77d07369e02b2ae94bac112532))
+* enhance sibling compound separation and animation in expand/collapse layout ([c3c2109](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/c3c2109e975073ad39e4c27b2cfc15f90c871998))
+* implement sibling compound separation in expand/collapse layout ([4f32180](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/4f3218083429f78c7763500b910bfdd70b2894eb))
+* integrate devices endpoint and add context menu ([c817e6d](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/c817e6d9265ff91b14e88a4844b380999f681774))
+
+### Bug Fixes
+
+* lock outer nodes during layout execution ([0533010](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/0533010d99ba87ae4af841619066ff3402d0eff6))
+
+### Refactoring
+
+* extract panel setup to improve composition ([3da0718](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/3da071840a34c119270b639e01a829b74f192520))
+* float back button right ([9eb8b82](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/9eb8b829d0d09ad9daf9d4165d61b3c935c436c7))
+* move title bar to bottom of stage ([32a50fe](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/32a50fe4dba3d05c1ce4f977b0c25da5acd0be1e))
+
 ## [1.3.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.2.0...v1.3.0) (2026-06-14)
 
 ### Features
