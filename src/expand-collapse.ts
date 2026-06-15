@@ -4,6 +4,52 @@ import type { LayoutProvider } from './layout-utils.ts';
 
 let activeLayout: cytoscape.Layouts | null = null;
 
+// Iteratively nudges sibling compound bounding boxes apart until no overlaps remain.
+// Nested compounds (one is ancestor of the other) are intentionally skipped.
+function separateSiblingCompounds(cy: cytoscape.Core): void {
+  const compounds = cy.nodes(':parent:not(.collapsed)').toArray() as cytoscape.NodeSingular[];
+  if (compounds.length < 2) return;
+
+  let changed = true;
+  let iterations = 0;
+  while (changed && iterations++ < 20) {
+    changed = false;
+    for (let i = 0; i < compounds.length; i++) {
+      for (let j = i + 1; j < compounds.length; j++) {
+        const a = compounds[i];
+        const b = compounds[j];
+        if (a.ancestors().has(b) || b.ancestors().has(a)) continue;
+
+        const bbA = a.boundingBox({});
+        const bbB = b.boundingBox({});
+        const overlapX = Math.min(bbA.x2, bbB.x2) - Math.max(bbA.x1, bbB.x1);
+        const overlapY = Math.min(bbA.y2, bbB.y2) - Math.max(bbA.y1, bbB.y1);
+        if (overlapX <= 0 || overlapY <= 0) continue;
+
+        changed = true;
+        const margin = 20;
+        const cAx = (bbA.x1 + bbA.x2) / 2;
+        const cAy = (bbA.y1 + bbA.y2) / 2;
+        const cBx = (bbB.x1 + bbB.x2) / 2;
+        const cBy = (bbB.y1 + bbB.y2) / 2;
+
+        let dx = 0, dy = 0;
+        if (overlapX < overlapY) {
+          const push = (overlapX + margin) / 2;
+          dx = cAx < cBx ? -push : push;
+        } else {
+          const push = (overlapY + margin) / 2;
+          dy = cAy < cBy ? -push : push;
+        }
+
+        // To move a compound, shift all its leaf descendants (compound positions derive from children).
+        a.descendants().not(':parent').shift({ x: dx, y: dy });
+        b.descendants().not(':parent').shift({ x: -dx, y: -dy });
+      }
+    }
+  }
+}
+
 function capturePositions(cy: cytoscape.Core): Map<string, cytoscape.Position> {
   const positions = new Map<string, cytoscape.Position>();
   cy.nodes(':visible').forEach(n => {
@@ -51,6 +97,7 @@ function runExpandCollapseLayout(
       const node = cy.$id(nodeId);
       if (node.length) (node as cytoscape.NodeSingular).unlock();
     });
+    separateSiblingCompounds(cy);
   });
 
   activeLayout?.stop();
@@ -157,27 +204,16 @@ export function setupExpandCollapse(
   function doExpand(node: cytoscape.NodeSingular): void {
     const children = getDirectChildren(node.id());
     const parentPos = node.position();
-    const RADIUS = 80;
-
-    const rawPositions = children.map((child, i) => {
-      if (savedPositions.has(child.data.id)) {
-        return savedPositions.get(child.data.id)!;
-      }
-      const angle = (2 * Math.PI * i) / children.length;
-      return { x: parentPos.x + RADIUS * Math.cos(angle), y: parentPos.y + RADIUS * Math.sin(angle) };
-    });
-
-    const xs = rawPositions.map(p => p.x);
-    const ys = rawPositions.map(p => p.y);
-    const dx = parentPos.x - (Math.min(...xs) + Math.max(...xs)) / 2;
-    const dy = parentPos.y - (Math.min(...ys) + Math.max(...ys)) / 2;
-    const finalPositions = rawPositions.map(p => ({ x: p.x + dx, y: p.y + dy }));
 
     // Batch to skip the intermediate (0,0) state; syncEdges runs after so ancestor() is current.
     cy.batch(() => {
       cy.add(children as cytoscape.ElementDefinition[]);
-      children.forEach((child, i) => {
-        (cy.$id(child.data.id) as cytoscape.NodeSingular).position(finalPositions[i]);
+      children.forEach(child => {
+        // Restore saved position if known; otherwise jitter slightly around parent so fCOSE
+        // repulsion forces have a direction to work with (pure pile = degenerate config).
+        const jitter = () => (Math.random() - 0.5) * 20;
+        const pos = savedPositions.get(child.data.id) ?? { x: parentPos.x + jitter(), y: parentPos.y + jitter() };
+        (cy.$id(child.data.id) as cytoscape.NodeSingular).position(pos);
         if (isExpandable(child.data.id)) cy.$id(child.data.id).addClass('collapsed');
       });
       node.removeClass('collapsed');
