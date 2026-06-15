@@ -59,9 +59,9 @@ export const fcoseLargeProvider: LayoutProvider = {
       animationDuration: 400,
       quality: 'proof',
       idealEdgeLength: 250,
-      nodeSeparation: 150,
-      packComponents: true,
-      gravityCompound: 0.5,
+      nodeSeparation: 250,
+      nodeRepulsion: 45000,
+      gravityCompound: 0.2,
       gravityRangeCompound: 1.5,
     } as cytoscape.LayoutOptions;
   },

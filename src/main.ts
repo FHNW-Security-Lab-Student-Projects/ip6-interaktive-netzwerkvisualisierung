@@ -41,14 +41,17 @@ async function renderVisualization(name: string): Promise<void> {
   const { title, description, mount } = await load();
   currentPositionsKey = title ? `netviz-positions-${title}` : null;
   app.innerHTML = `
-    <header>
-      <div>
+    <div id="viz-wrapper">
+      <div id="viz"></div>
+      <aside id="device-panel" hidden></aside>
+    </div>
+    <footer>
+      <div class="footer-top">
         ${title ? `<h1>${title}</h1>` : ''}
-        ${description ? `<p>${description}</p>` : ''}
+        <a href="#" class="back-btn">&larr; Back</a>
       </div>
-      <a href="#" class="back-btn">&larr; Back</a>
-    </header>
-    <div id="viz"></div>
+      ${description ? `<p>${description}</p>` : ''}
+    </footer>
   `;
   await mount(document.getElementById('viz')!);
 }

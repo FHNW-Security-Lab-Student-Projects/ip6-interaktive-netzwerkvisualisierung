@@ -4,6 +4,74 @@ import type { LayoutProvider } from './layout-utils.ts';
 
 let activeLayout: cytoscape.Layouts | null = null;
 
+// Iteratively nudges sibling compound bounding boxes apart until no overlaps remain,
+// then animates from the pre-separation positions to the final ones.
+// Nested compounds (one is ancestor of the other) are intentionally skipped.
+function separateSiblingCompounds(cy: cytoscape.Core): void {
+  const compounds = cy.nodes(':parent:not(.collapsed)').toArray() as cytoscape.NodeSingular[];
+  if (compounds.length < 2) return;
+
+  const allLeaves = cy.nodes(':parent:not(.collapsed)').descendants().not(':parent');
+  const startPos = new Map<string, cytoscape.Position>();
+  allLeaves.forEach(n => {
+    startPos.set((n as cytoscape.NodeSingular).id(), { ...(n as cytoscape.NodeSingular).position() });
+  });
+
+  let changed = true;
+  let iterations = 0;
+  while (changed && iterations++ < 20) {
+    changed = false;
+    for (let i = 0; i < compounds.length; i++) {
+      for (let j = i + 1; j < compounds.length; j++) {
+        const a = compounds[i];
+        const b = compounds[j];
+        if (a.ancestors().has(b) || b.ancestors().has(a)) continue;
+
+        const bbA = a.boundingBox({});
+        const bbB = b.boundingBox({});
+        const overlapX = Math.min(bbA.x2, bbB.x2) - Math.max(bbA.x1, bbB.x1);
+        const overlapY = Math.min(bbA.y2, bbB.y2) - Math.max(bbA.y1, bbB.y1);
+        if (overlapX <= 0 || overlapY <= 0) continue;
+
+        changed = true;
+        const margin = 20;
+        const cAx = (bbA.x1 + bbA.x2) / 2;
+        const cAy = (bbA.y1 + bbA.y2) / 2;
+        const cBx = (bbB.x1 + bbB.x2) / 2;
+        const cBy = (bbB.y1 + bbB.y2) / 2;
+
+        let dx = 0, dy = 0;
+        if (overlapX < overlapY) {
+          const push = (overlapX + margin) / 2;
+          dx = cAx < cBx ? -push : push;
+        } else {
+          const push = (overlapY + margin) / 2;
+          dy = cAy < cBy ? -push : push;
+        }
+
+        a.descendants().not(':parent').shift({ x: dx, y: dy });
+        b.descendants().not(':parent').shift({ x: -dx, y: -dy });
+      }
+    }
+  }
+
+  // Capture converged positions, restore starts, then animate to finals.
+  const endPos = new Map<string, cytoscape.Position>();
+  allLeaves.forEach(n => {
+    const id = (n as cytoscape.NodeSingular).id();
+    endPos.set(id, { ...(n as cytoscape.NodeSingular).position() });
+    (n as cytoscape.NodeSingular).position(startPos.get(id)!);
+  });
+  allLeaves.forEach(n => {
+    const id = (n as cytoscape.NodeSingular).id();
+    const s = startPos.get(id)!;
+    const e = endPos.get(id)!;
+    if (Math.abs(e.x - s.x) > 0.5 || Math.abs(e.y - s.y) > 0.5) {
+      (n as cytoscape.NodeSingular).animate({ position: e }, { duration: 300 });
+    }
+  });
+}
+
 function capturePositions(cy: cytoscape.Core): Map<string, cytoscape.Position> {
   const positions = new Map<string, cytoscape.Position>();
   cy.nodes(':visible').forEach(n => {
@@ -20,23 +88,45 @@ function runExpandCollapseLayout(
 ): void {
   layout.register();
 
+  // Bubble zone: all visible nodes inside the anchor's immediate parent compound.
+  // If the anchor has no parent (root-level), fall back to edge neighbors.
+  // Everything outside the bubble zone is locked so the expand stays local.
   const bubbleZone = new Set<string>();
-  cy.$id(anchorId).neighborhood('node').forEach(n => {
-    if (snapshot.has((n as cytoscape.NodeSingular).id())) {
-      bubbleZone.add((n as cytoscape.NodeSingular).id());
-    }
+  const anchorParent = cy.$id(anchorId).parent();
+  if (anchorParent.length) {
+    anchorParent.descendants().forEach(n => {
+      if (snapshot.has((n as cytoscape.NodeSingular).id()))
+        bubbleZone.add((n as cytoscape.NodeSingular).id());
+    });
+  } else {
+    cy.$id(anchorId).neighborhood('node').forEach(n => {
+      if (snapshot.has((n as cytoscape.NodeSingular).id()))
+        bubbleZone.add((n as cytoscape.NodeSingular).id());
+    });
+  }
+
+  // Lock outer leaf nodes. Compound nodes are skipped: fCOSE positions them from
+  // their children, so locking only a compound parent doesn't prevent fCOSE from
+  // moving its children. Locking the leaves achieves the same effect reliably.
+  const locked: string[] = [];
+  snapshot.forEach((pos, nodeId) => {
+    if (bubbleZone.has(nodeId) || nodeId === anchorId) return;
+    const node = cy.$id(nodeId) as cytoscape.NodeSingular;
+    if (!node.length || node.isParent()) return;
+    node.position(pos);
+    node.lock();
+    locked.push(nodeId);
   });
 
   const options = { ...layout.expandCollapse(), randomize: false };
   const layoutInstance = cy.layout(options);
 
   layoutInstance.on('layoutstop', () => {
-    snapshot.forEach((pos, nodeId) => {
-      if (!bubbleZone.has(nodeId) && nodeId !== anchorId) {
-        const node = cy.$id(nodeId);
-        if (node.length) (node as cytoscape.NodeSingular).position(pos);
-      }
+    locked.forEach(nodeId => {
+      const node = cy.$id(nodeId);
+      if (node.length) (node as cytoscape.NodeSingular).unlock();
     });
+    separateSiblingCompounds(cy);
   });
 
   activeLayout?.stop();
@@ -62,6 +152,11 @@ function getInitialNodes(rootNodes: AnyTypedNode[], hierarchy?: HierarchyLevel[]
   return rootNodes;
 }
 
+export interface ExpandCollapseOptions {
+  onNodeClick?: (nodeId: string, isCompound: boolean) => void;
+  onExpand?: (nodeId: string) => void;
+}
+
 // Wires up interactive expand/collapse for compound nodes.
 // Owns graph population: starts with root nodes only, adds/removes children on expand/collapse.
 // Tap collapsed node -> add children + animate layout.
@@ -74,6 +169,7 @@ export function setupExpandCollapse(
   layout: LayoutProvider,
   hierarchy?: HierarchyLevel[],
   initialExpand?: string | 'all' | 'none',
+  options?: ExpandCollapseOptions,
 ): void {
   function getDirectChildren(nodeId: string): AnyTypedNode[] {
     return nodes.filter(n => n.data.parent === nodeId);
@@ -137,27 +233,16 @@ export function setupExpandCollapse(
   function doExpand(node: cytoscape.NodeSingular): void {
     const children = getDirectChildren(node.id());
     const parentPos = node.position();
-    const RADIUS = 80;
-
-    const rawPositions = children.map((child, i) => {
-      if (savedPositions.has(child.data.id)) {
-        return savedPositions.get(child.data.id)!;
-      }
-      const angle = (2 * Math.PI * i) / children.length;
-      return { x: parentPos.x + RADIUS * Math.cos(angle), y: parentPos.y + RADIUS * Math.sin(angle) };
-    });
-
-    const xs = rawPositions.map(p => p.x);
-    const ys = rawPositions.map(p => p.y);
-    const dx = parentPos.x - (Math.min(...xs) + Math.max(...xs)) / 2;
-    const dy = parentPos.y - (Math.min(...ys) + Math.max(...ys)) / 2;
-    const finalPositions = rawPositions.map(p => ({ x: p.x + dx, y: p.y + dy }));
 
     // Batch to skip the intermediate (0,0) state; syncEdges runs after so ancestor() is current.
     cy.batch(() => {
       cy.add(children as cytoscape.ElementDefinition[]);
-      children.forEach((child, i) => {
-        (cy.$id(child.data.id) as cytoscape.NodeSingular).position(finalPositions[i]);
+      children.forEach(child => {
+        // Restore saved position if known; otherwise jitter slightly around parent so fCOSE
+        // repulsion forces have a direction to work with (pure pile = degenerate config).
+        const jitter = () => (Math.random() - 0.5) * 20;
+        const pos = savedPositions.get(child.data.id) ?? { x: parentPos.x + jitter(), y: parentPos.y + jitter() };
+        (cy.$id(child.data.id) as cytoscape.NodeSingular).position(pos);
         if (isExpandable(child.data.id)) cy.$id(child.data.id).addClass('collapsed');
       });
       node.removeClass('collapsed');
@@ -227,11 +312,11 @@ export function setupExpandCollapse(
     }
   }
 
-  // Tap collapsed node -> expand. Tap expanded compound's label badge -> collapse.
-  // Label is at text-valign:'top'; check rendered Y against the top bb edge to hit-test it.
-  const LABEL_HIT_PX = 28;
+  // Prevent the browser's native context menu on the canvas.
+  cy.container()?.addEventListener('contextmenu', e => e.preventDefault());
 
-  cy.on('tap', 'node', event => {
+  // Right-click: expand collapsed compound / collapse expanded compound.
+  cy.on('cxttap', 'node', event => {
     event.stopPropagation();
     const node = event.target as cytoscape.NodeSingular;
 
@@ -239,17 +324,20 @@ export function setupExpandCollapse(
       const snapshot = capturePositions(cy);
       doExpand(node);
       runExpandCollapseLayout(cy, layout, snapshot, node.id());
+      options?.onExpand?.(node.id());
       return;
     }
 
     if (node.isParent()) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const clickY: number = (event as any).renderedPosition?.y ?? (event as any).cyRenderedPosition?.y;
-      const bb = node.renderedBoundingBox({ includeLabels: false, includeOverlays: false });
-      if (clickY <= bb.y1 + LABEL_HIT_PX) {
-        doCollapse(node);
-        // No runExpandCollapseLayout — collapse removes nodes, remaining positions unchanged.
-      }
+      doCollapse(node);
     }
+  });
+
+  // Left-click: fire onNodeClick for any node (leaf or compound).
+  cy.on('tap', 'node', event => {
+    event.stopPropagation();
+    const node = event.target as cytoscape.NodeSingular;
+    const isCompound = node.isParent() || node.hasClass('collapsed');
+    options?.onNodeClick?.(node.id(), isCompound);
   });
 }

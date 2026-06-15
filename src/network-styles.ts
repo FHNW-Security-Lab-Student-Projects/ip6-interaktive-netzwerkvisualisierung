@@ -251,7 +251,7 @@ export function createNetworkStyles(): any[] {
         'text-border-color': (ele: cytoscape.NodeSingular) => darken(nodeTypeColor(ele), 0.25),
         'text-border-width': 1,
         'text-border-opacity': 1,
-        'z-index': 0,
+        'z-index': 2,
         'cursor': 'pointer',
       },
     },
