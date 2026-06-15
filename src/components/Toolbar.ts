@@ -1,5 +1,5 @@
 import type { ExpandCollapseController } from '../expand-collapse.ts';
-import type { HierarchyLevel } from '../node-factory.ts';
+import type { HierarchyLevel, AnyTypedNode } from '../node-factory.ts';
 
 export function setupToolbar(
   ctrl: ExpandCollapseController,
@@ -30,4 +30,133 @@ export function setupToolbar(
 
   el.appendChild(label);
   el.appendChild(select);
+}
+
+export function setupSearch(
+  ctrl: ExpandCollapseController,
+  nodes: AnyTypedNode[],
+): void {
+  const el = document.getElementById('toolbar');
+  if (!el) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'search-wrapper';
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.placeholder = 'Hostname, IP or serial…';
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'search-dropdown';
+  dropdown.hidden = true;
+
+  wrapper.appendChild(input);
+  wrapper.appendChild(dropdown);
+  el.appendChild(wrapper);
+
+  // ── helpers ──────────────────────────────────────────────────────────────
+
+  const isExactMatch = (s: string | undefined, q: string) =>
+    s?.toLowerCase().split('\n').some(line => {
+      const l = line.trim();
+      return l === q || l.split(': ').at(-1) === q;
+    }) ?? false;
+
+  function getMatches(q: string): AnyTypedNode[] {
+    if (!q) return [];
+    const eligible = nodes.filter(n => {
+      if (n.data.node_type === 'group') return false;
+      return (
+        n.data.title?.toLowerCase().includes(q) ||
+        n.data.label?.toLowerCase().includes(q)
+      );
+    });
+    const exact = eligible.filter(n => isExactMatch(n.data.label, q) || isExactMatch(n.data.title, q));
+    const rest  = eligible.filter(n => !exact.includes(n));
+    return [...exact, ...rest].slice(0, 8);
+  }
+
+  function getDisplayInfo(n: AnyTypedNode): { name: string; meta: string } {
+    const lines = n.data.label?.split('\n') ?? [];
+    const name  = lines[0] ?? n.data.id;
+    const ip    = lines[1] ?? '';
+    const type  = n.data.node_type === 'device'
+      ? ((n.data as { device_type?: string }).device_type ?? 'device')
+      : n.data.node_type;
+    return { name, meta: [type, ip].filter(Boolean).join(' · ') };
+  }
+
+  // ── state ────────────────────────────────────────────────────────────────
+
+  let results: AnyTypedNode[] = [];
+  let activeIdx = -1;
+
+  function setActive(idx: number) {
+    activeIdx = idx;
+    dropdown.querySelectorAll<HTMLElement>('.search-dropdown-item').forEach((item, i) => {
+      item.classList.toggle('active', i === idx);
+      if (i === idx) item.scrollIntoView({ block: 'nearest' });
+    });
+  }
+
+  function selectNode(n: AnyTypedNode) {
+    input.value = '';
+    dropdown.hidden = true;
+    results = [];
+    activeIdx = -1;
+    ctrl.focusNode(n.data.id);
+  }
+
+  function renderDropdown(q: string) {
+    results   = getMatches(q);
+    activeIdx = -1;
+    dropdown.innerHTML = '';
+
+    if (!q) { dropdown.hidden = true; return; }
+
+    if (results.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'search-dropdown-empty';
+      empty.textContent = 'No results';
+      dropdown.appendChild(empty);
+    } else {
+      results.forEach((n, i) => {
+        const { name, meta } = getDisplayInfo(n);
+        const item = document.createElement('div');
+        item.className = 'search-dropdown-item';
+        item.dataset['idx'] = String(i);
+
+        const nameEl = document.createElement('span');
+        nameEl.className = 'search-dropdown-name';
+        nameEl.textContent = name;
+
+        const metaEl = document.createElement('span');
+        metaEl.className = 'search-dropdown-meta';
+        metaEl.textContent = meta;
+
+        item.appendChild(nameEl);
+        item.appendChild(metaEl);
+        item.addEventListener('mousedown', e => { e.preventDefault(); selectNode(n); });
+        dropdown.appendChild(item);
+      });
+    }
+
+    dropdown.hidden = false;
+  }
+
+  // ── events ───────────────────────────────────────────────────────────────
+
+  input.addEventListener('input', () => renderDropdown(input.value.trim().toLowerCase()));
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { dropdown.hidden = true; input.blur(); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive(Math.min(activeIdx + 1, results.length - 1)); return; }
+    if (e.key === 'ArrowUp')   { e.preventDefault(); setActive(Math.max(activeIdx - 1, -1)); return; }
+    if (e.key === 'Enter') {
+      const target = activeIdx >= 0 ? results[activeIdx] : results[0];
+      if (target) selectNode(target);
+    }
+  });
+
+  input.addEventListener('blur', () => { setTimeout(() => { dropdown.hidden = true; }, 100); });
 }
