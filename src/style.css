@@ -47,6 +47,24 @@ footer p {
   color: #555;
 }
 
+#toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+  font-family: sans-serif;
+  font-size: 0.85rem;
+  color: #555;
+  min-height: 34px;
+}
+
+#toolbar:empty {
+  display: none;
+}
+
 #viz-wrapper {
   display: flex;
   flex: 1;
