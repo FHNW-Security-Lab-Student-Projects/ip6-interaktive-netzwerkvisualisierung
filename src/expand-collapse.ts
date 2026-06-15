@@ -27,15 +27,29 @@ function runExpandCollapseLayout(
     }
   });
 
+  // Lock outer nodes at their saved positions before running the layout so
+  // fCOSE treats them as fixed anchors. Without this, fCOSE moves them during
+  // the run and places the expanded children relative to those shifted positions;
+  // restoring the outer nodes afterwards then creates edge crossings because the
+  // children were optimised against the wrong coordinates.
+  const locked: string[] = [];
+  snapshot.forEach((pos, nodeId) => {
+    if (!bubbleZone.has(nodeId) && nodeId !== anchorId) {
+      const node = cy.$id(nodeId);
+      if (!node.length) return;
+      (node as cytoscape.NodeSingular).position(pos);
+      (node as cytoscape.NodeSingular).lock();
+      locked.push(nodeId);
+    }
+  });
+
   const options = { ...layout.expandCollapse(), randomize: false };
   const layoutInstance = cy.layout(options);
 
   layoutInstance.on('layoutstop', () => {
-    snapshot.forEach((pos, nodeId) => {
-      if (!bubbleZone.has(nodeId) && nodeId !== anchorId) {
-        const node = cy.$id(nodeId);
-        if (node.length) (node as cytoscape.NodeSingular).position(pos);
-      }
+    locked.forEach(nodeId => {
+      const node = cy.$id(nodeId);
+      if (node.length) (node as cytoscape.NodeSingular).unlock();
     });
   });
 
