@@ -3,6 +3,7 @@ import type { AnyTypedNode, TypedCytoscapeEdge, HierarchyLevel, NodeData } from 
 import type { LayoutProvider } from './layout-utils.ts';
 
 let activeLayout: cytoscape.Layouts | null = null;
+let activeOnStop: (() => void) | null = null;
 
 // Iteratively nudges sibling compound bounding boxes apart until no overlaps remain,
 // then animates from the pre-separation positions to the final ones.
@@ -85,7 +86,13 @@ function runExpandCollapseLayout(
   layout: LayoutProvider,
   snapshot: Map<string, cytoscape.Position>,
   anchorId: string,
+  onStop?: () => void,
 ): void {
+  // Register the new callback before stopping the old layout so the old layoutstop
+  // handler can detect it was superseded and skip its post-processing.
+  activeOnStop = onStop ?? null;
+  const myOnStop = activeOnStop;
+
   layout.register();
 
   // Bubble zone: all visible nodes inside the anchor's immediate parent compound.
@@ -122,11 +129,17 @@ function runExpandCollapseLayout(
   const layoutInstance = cy.layout(options);
 
   layoutInstance.on('layoutstop', () => {
+    // Always unlock so subsequent layouts can reposition these nodes.
     locked.forEach(nodeId => {
       const node = cy.$id(nodeId);
       if (node.length) (node as cytoscape.NodeSingular).unlock();
     });
-    separateSiblingCompounds(cy);
+    // Only run post-processing if this layout wasn't cancelled by a newer one.
+    if (activeOnStop === myOnStop) {
+      separateSiblingCompounds(cy);
+      activeOnStop = null;
+      myOnStop?.();
+    }
   });
 
   activeLayout?.stop();
@@ -157,6 +170,11 @@ export interface ExpandCollapseOptions {
   onExpand?: (nodeId: string) => void;
 }
 
+export interface ExpandCollapseController {
+  expandToLevel: (level: string | 'all' | 'none') => void;
+  focusNode: (nodeId: string) => void;
+}
+
 // Wires up interactive expand/collapse for compound nodes.
 // Owns graph population: starts with root nodes only, adds/removes children on expand/collapse.
 // Tap collapsed node -> add children + animate layout.
@@ -170,7 +188,7 @@ export function setupExpandCollapse(
   hierarchy?: HierarchyLevel[],
   initialExpand?: string | 'all' | 'none',
   options?: ExpandCollapseOptions,
-): void {
+): ExpandCollapseController {
   function getDirectChildren(nodeId: string): AnyTypedNode[] {
     return nodes.filter(n => n.data.parent === nodeId);
   }
@@ -229,6 +247,9 @@ export function setupExpandCollapse(
   // Expanded nodes within a collapsed subtree, restored on re-expand to preserve depth.
   const savedExpanded = new Set<string>();
 
+  // Tracks the active dropdown level so expandToLevel can detect direction of change.
+  let currentLevel: string | 'all' | 'none' = initialExpand ?? 'none';
+
   // Expands a collapsed node and recursively restores previously-expanded children.
   function doExpand(node: cytoscape.NodeSingular): void {
     const children = getDirectChildren(node.id());
@@ -286,16 +307,17 @@ export function setupExpandCollapse(
   });
   syncEdges();
 
-  if (initialExpand && initialExpand !== 'none') {
-    if (initialExpand === 'all') {
+  function applyInitialExpand(level: string | 'all' | 'none'): void {
+    if (!level || level === 'none') return;
+    if (level === 'all') {
       let collapsed = cy.nodes('.collapsed').toArray() as cytoscape.NodeSingular[];
       while (collapsed.length > 0) {
         collapsed.forEach(n => doExpand(n));
         collapsed = cy.nodes('.collapsed').toArray() as cytoscape.NodeSingular[];
       }
     } else {
-      // Expand levels \leq target repeatedly; each expand may reveal more nodes at the same level.
-      const targetIndex = hierarchy?.findIndex(l => l.label === initialExpand) ?? -1;
+      // Expand levels <= target repeatedly; each expand may reveal more nodes at the same level.
+      const targetIndex = hierarchy?.findIndex(l => l.label === level) ?? -1;
       const shouldExpand = (data: NodeData) =>
         hierarchy!.slice(0, targetIndex + 1).some(l => l.matches(data));
       let toExpand = cy.nodes('.collapsed').filter(n => {
@@ -310,6 +332,14 @@ export function setupExpandCollapse(
         });
       }
     }
+  }
+
+  applyInitialExpand(initialExpand ?? 'none');
+
+  function levelIndex(l: string | 'all' | 'none'): number {
+    if (!l || l === 'none') return -1;
+    if (l === 'all') return hierarchy?.length ?? 0;
+    return hierarchy?.findIndex(h => h.label === l) ?? -1;
   }
 
   // Prevent the browser's native context menu on the canvas.
@@ -340,4 +370,80 @@ export function setupExpandCollapse(
     const isCompound = node.isParent() || node.hasClass('collapsed');
     options?.onNodeClick?.(node.id(), isCompound);
   });
+
+  return {
+    focusNode(nodeId: string): void {
+      activeLayout?.stop();
+      cy.stop();
+
+      const chain: string[] = [];
+      let cur = nodes.find(n => n.data.id === nodeId);
+      while (cur?.data.parent) {
+        chain.unshift(cur.data.parent);
+        cur = nodes.find(n => n.data.id === cur!.data.parent);
+      }
+
+      const snapshot = capturePositions(cy);
+      let didExpand = false;
+      chain.forEach(ancestorId => {
+        const ancestor = cy.$id(ancestorId) as cytoscape.NodeSingular;
+        if (ancestor.length && ancestor.hasClass('collapsed')) {
+          doExpand(ancestor);
+          didExpand = true;
+        }
+      });
+
+      // Expand the target itself if it's a collapsed compound, so the panel shows real info.
+      const selfNode = cy.$id(nodeId) as cytoscape.NodeSingular;
+      if (selfNode.length && selfNode.hasClass('collapsed')) {
+        doExpand(selfNode);
+        didExpand = true;
+      }
+
+      const selectAndPan = () => {
+        const target = cy.$id(nodeId) as cytoscape.NodeSingular;
+        if (target.length) {
+          cy.animate({ center: { eles: target }, duration: 400 });
+          cy.nodes().unselect();
+          target.select();
+          target.emit('tap');
+        }
+      };
+
+      if (!didExpand) {
+        // Node is already visible and expanded — skip layout, pan and select immediately.
+        selectAndPan();
+        return;
+      }
+
+      const anchorId = chain.at(-1) ?? nodeId;
+      runExpandCollapseLayout(cy, layout, snapshot, anchorId, selectAndPan);
+    },
+
+    expandToLevel(level: string | 'all' | 'none'): void {
+      activeLayout?.stop();
+
+      if (levelIndex(level) <= levelIndex(currentLevel)) {
+        // Going shallower or same: collapse everything and start fresh.
+        cy.nodes(':parent:not(.collapsed)').filter(n => !(n as cytoscape.NodeSingular).isChild()).forEach(n => {
+          doCollapse(n as cytoscape.NodeSingular);
+        });
+        savedExpanded.clear();
+        savedPositions.clear();
+      }
+      // Going deeper: existing expanded compounds stay in place; applyInitialExpand
+      // finds only the newly-visible collapsed nodes and expands them.
+
+      applyInitialExpand(level);
+      currentLevel = level;
+
+      if (level === 'none') return;
+
+      layout.register();
+      const layoutOpts = { ...layout.expandCollapse(), randomize: false };
+      const layoutInstance = cy.layout(layoutOpts);
+      activeLayout = layoutInstance;
+      layoutInstance.run();
+    },
+  };
 }

@@ -41,6 +41,7 @@ async function renderVisualization(name: string): Promise<void> {
   const { title, description, mount } = await load();
   currentPositionsKey = title ? `netviz-positions-${title}` : null;
   app.innerHTML = `
+    <div id="toolbar"></div>
     <div id="viz-wrapper">
       <div id="viz"></div>
       <aside id="device-panel" hidden></aside>
