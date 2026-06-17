@@ -1,3 +1,9 @@
+## [1.6.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.5.0...v1.6.0) (2026-06-17)
+
+### Features
+
+* add compound graph visualizations for routers and switches ([e16fa76](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/e16fa7615f4eeaa7823209ca5b068aa386187193))
+
 ## [1.5.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.4.0...v1.5.0) (2026-06-15)
 
 ### Features
