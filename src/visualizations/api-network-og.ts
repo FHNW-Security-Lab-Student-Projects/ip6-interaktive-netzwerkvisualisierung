@@ -6,6 +6,8 @@ import { createNetworkStyles } from '../network-styles.ts';
 import type { AnyTypedNode, TypedCytoscapeEdge } from '../node-factory.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
 import basegraph from '../fixtures/basegraph.json';
+import { setupNodeDetailPanel, setupToolbar, setupSearch } from '../components/index.ts';
+
 
 export const title = 'API Network: Original Graph';
 export const description =
@@ -17,6 +19,8 @@ const raw = {
 };
 
 const POSITIONS_KEY = `netviz-positions-${title}`;
+const NETWORK_ID = 1;
+const SNAPSHOT_ID = 1;
 
 export function mount(container: HTMLElement): void {
   const cy = cytoscape({
@@ -27,6 +31,11 @@ export function mount(container: HTMLElement): void {
   });
 
   cy.style().update();
-  setupExpandCollapse(cy, raw.nodes, raw.edges, fcoseLargeProvider, NODE_HIERARCHY, "all");
+  const ctrl = setupExpandCollapse(cy, raw.nodes, raw.edges, fcoseLargeProvider, NODE_HIERARCHY, 'all',
+    setupNodeDetailPanel(cy, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID }),
+  );
+
+  setupToolbar(ctrl, NODE_HIERARCHY, 'none');
+  setupSearch(ctrl, raw.nodes);
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);
 }
