@@ -3,6 +3,7 @@ import { runLayout } from '../layout-utils.ts';
 import { setupExpandCollapse } from '../expand-collapse.ts';
 import { fcoseLargeProvider } from '../layout-providers/fcose.ts';
 import { createNetworkStyles } from '../network-styles.ts';
+import { setupZoom } from '../zoom-handler.ts';
 import type { AnyTypedNode, TypedCytoscapeEdge } from '../node-factory.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
 import basegraph from '../fixtures/basegraph.json';
@@ -55,9 +56,10 @@ export function mount(container: HTMLElement): void {
   const cy = cytoscape({
     container,
     zoomingEnabled: true,
-    wheelSensitivity: 0.1,
+    userZoomingEnabled: false,
     style: createNetworkStyles(),
   });
+  setupZoom(cy);
 
   cy.style().update();
   const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'router',
