@@ -28,6 +28,7 @@ export function mount(container: HTMLElement): void {
     container,
     zoomingEnabled: true,
     wheelSensitivity: 0.1,
+    textureOnViewport: true,
     style: createNetworkStyles(),
   });
 

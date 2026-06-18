@@ -31,6 +31,7 @@ export async function mount(container: HTMLElement): Promise<void> {
     container,
     zoomingEnabled: true,
     wheelSensitivity: 0.1,
+    textureOnViewport: true,
     style: createNetworkStyles(),
   });
 
