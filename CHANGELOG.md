@@ -1,3 +1,10 @@
+## [1.6.1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.6.0...v1.6.1) (2026-06-18)
+
+### Bug Fixes
+
+* enable texture on viewport for improved rendering performance ([9d97fa8](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/9d97fa8e6d006fe472b3bc346fd506d4350554b3))
+* handle zooming for multiple os and input devices ([4c3e840](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/4c3e8404678534161f5f4b7f4800b04b35c0ed30))
+
 ## [1.6.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.5.0...v1.6.0) (2026-06-17)
 
 ### Features
