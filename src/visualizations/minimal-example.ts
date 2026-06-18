@@ -1,6 +1,7 @@
 import cytoscape from 'cytoscape';
 import { getBasegraph } from '../generated/sdk.gen.ts';
 import { createNetworkStyles } from '../network-styles.ts';
+import { setupZoom } from '../zoom-handler.ts';
 
 export const title = 'Minimal Example';
 export const description = 'Basic network graph loaded from the base graph API. Displays all nodes and edges from the default snapshot with Cisco device icons.';
@@ -30,10 +31,10 @@ export async function mount(container: HTMLElement): Promise<void> {
   const cy = cytoscape({
     container,
     zoomingEnabled: true,
-    wheelSensitivity: 0.1,
-    textureOnViewport: true,
+    userZoomingEnabled: false,
     style: createNetworkStyles(),
   });
+  setupZoom(cy);
 
   cy.add(nodes);
   cy.add(edges);

@@ -133,10 +133,6 @@ footer p {
   overflow: hidden;
 }
 
-#viz canvas {
-  will-change: transform;
-}
-
 /* ── Device detail side panel ─────────────────────────────── */
 
 #device-panel {

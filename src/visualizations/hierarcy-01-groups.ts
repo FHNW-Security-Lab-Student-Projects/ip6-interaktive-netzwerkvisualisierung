@@ -3,6 +3,7 @@ import { runLayout } from '../layout-utils.ts';
 import { setupExpandCollapse } from '../expand-collapse.ts';
 import { fcoseProvider } from '../layout-providers/fcose.ts';
 import { createNetworkStyles } from '../network-styles.ts';
+import { setupZoom } from '../zoom-handler.ts';
 import { createEdge, createGroupNode, NODE_HIERARCHY } from '../node-factory.ts';
 
 export const title = 'Hierarchy: Groups';
@@ -25,10 +26,10 @@ export function mount(container: HTMLElement): void {
   const cy = cytoscape({
     container,
     zoomingEnabled: true,
-    wheelSensitivity: 0.1,
-    textureOnViewport: true,
+    userZoomingEnabled: false,
     style: createNetworkStyles(),
   });
+  setupZoom(cy);
 
   cy.style().update();
   setupExpandCollapse(cy, nodes, edges, fcoseProvider, NODE_HIERARCHY);
