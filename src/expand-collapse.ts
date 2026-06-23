@@ -235,6 +235,7 @@ export function setupExpandCollapse(
           id: isOriginal ? edge.data.id : `__lifted__${pairKey}`,
           source: repSrc,
           target: repTgt,
+          ...(!isOriginal && { orig_source: edge.data.source, orig_target: edge.data.target }),
         },
         ...(edge.classes !== undefined ? { classes: edge.classes } : {}),
       } as cytoscape.ElementDefinition);

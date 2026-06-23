@@ -7,7 +7,7 @@ import { setupZoom } from '../zoom-handler.ts';
 import type { AnyTypedNode, TypedCytoscapeEdge } from '../node-factory.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
 import basegraph from '../fixtures/basegraph.json';
-import { setupNodeDetailPanel, setupToolbar, setupSearch } from '../components/index.ts';
+import { setupDetailPanel, setupToolbar, setupSearch } from '../components/index.ts';
 
 
 export const title = 'API Network: Original Graph';
@@ -33,10 +33,9 @@ export function mount(container: HTMLElement): void {
   setupZoom(cy);
 
   cy.style().update();
-  const ctrl = setupExpandCollapse(cy, raw.nodes, raw.edges, fcoseLargeProvider, NODE_HIERARCHY, 'all',
-    setupNodeDetailPanel(cy, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID }),
-  );
-
+  const panelOpts = setupDetailPanel(cy, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
+  const ctrl = setupExpandCollapse(cy, raw.nodes, raw.edges, fcoseLargeProvider, NODE_HIERARCHY, 'all', panelOpts);
+  panelOpts.setFocusNode(id => ctrl.focusNode(id));
   setupToolbar(ctrl, NODE_HIERARCHY, 'none');
   setupSearch(ctrl, raw.nodes);
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);

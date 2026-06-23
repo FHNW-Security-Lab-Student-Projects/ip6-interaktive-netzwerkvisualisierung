@@ -2,12 +2,12 @@ import type { DeviceInfoOutput, NeighborInfoOutput } from '../../../generated/ty
 import type { PanelSection } from '../types.ts';
 import { buildPaginatedTable } from '../table.ts';
 
-export function buildNeighborsSection(info: DeviceInfoOutput): PanelSection {
+export function buildNeighborsSection(info: DeviceInfoOutput, onNodeSelect?: (nodeId: string) => void): PanelSection {
   const neighbors = info.neighbors ? Object.values(info.neighbors) : [];
-  return { label: 'Neighbors', content: buildContent(neighbors), disabled: neighbors.length === 0 };
+  return { label: 'Neighbors', content: buildContent(neighbors, onNodeSelect), disabled: neighbors.length === 0 };
 }
 
-function buildContent(neighbors: NeighborInfoOutput[]): HTMLElement {
+function buildContent(neighbors: NeighborInfoOutput[], onNodeSelect?: (nodeId: string) => void): HTMLElement {
   const rows: HTMLTableRowElement[] = [];
   for (const n of neighbors) {
     const connections = n.connections
@@ -23,8 +23,11 @@ function buildContent(neighbors: NeighborInfoOutput[]): HTMLElement {
       const tdNeigh = document.createElement('td');
       const nameText = n.name || n.ip_address || n.neigh_id;
       const link = document.createElement('span');
-      link.className = 'neigh-link';
+      link.className = onNodeSelect ? 'neigh-link neigh-link--clickable' : 'neigh-link';
       link.textContent = nameText;
+      if (onNodeSelect) {
+        link.addEventListener('click', () => onNodeSelect(n.neigh_id));
+      }
       tdNeigh.append(link);
       if (!n.name || n.status === 'unknown') {
         const disc = document.createElement('span');

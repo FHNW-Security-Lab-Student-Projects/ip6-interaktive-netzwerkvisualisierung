@@ -499,9 +499,61 @@ footer p {
   font-weight: 500;
 }
 
+.neigh-link--clickable {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.neigh-link--clickable:hover {
+  color: #1e4d8c;
+}
+
 .neigh-disc {
   font-size: 0.75rem;
   color: #bbb;
+}
+
+/* ── Edge detail panel ─────────────────────────────────────── */
+
+.edge-panel {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.edge-panel-header {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.edge-panel-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 0.875rem;
+}
+
+.edge-panel-label {
+  flex: 0 0 80px;
+  color: #888;
+  font-size: 0.8rem;
+}
+
+.edge-panel-node {
+  color: #3a6ea5;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.edge-panel-node:hover {
+  color: #1e4d8c;
 }
 
 /* Port state colors */

@@ -8,7 +8,7 @@ import type { AnyTypedNode, TypedCytoscapeEdge } from '../node-factory.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
 import basegraph from '../fixtures/basegraph.json';
 import { groupByUpstreamNode } from '../graph-transforms.ts';
-import { setupNodeDetailPanel, setupToolbar, setupSearch } from '../components/index.ts';
+import { setupDetailPanel, setupToolbar, setupSearch } from '../components/index.ts';
 
 export const title = 'API Network: Compound Graph';
 export const description =
@@ -62,9 +62,9 @@ export function mount(container: HTMLElement): void {
   setupZoom(cy);
 
   cy.style().update();
-  const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'none',
-    setupNodeDetailPanel(cy, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID }),
-  );
+  const panelOpts = setupDetailPanel(cy, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
+  const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'none', panelOpts);
+  panelOpts.setFocusNode(id => ctrl.focusNode(id));
   setupToolbar(ctrl, NODE_HIERARCHY, 'none');
   setupSearch(ctrl, nodes);
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);

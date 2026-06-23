@@ -13,12 +13,13 @@ export function buildSections(
   info: DeviceInfoOutput,
   openAccordions: Set<string>,
   onToggle: (label: string, isOpen: boolean) => void,
+  onNodeSelect?: (nodeId: string) => void,
 ): HTMLElement {
   const wrapper = document.createElement('div');
   wrapper.className = 'panel-sections';
 
   const panels = [
-    buildNeighborsSection(info),
+    buildNeighborsSection(info, onNodeSelect),
     buildPortsSection(info),
     buildLagsSection(info),
     buildSpanningTreeSection(info),
