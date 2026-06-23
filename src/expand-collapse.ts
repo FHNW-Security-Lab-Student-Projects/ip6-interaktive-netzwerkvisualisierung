@@ -345,9 +345,13 @@ export function setupExpandCollapse(
   // Prevent the browser's native context menu on the canvas.
   cy.container()?.addEventListener('contextmenu', e => e.preventDefault());
 
-  // Right-click: expand collapsed compound / collapse expanded compound.
-  cy.on('cxttap', 'node', event => {
+  // Double-click: expand collapsed compound / collapse expanded compound.
+  // Declared here so the tap handler below can cancel it on double-click.
+  let tapTimer: ReturnType<typeof setTimeout> | null = null;
+
+  cy.on('dbltap', 'node', event => {
     event.stopPropagation();
+    if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; }
     const node = event.target as cytoscape.NodeSingular;
 
     if (node.hasClass('collapsed')) {
@@ -363,12 +367,17 @@ export function setupExpandCollapse(
     }
   });
 
-  // Left-click: fire onNodeClick for any node (leaf or compound).
+  // Single-click: fire onNodeClick for any node (leaf or compound).
+  // Debounced so a double-click can cancel it before the panel opens.
   cy.on('tap', 'node', event => {
     event.stopPropagation();
     const node = event.target as cytoscape.NodeSingular;
     const isCompound = node.isParent() || node.hasClass('collapsed');
-    options?.onNodeClick?.(node.id(), isCompound);
+    if (tapTimer) clearTimeout(tapTimer);
+    tapTimer = setTimeout(() => {
+      tapTimer = null;
+      options?.onNodeClick?.(node.id(), isCompound);
+    }, 250);
   });
 
   return {
