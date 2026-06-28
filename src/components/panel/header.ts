@@ -93,7 +93,7 @@ function buildInfoGrid(device: DeviceResponse): HTMLElement {
     grid.append(cell);
   };
 
-  add('MAC', info.mac ? String(info.mac) : null);
+  add('MAC', info.mac?.address ?? null);
   add('Serial', info.serial || null);
   add('First Seen', formatDateString(device.created), device.created);
   add('Last Seen', formatTimestamp(info.last_seen), info.last_seen ? String(info.last_seen) : undefined);
