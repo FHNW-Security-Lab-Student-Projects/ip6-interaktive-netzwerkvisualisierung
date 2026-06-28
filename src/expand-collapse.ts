@@ -229,13 +229,20 @@ export function setupExpandCollapse(
       if (addedPairs.has(pairKey)) return;
       addedPairs.add(pairKey);
       const isOriginal = repSrc === edge.data.source && repTgt === edge.data.target;
+      const srcNodeData = nodes.find(n => n.data.id === edge.data.source)?.data as { device_type?: string } | undefined;
+      const tgtNodeData = nodes.find(n => n.data.id === edge.data.target)?.data as { device_type?: string } | undefined;
       cy.add({
         data: {
           ...edge.data,
           id: isOriginal ? edge.data.id : `__lifted__${pairKey}`,
           source: repSrc,
           target: repTgt,
-          ...(!isOriginal && { orig_source: edge.data.source, orig_target: edge.data.target }),
+          ...(!isOriginal && {
+            orig_source: edge.data.source,
+            orig_target: edge.data.target,
+            orig_source_device_type: srcNodeData?.device_type,
+            orig_target_device_type: tgtNodeData?.device_type,
+          }),
         },
         ...(edge.classes !== undefined ? { classes: edge.classes } : {}),
       } as cytoscape.ElementDefinition);

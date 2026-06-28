@@ -7,6 +7,12 @@ export function buildLagsSection(info: DeviceInfoOutput): PanelSection {
   return { label: 'Link aggregation groups', content: buildContent(lags), disabled: lags.length === 0 };
 }
 
+function memberStr(l: LagInfoOutput): string {
+  const members = Object.values(l.members);
+  if (members.length === 0) return '—';
+  return members.map(m => m.status ? `${m.if_no} (${m.status})` : m.if_no).join(', ');
+}
+
 function buildContent(lags: LagInfoOutput[]): HTMLElement {
   if (lags.length === 0) {
     const el = document.createElement('div');
@@ -16,8 +22,8 @@ function buildContent(lags: LagInfoOutput[]): HTMLElement {
   }
   const rows = lags.map(l => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${l.group_id}</td><td>${l.name}</td><td>${l.protocol ?? '—'}</td>`;
+    tr.innerHTML = `<td>${l.group_id}</td><td>${l.name}</td><td>${l.protocol ?? '—'}</td><td class="td-left">${memberStr(l)}</td>`;
     return tr;
   });
-  return buildPaginatedTable(['Group ID', 'Name', 'Protocol'], rows);
+  return buildPaginatedTable(['Group ID', 'Name', 'Protocol', 'Members'], rows);
 }

@@ -168,6 +168,31 @@ footer p {
   background: rgba(59, 130, 246, 0.25);
 }
 
+.panel-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: #aaa;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-close-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
 /* Loading / error states */
 
 .panel-loading {
@@ -213,6 +238,11 @@ footer p {
   border-bottom: 1px solid #e5e5e5;
 }
 
+.panel-header--edge {
+  padding-top: 28px;
+  padding-bottom: 32px;
+}
+
 /* Zone 1: Hero row (status dot + name + vendor badge) */
 
 .panel-hero-row {
@@ -231,8 +261,16 @@ footer p {
   background: #aaa;
 }
 
-.panel-status-dot--known {
+.panel-status-dot--online {
   background: #22c55e;
+}
+
+.panel-status-dot--warn {
+  background: #f59e0b;
+}
+
+.panel-status-dot--down {
+  background: #dc2626;
 }
 
 .panel-device-name {
@@ -516,43 +554,48 @@ footer p {
 
 /* ── Edge detail panel ─────────────────────────────────────── */
 
-.edge-panel {
-  padding: 20px 24px;
+/* Hero row: two device names with ↔ separator */
+.edge-endpoint {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
 }
 
-.edge-panel-header {
+.edge-endpoint-name {
   font-size: 1rem;
   font-weight: 600;
-  color: #1a1a1a;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e5e5e5;
+  color: #111;
 }
 
-.edge-panel-row {
-  display: flex;
-  gap: 12px;
-  align-items: baseline;
-  font-size: 0.875rem;
+.edge-endpoint > .chip {
+  font-weight: 400;
+  max-width: none;
 }
 
-.edge-panel-label {
-  flex: 0 0 80px;
+
+.edge-hero-separator {
+  color: #bbb;
+  font-weight: 400;
+  font-size: 1.1rem;
+  flex: none;
+}
+
+.edge-conn-if {
   color: #888;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
 }
 
-.edge-panel-node {
+/* Clickable "TYPE NAME IF" links in edge panel */
+.edge-link {
   color: #3a6ea5;
-  font-weight: 500;
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-.edge-panel-node:hover {
+.edge-link:hover {
   color: #1e4d8c;
 }
 
@@ -561,6 +604,42 @@ footer p {
 .port-state { font-size: 0.8rem; }
 .port-state--up   { color: #16a34a; font-weight: 500; }
 .port-state--down { color: #dc2626; }
+
+/* ── Edge panel warning items ─────────────────────────────── */
+
+.edge-warning-item {
+  font-size: 0.85rem;
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: 4px;
+  padding: 5px 12px;
+  margin: 4px 20px 0;
+}
+
+/* Accordion label with dot + text + chip */
+.accordion-label-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.accordion-label-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+}
+
+/* VLAN comparison table mismatch row */
+.vlan-mismatch td {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* STP blocking state cell */
+.stp-blocking {
+  color: #b91c1c;
+}
 
 /* ── Compound node placeholder ────────────────────────────── */
 

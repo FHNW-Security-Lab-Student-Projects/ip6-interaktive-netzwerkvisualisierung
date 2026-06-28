@@ -4,6 +4,7 @@ import type { DeviceResponse } from '../generated/types.gen.ts';
 import type { ExpandCollapseOptions } from '../expand-collapse.ts';
 import { buildHeader } from './panel/header.ts';
 import { buildSections } from './panel/sections.ts';
+import { buildEdgePanel } from './panel/edge.ts';
 
 export type DetailPanelSetup = ExpandCollapseOptions & {
   setFocusNode: (fn: (nodeId: string) => void) => void;
@@ -37,8 +38,6 @@ export function setupDetailPanel(
 
   const selectNode = (nodeId: string) => {
     if (focusNodeFn) {
-      // focusNode expands collapsed ancestors, pans, selects, and emits tap →
-      // onNodeClick fires after 250ms debounce → updatePanel
       focusNodeFn(nodeId);
       return;
     }
@@ -70,7 +69,7 @@ export function setupDetailPanel(
     cy.edges().unselect();
     edge.select();
     selectedNodeId = null;
-    panel.showEdge(edge, cy);
+    void panel.showEdge(edge, cy, opts);
   });
 
   return {
@@ -84,6 +83,16 @@ export function setupDetailPanel(
   };
 }
 
+type EdgePanelData = {
+  source: string;
+  target: string;
+  label?: string;
+  redundancy?: number;
+  orig_source?: string;
+  orig_target?: string;
+};
+
+
 export class DetailPanel {
   private container: HTMLElement;
   private content: HTMLElement;
@@ -96,6 +105,14 @@ export class DetailPanel {
     const handle = document.createElement('div');
     handle.className = 'panel-resize-handle';
     container.prepend(handle);
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'panel-close-btn';
+    closeBtn.setAttribute('aria-label', 'Close panel');
+    closeBtn.textContent = '×';
+    closeBtn.addEventListener('click', () => this.hide());
+    container.append(closeBtn);
 
     this.content = document.createElement('div');
     this.content.className = 'panel-content';
@@ -145,9 +162,33 @@ export class DetailPanel {
     this.setContent(this.buildPanel(data.data, { nodeType: opts?.nodeType, deviceType: opts?.deviceType }));
   }
 
-  showEdge(edge: cytoscape.EdgeSingular, cy: cytoscape.Core): void {
+  async showEdge(
+    edge: cytoscape.EdgeSingular,
+    cy: cytoscape.Core,
+    opts?: { networkId?: number; snapshotId?: number },
+  ): Promise<void> {
     this.container.removeAttribute('hidden');
-    this.setContent(this.buildEdgePanel(edge, cy));
+    this.setContent(this.buildLoading());
+
+    const edgeData = edge.data() as EdgePanelData;
+    const effectiveSource = edgeData.orig_source ?? edgeData.source;
+    const effectiveTarget = edgeData.orig_target ?? edgeData.target;
+
+    const query = { explorer_network_id: opts?.networkId, snapshot_id: opts?.snapshotId };
+    const [srcResult, tgtResult] = await Promise.all([
+      getDevice({ path: { device_id: effectiveSource }, query }),
+      getDevice({ path: { device_id: effectiveTarget }, query }),
+    ]);
+
+    const srcInfo = srcResult.data?.data?.data ?? null;
+    const tgtInfo = tgtResult.data?.data?.data ?? null;
+
+    this.setContent(buildEdgePanel(
+      edge, cy, effectiveSource, effectiveTarget, srcInfo, tgtInfo,
+      this.openAccordions,
+      (key, isOpen) => { if (isOpen) { this.openAccordions.add(key); } else { this.openAccordions.delete(key); } },
+      this.onNodeSelect,
+    ));
   }
 
   showPlaceholder(nodeId: string, label?: string): void {
@@ -173,88 +214,6 @@ export class DetailPanel {
         if (isOpen) { this.openAccordions.add(lbl); } else { this.openAccordions.delete(lbl); }
       }, this.onNodeSelect),
     );
-    return wrapper;
-  }
-
-  private buildEdgePanel(edge: cytoscape.EdgeSingular, cy: cytoscape.Core): HTMLElement {
-    const data = edge.data() as {
-      source: string; target: string; label?: string; redundancy?: number;
-      orig_source?: string; orig_target?: string;
-    };
-    // For lifted edges, orig_source/orig_target hold the real child node IDs.
-    const effectiveSource = data.orig_source ?? data.source;
-    const effectiveTarget = data.orig_target ?? data.target;
-    const sourceNode = cy.$id(effectiveSource) as cytoscape.NodeSingular;
-    const targetNode = cy.$id(effectiveTarget) as cytoscape.NodeSingular;
-    const sourceName = (sourceNode.data('title') as string | undefined) ?? effectiveSource;
-    const targetName = (targetNode.data('title') as string | undefined) ?? effectiveTarget;
-    const classes = edge.classes().filter(Boolean);
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'edge-panel';
-
-    const header = document.createElement('div');
-    header.className = 'edge-panel-header';
-    header.textContent = 'Connection';
-    wrapper.append(header);
-
-    const makeEndpoint = (label: string, name: string, nodeId: string): HTMLElement => {
-      const row = document.createElement('div');
-      row.className = 'edge-panel-row';
-      const lbl = document.createElement('span');
-      lbl.className = 'edge-panel-label';
-      lbl.textContent = label;
-      const val = document.createElement('span');
-      val.className = 'edge-panel-node';
-      val.textContent = name;
-      if (this.onNodeSelect) {
-        val.addEventListener('click', () => this.onNodeSelect!(nodeId));
-      }
-      row.append(lbl, val);
-      return row;
-    };
-
-    wrapper.append(
-      makeEndpoint('From', sourceName, effectiveSource),
-      makeEndpoint('To', targetName, effectiveTarget),
-    );
-
-    if (classes.length > 0) {
-      const row = document.createElement('div');
-      row.className = 'edge-panel-row';
-      const lbl = document.createElement('span');
-      lbl.className = 'edge-panel-label';
-      lbl.textContent = 'Type';
-      const val = document.createElement('span');
-      val.textContent = classes.join(', ');
-      row.append(lbl, val);
-      wrapper.append(row);
-    }
-
-    if (data.redundancy && data.redundancy > 1) {
-      const row = document.createElement('div');
-      row.className = 'edge-panel-row';
-      const lbl = document.createElement('span');
-      lbl.className = 'edge-panel-label';
-      lbl.textContent = 'Redundancy';
-      const val = document.createElement('span');
-      val.textContent = String(data.redundancy);
-      row.append(lbl, val);
-      wrapper.append(row);
-    }
-
-    if (data.label) {
-      const row = document.createElement('div');
-      row.className = 'edge-panel-row';
-      const lbl = document.createElement('span');
-      lbl.className = 'edge-panel-label';
-      lbl.textContent = 'Label';
-      const val = document.createElement('span');
-      val.textContent = data.label;
-      row.append(lbl, val);
-      wrapper.append(row);
-    }
-
     return wrapper;
   }
 

@@ -1,6 +1,6 @@
 import ciscoLogo from '../../../assets/cisco.png';
 import type { DeviceResponse } from '../../generated/types.gen.ts';
-import { makeCopyable, makeChip, formatTimestamp, formatDateString } from './utils.ts';
+import { makeCopyable, makeChip, makeStatusDot, formatTimestamp, formatDateString } from './utils.ts';
 
 export function buildHeader(device: DeviceResponse, context?: { nodeType?: string; deviceType?: string }): HTMLElement {
   const info = device.data;
@@ -11,8 +11,7 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
   const heroRow = document.createElement('div');
   heroRow.className = 'panel-hero-row';
 
-  const dot = document.createElement('span');
-  dot.className = `panel-status-dot${info.known ? ' panel-status-dot--known' : ''}`;
+  const dot = makeStatusDot(info.known ? 'online' : 'unknown');
 
   const nameEl = document.createElement('span');
   nameEl.className = 'panel-device-name';

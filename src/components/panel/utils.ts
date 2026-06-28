@@ -34,3 +34,13 @@ export function formatDateString(s: string | null | undefined): string | null {
   const t = s.indexOf('T');
   return t === -1 ? s : `${s.slice(0, t)}\n${s.slice(t + 1, t + 9)}`;
 }
+
+export type StatusLevel = 'online' | 'warn' | 'down' | 'unknown';
+
+export function makeStatusDot(status: StatusLevel): HTMLElement {
+  const el = document.createElement('span');
+  el.className = status !== 'unknown'
+    ? `panel-status-dot panel-status-dot--${status}`
+    : 'panel-status-dot';
+  return el;
+}
