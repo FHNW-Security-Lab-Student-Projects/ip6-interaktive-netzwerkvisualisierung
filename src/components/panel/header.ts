@@ -11,6 +11,7 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
   const heroRow = document.createElement('div');
   heroRow.className = 'panel-hero-row';
 
+  // "known" means we can log in and actively collect data from the device.
   const dot = makeStatusDot(info.known ? 'online' : 'unknown');
 
   const nameEl = document.createElement('span');

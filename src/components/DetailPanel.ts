@@ -1,10 +1,11 @@
 import type cytoscape from 'cytoscape';
-import { getDevice } from '../generated/sdk.gen.ts';
-import type { DeviceResponse } from '../generated/types.gen.ts';
+import { getDevice, getHost } from '../generated/sdk.gen.ts';
+import type { DeviceResponse, HostResponse } from '../generated/types.gen.ts';
 import type { ExpandCollapseOptions } from '../expand-collapse.ts';
 import { buildHeader } from './panel/header.ts';
 import { buildSections } from './panel/sections.ts';
 import { buildEdgePanel } from './panel/edge.ts';
+import { buildHostPanelEl } from './panel/host-panel.ts';
 
 export type DetailPanelSetup = ExpandCollapseOptions & {
   setFocusNode: (fn: (nodeId: string) => void) => void;
@@ -155,19 +156,23 @@ export class DetailPanel {
     this.container.removeAttribute('hidden');
     this.setContent(this.buildLoading());
 
-    const { data, error } = await getDevice({
-      path: { device_id: deviceId },
-      query: {
-        explorer_network_id: opts?.networkId,
-        snapshot_id: opts?.snapshotId,
-      },
-    });
+    const query = { explorer_network_id: opts?.networkId, snapshot_id: opts?.snapshotId };
 
+    if (opts?.nodeType === 'host') {
+      const { data, error } = await getHost({ path: { host_id: deviceId }, query });
+      if (error || !data?.data) {
+        this.setContent(this.buildError(deviceId));
+        return;
+      }
+      this.setContent(this.buildHostPanel(data.data, opts));
+      return;
+    }
+
+    const { data, error } = await getDevice({ path: { device_id: deviceId }, query });
     if (error || !data?.data?.data) {
       this.setContent(this.buildError(deviceId));
       return;
     }
-
     this.setContent(this.buildPanel(data.data, { nodeType: opts?.nodeType, deviceType: opts?.deviceType }));
   }
 
@@ -225,6 +230,10 @@ export class DetailPanel {
       }, this.onNodeSelect),
     );
     return wrapper;
+  }
+
+  private buildHostPanel(host: HostResponse, context?: { nodeType?: string }): HTMLElement {
+    return buildHostPanelEl(host, context, this.onNodeSelect);
   }
 
   private buildLoading(): HTMLElement {

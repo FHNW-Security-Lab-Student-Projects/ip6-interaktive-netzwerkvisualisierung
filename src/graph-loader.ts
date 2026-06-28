@@ -30,11 +30,16 @@ export async function loadBasegraph(query: BasegraphQuery): Promise<BasegraphDat
     const n = node as { data?: Record<string, unknown>; classes?: string };
     // Rename API field dev_type to device_type used by local types
     const { dev_type, ...rest } = (n.data ?? {}) as Record<string, unknown> & { dev_type?: unknown };
+    const rawLabel = rest['label'] as string | undefined;
+    const label = (rest['node_type'] === 'host' && rawLabel?.includes('\n'))
+      ? rawLabel.split('\n').reverse().join('\n')
+      : rawLabel;
     return {
       data: {
         ...rest,
+        ...(label !== undefined ? { label } : {}),
         ...(dev_type !== undefined ? { device_type: dev_type } : {}),
-        title: (rest['title'] ?? rest['label'] ?? rest['id']) as string,
+        title: (rest['title'] ?? label ?? rest['id']) as string,
       },
       ...(n.classes !== undefined ? { classes: n.classes } : {}),
     };
