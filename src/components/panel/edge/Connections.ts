@@ -9,6 +9,10 @@ export function findPort(ports: PortInfo[], ifName: string): PortInfo | undefine
   return ports.find(p => p.if_no === ifName || p.if_no_short === ifName);
 }
 
+export function pairStatus(sp: PortInfo | undefined, tp: PortInfo | undefined): 'online' | 'down' {
+  return sp?.if_state === 'down' || tp?.if_state === 'down' ? 'down' : 'online';
+}
+
 function buildConnectionLabelEl(
   ifLocal: string,
   ifRemote: string,
@@ -92,8 +96,7 @@ export function buildConnectionItems(
   return connEntries.map(entry => {
     const sp = findPort(srcPorts, entry.ifLocal);
     const tp = findPort(tgtPorts, entry.ifRemote);
-    const connState: 'online' | 'down' =
-      sp?.if_state === 'down' || tp?.if_state === 'down' ? 'down' : 'online';
+    const connState = pairStatus(sp, tp);
     const key = `${entry.ifLocal} ↔ ${entry.ifRemote}`;
     const srcLagName = findLagName(srcInfo, entry.ifLocal);
     const tgtLagName = findLagName(tgtInfo, entry.ifRemote);

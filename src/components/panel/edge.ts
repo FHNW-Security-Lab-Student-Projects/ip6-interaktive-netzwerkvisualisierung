@@ -3,7 +3,7 @@ import type { DeviceInfoOutput, PortInfo } from '../../generated/types.gen.ts';
 import type { AccordionItem } from '../Accordion.ts';
 import { createAccordion } from '../Accordion.ts';
 import type { StatusLevel } from './utils.ts';
-import { type ConnEntry, findPort, buildConnectionItems } from './edge/Connections.ts';
+import { type ConnEntry, findPort, pairStatus, buildConnectionItems } from './edge/Connections.ts';
 import { buildVlansSection } from './edge/Vlans.ts';
 import { buildStpSection } from './edge/Stp.ts';
 import { buildEdgeHeader } from './edge/Header.ts';
@@ -60,12 +60,13 @@ function computeStatus(
   if (edgeIsDown) return 'down';
 
   if (connEntries.length > 0) {
-    const allDown = connEntries.every(entry => {
-      const sp = findPort(srcPorts, entry.ifLocal);
-      const tp = findPort(tgtPorts, entry.ifRemote);
-      return sp?.if_state === 'down' && tp?.if_state === 'down';
-    });
-    if (allDown) return 'down';
+    // Derive overall status from per-pair statuses so the header dot is always
+    // consistent with what the individual accordion rows show.
+    const pairStatuses = connEntries.map(entry =>
+      pairStatus(findPort(srcPorts, entry.ifLocal), findPort(tgtPorts, entry.ifRemote)),
+    );
+    if (pairStatuses.every(s => s === 'down')) return 'down';
+    if (pairStatuses.some(s => s === 'down')) return 'warn'; // partial failure, e.g. one LAG member down
   }
 
   if (warnings.length > 0) return 'warn';
