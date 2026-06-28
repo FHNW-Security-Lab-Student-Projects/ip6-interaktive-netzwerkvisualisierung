@@ -1,6 +1,7 @@
 import type { DeviceInfoOutput, PortInfo } from '../../../generated/types.gen.ts';
 import type { PanelSection } from '../types.ts';
 import { buildPaginatedTable } from '../table.ts';
+import { normalizeStr, normalizeVlanId } from '../normalize.ts';
 
 type NeighEntry = { neighId: string; neighName: string };
 
@@ -63,7 +64,7 @@ function buildContent(
       <td>${p.if_no_short ?? p.if_no}</td>
       <td><span class="port-state port-state--${state}">${state}</span></td>
       <td>${p.port_type ?? '—'}</td>
-      <td>${p.tagged ?? p.vlan_id ?? '—'}</td>
+      <td>${normalizeStr(p.tagged) ?? normalizeVlanId(p.vlan_id) ?? '—'}</td>
       <td class="td-left">${p.description || '—'}</td>
     `;
 

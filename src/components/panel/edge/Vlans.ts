@@ -1,6 +1,7 @@
 import type { PortInfo } from '../../../generated/types.gen.ts';
 import { buildPaginatedTable } from '../table.ts';
 import { findPort, type ConnEntry } from './Connections.ts';
+import { normalizeStr, normalizeVlanId } from '../normalize.ts';
 
 export function buildVlansSection(
   srcName: string,
@@ -16,8 +17,10 @@ export function buildVlansSection(
   }));
 
   const hasData = pairs.some(({ sp, tp }) =>
-    sp?.tagged || sp?.untagged != null || sp?.vlan_id != null ||
-    tp?.tagged || tp?.untagged != null || tp?.vlan_id != null,
+    normalizeStr(sp?.tagged) ||
+    normalizeVlanId(sp?.untagged) != null || normalizeVlanId(sp?.vlan_id) != null ||
+    normalizeStr(tp?.tagged) ||
+    normalizeVlanId(tp?.untagged) != null || normalizeVlanId(tp?.vlan_id) != null,
   );
 
   if (!hasData) {
@@ -56,10 +59,10 @@ export function buildVlansSection(
       rows.push(sep);
     }
 
-    const spNative = sp?.untagged ?? sp?.vlan_id ?? null;
-    const tpNative = tp?.untagged ?? tp?.vlan_id ?? null;
-    const spTagged = sp?.tagged ?? null;
-    const tpTagged = tp?.tagged ?? null;
+    const spNative = normalizeVlanId(sp?.untagged) ?? normalizeVlanId(sp?.vlan_id) ?? null;
+    const tpNative = normalizeVlanId(tp?.untagged) ?? normalizeVlanId(tp?.vlan_id) ?? null;
+    const spTagged = normalizeStr(sp?.tagged);
+    const tpTagged = normalizeStr(tp?.tagged);
 
     rows.push(makeRow(
       'Native', spNative, tpNative,

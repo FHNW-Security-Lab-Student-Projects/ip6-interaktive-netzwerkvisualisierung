@@ -1,5 +1,6 @@
 import type { PortInfo } from '../../../generated/types.gen.ts';
 import { findPort, type ConnEntry } from './Connections.ts';
+import { normalizeVlanId } from '../normalize.ts';
 
 // A rule inspects one connection pair and returns a warning string, or null if healthy.
 type WarningRule = (entry: ConnEntry, sp: PortInfo | undefined, tp: PortInfo | undefined) => string | null;
@@ -26,8 +27,9 @@ const asymmetricState: WarningRule = (entry, sp, tp) => {
 
 // Check for tagged VLAN mismatches between connected ports
 const taggedVlanMismatch: WarningRule = (entry, sp, tp) => {
-  const a = sp?.tagged ?? null;
-  const b = tp?.tagged ?? null;
+  // Use || null (not ??) so empty strings normalize to null, matching how Vlans.ts treats them.
+  const a = sp?.tagged || null;
+  const b = tp?.tagged || null;
   if ((a !== null || b !== null) && a !== b) {
     return `Tagged VLAN mismatch on ${entry.ifLocal} ↔ ${entry.ifRemote}`;
   }
@@ -36,8 +38,8 @@ const taggedVlanMismatch: WarningRule = (entry, sp, tp) => {
 
 // Check for native VLAN mismatches between connected ports
 const nativeVlanMismatch: WarningRule = (entry, sp, tp) => {
-  const a = sp?.untagged ?? sp?.vlan_id ?? null;
-  const b = tp?.untagged ?? tp?.vlan_id ?? null;
+  const a = normalizeVlanId(sp?.untagged) ?? normalizeVlanId(sp?.vlan_id) ?? null;
+  const b = normalizeVlanId(tp?.untagged) ?? normalizeVlanId(tp?.vlan_id) ?? null;
   if ((a !== null || b !== null) && a !== b) {
     return `Native VLAN mismatch on ${entry.ifLocal} ↔ ${entry.ifRemote}`;
   }

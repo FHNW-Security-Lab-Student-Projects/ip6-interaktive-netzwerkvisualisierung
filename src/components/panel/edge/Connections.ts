@@ -2,6 +2,7 @@ import type { DeviceInfoOutput, PortInfo } from '../../../generated/types.gen.ts
 import type { AccordionItem } from '../../Accordion.ts';
 import { makeStatusDot, makeChip } from '../utils.ts';
 import { buildPaginatedTable } from '../table.ts';
+import { normalizeStr } from '../normalize.ts';
 
 export type ConnEntry = { ifLocal: string; ifRemote: string };
 
@@ -66,9 +67,9 @@ function buildConnectionContent(
 
   const rows: HTMLTableRowElement[] = [
     makeRow('Interface', srcIf, tgtIf),
-    makeRow('State', srcPort?.if_state ?? '—', tgtPort?.if_state ?? '—'),
-    makeRow('Speed', srcPort?.speed ?? '—', tgtPort?.speed ?? '—'),
-    makeRow('Duplex', srcPort?.duplex ?? '—', tgtPort?.duplex ?? '—'),
+    makeRow('State',  normalizeStr(srcPort?.if_state)  ?? '—', normalizeStr(tgtPort?.if_state)  ?? '—'),
+    makeRow('Speed',  normalizeStr(srcPort?.speed)      ?? '—', normalizeStr(tgtPort?.speed)      ?? '—'),
+    makeRow('Duplex', normalizeStr(srcPort?.duplex)     ?? '—', normalizeStr(tgtPort?.duplex)     ?? '—'),
   ];
 
   const srcDesc = srcPort?.description ?? null;
