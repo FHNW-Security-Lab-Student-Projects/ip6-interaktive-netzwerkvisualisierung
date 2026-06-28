@@ -53,6 +53,10 @@ export function setupDetailPanel(
   };
 
   panel.setNodeSelectHandler(selectNode);
+  panel.setHideHandler(() => {
+    cy.nodes().unselect();
+    cy.edges().unselect();
+  });
 
   cy.on('tap', event => {
     if (event.target === cy) {
@@ -98,6 +102,7 @@ export class DetailPanel {
   private content: HTMLElement;
   private openAccordions = new Set<string>();
   private onNodeSelect?: (nodeId: string) => void;
+  private onHide?: () => void;
 
   constructor(container: HTMLElement) {
     this.container = container;
@@ -140,6 +145,10 @@ export class DetailPanel {
 
   setNodeSelectHandler(fn: (nodeId: string) => void): void {
     this.onNodeSelect = fn;
+  }
+
+  setHideHandler(fn: () => void): void {
+    this.onHide = fn;
   }
 
   async show(deviceId: string, opts?: { networkId?: number; snapshotId?: number; nodeType?: string; deviceType?: string }): Promise<void> {
@@ -199,6 +208,7 @@ export class DetailPanel {
   hide(): void {
     this.container.setAttribute('hidden', '');
     this.content.innerHTML = '';
+    this.onHide?.();
   }
 
   private setContent(el: HTMLElement): void {
