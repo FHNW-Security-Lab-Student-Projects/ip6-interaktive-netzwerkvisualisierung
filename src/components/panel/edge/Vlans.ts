@@ -9,12 +9,13 @@ export function buildVlansSection(
   srcPorts: PortInfo[],
   tgtPorts: PortInfo[],
 ): { content: HTMLElement; disabled: boolean } {
-  const portPairs = connEntries.map(e => ({
+  const pairs = connEntries.map(e => ({
+    entry: e,
     sp: findPort(srcPorts, e.ifLocal),
     tp: findPort(tgtPorts, e.ifRemote),
   }));
 
-  const hasData = portPairs.some(({ sp, tp }) =>
+  const hasData = pairs.some(({ sp, tp }) =>
     sp?.tagged || sp?.untagged != null || sp?.vlan_id != null ||
     tp?.tagged || tp?.untagged != null || tp?.vlan_id != null,
   );
@@ -42,7 +43,19 @@ export function buildVlansSection(
   };
 
   const rows: HTMLTableRowElement[] = [];
-  for (const { sp, tp } of portPairs) {
+  for (const { entry, sp, tp } of pairs) {
+    // Only add interface separator rows when there are multiple connections,
+    // otherwise the single pair is already clear from context.
+    if (connEntries.length > 1) {
+      const sep = document.createElement('tr');
+      sep.className = 'vlan-iface-sep';
+      const td = document.createElement('td');
+      td.colSpan = 3;
+      td.textContent = `${entry.ifLocal} ↔ ${entry.ifRemote}`;
+      sep.append(td);
+      rows.push(sep);
+    }
+
     const spNative = sp?.untagged ?? sp?.vlan_id ?? null;
     const tpNative = tp?.untagged ?? tp?.vlan_id ?? null;
     const spTagged = sp?.tagged ?? null;

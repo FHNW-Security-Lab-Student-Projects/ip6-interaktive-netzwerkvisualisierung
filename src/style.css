@@ -637,6 +637,14 @@ footer p {
 }
 
 /* VLAN comparison table mismatch row */
+.vlan-iface-sep td {
+  padding: 8px 14px 4px;
+  font-size: 0.78rem;
+  color: #888;
+  border-bottom: none;
+  text-align: left;
+}
+
 .vlan-mismatch td {
   background: #fef3c7;
   color: #92400e;
