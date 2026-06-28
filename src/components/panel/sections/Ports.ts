@@ -2,12 +2,60 @@ import type { DeviceInfoOutput, PortInfo } from '../../../generated/types.gen.ts
 import type { PanelSection } from '../types.ts';
 import { buildPaginatedTable } from '../table.ts';
 
-export function buildPortsSection(info: DeviceInfoOutput): PanelSection {
+type NeighEntry = { neighId: string; neighName: string };
+
+export function buildPortsSection(info: DeviceInfoOutput, onNodeSelect?: (nodeId: string) => void): PanelSection {
   const ports = info.ports ? Object.values(info.ports) : [];
-  return { label: 'Ports', content: buildContent(ports), disabled: ports.length === 0 };
+  return { label: 'Ports', content: buildContent(ports, buildNeighborMap(info), onNodeSelect), disabled: ports.length === 0 };
 }
 
-function buildContent(ports: PortInfo[]): HTMLElement {
+function buildNeighborMap(info: DeviceInfoOutput): Map<string, NeighEntry[]> {
+  // Two separate maps so multiple entries per port accumulate independently within
+  // each source, then neighbors win over hosts at merge time.
+  const hostMap = new Map<string, NeighEntry[]>();
+  const neighMap = new Map<string, NeighEntry[]>();
+
+  const addTo = (map: Map<string, NeighEntry[]>, key: string, entry: NeighEntry) => {
+    const arr = map.get(key);
+    if (arr) arr.push(entry);
+    else map.set(key, [entry]);
+  };
+
+  for (const host of Object.values(info.hosts ?? {})) {
+    if (!host.hw_id) continue;
+    const neighName = host.addresses?.[0]?.ipv4 ?? host.vendor ?? host.hw_id;
+    const entry: NeighEntry = { neighId: host.hw_id, neighName };
+    addTo(hostMap, host.port_if_no, entry);
+    if (host.port_if_no_short) addTo(hostMap, host.port_if_no_short, entry);
+  }
+
+  for (const neigh of Object.values(info.neighbors ?? {})) {
+    const neighName = neigh.name || neigh.ip_address || neigh.neigh_id;
+    for (const conn of Object.values(neigh.connections ?? {})) {
+      addTo(neighMap, conn.if_local, { neighId: neigh.neigh_id, neighName });
+    }
+  }
+
+  // Neighbors replace hosts for the same port: a neighbor's panel already surfaces
+  // its downstream hosts, so showing individual hosts behind it is redundant.
+  const result = new Map<string, NeighEntry[]>(hostMap);
+  for (const [key, entries] of neighMap) result.set(key, entries);
+  return result;
+}
+
+function makeNeighLink(entry: NeighEntry, onNodeSelect?: (nodeId: string) => void): HTMLSpanElement {
+  const link = document.createElement('span');
+  link.className = onNodeSelect ? 'neigh-link neigh-link--clickable' : 'neigh-link';
+  link.textContent = entry.neighName;
+  if (onNodeSelect) link.addEventListener('click', () => onNodeSelect(entry.neighId));
+  return link;
+}
+
+function buildContent(
+  ports: PortInfo[],
+  neighborMap: Map<string, NeighEntry[]>,
+  onNodeSelect?: (nodeId: string) => void,
+): HTMLElement {
   const rows = ports.map(p => {
     const tr = document.createElement('tr');
     const state = p.if_state ?? 'unknown';
@@ -18,7 +66,25 @@ function buildContent(ports: PortInfo[]): HTMLElement {
       <td>${p.tagged ?? p.vlan_id ?? '—'}</td>
       <td class="td-left">${p.description || '—'}</td>
     `;
+
+    const neighTd = document.createElement('td');
+    const entries = neighborMap.get(p.if_no) ?? neighborMap.get(p.if_no_short ?? '');
+    if (entries && entries.length > 0) {
+      if (entries.length === 1) {
+        neighTd.append(makeNeighLink(entries[0], onNodeSelect));
+      } else {
+        const stack = document.createElement('div');
+        stack.className = 'neigh-stack';
+        for (const entry of entries) stack.append(makeNeighLink(entry, onNodeSelect));
+        neighTd.append(stack);
+      }
+    } else {
+      neighTd.textContent = '—';
+    }
+    tr.append(neighTd);
+
     return tr;
   });
-  return buildPaginatedTable(['Interface', 'State', 'Type', 'VLAN/Tagged', 'Description'], rows);
+
+  return buildPaginatedTable(['Interface', 'State', 'Type', 'VLAN/Tagged', 'Description', 'Connected Node'], rows);
 }

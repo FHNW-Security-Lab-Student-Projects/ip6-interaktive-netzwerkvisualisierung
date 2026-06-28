@@ -547,6 +547,12 @@ footer p {
   color: #1e4d8c;
 }
 
+.neigh-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .neigh-disc {
   font-size: 0.75rem;
   color: #bbb;

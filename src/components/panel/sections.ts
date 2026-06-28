@@ -20,7 +20,7 @@ export function buildSections(
 
   const panels = [
     buildNeighborsSection(info, onNodeSelect),
-    buildPortsSection(info),
+    buildPortsSection(info, onNodeSelect),
     buildLagsSection(info),
     buildSpanningTreeSection(info),
     buildVlansSection(info),
