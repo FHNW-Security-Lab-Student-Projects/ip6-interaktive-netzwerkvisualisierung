@@ -41,8 +41,8 @@ function buildConnectionLabelEl(
   const lagNames = [...new Set([srcLagName, tgtLagName].filter(Boolean))] as string[];
   for (const n of lagNames) el.append(makeChip(`LAG: ${n}`));
 
-  // 'lag' is already communicated via the LAG: name chip; show chips for other edge types
-  for (const cls of typeClasses.filter(c => c !== 'lag')) el.append(makeChip(cls));
+  // 'lag' is already communicated via the LAG: name chip; portType is already shown above
+  for (const cls of typeClasses.filter(c => c !== 'lag' && c !== portType)) el.append(makeChip(cls));
 
   return el;
 }

@@ -15,11 +15,8 @@ function computeStatus(
   connEntries: ConnEntry[],
   srcPorts: PortInfo[],
   tgtPorts: PortInfo[],
-  edgeIsDown: boolean,
   warnings: string[],
 ): StatusLevel {
-  if (edgeIsDown) return 'down';
-
   if (connEntries.length > 0) {
     // Derive overall status from per-pair statuses so the header dot is always
     // consistent with what the individual accordion rows show.
@@ -55,7 +52,6 @@ export function buildEdgePanel(
     ?? 'unknown';
 
   const classes = edge.classes().filter(Boolean);
-  const edgeIsDown = classes.includes('down') || classes.includes('disabled');
   const typeClasses = classes.filter(c => EDGE_TYPE_CLASSES.has(c));
 
   const discoveredBySrc = !!srcInfo?.neighbors?.[tgtId];
@@ -77,7 +73,7 @@ export function buildEdgePanel(
   const tgtPorts = Object.values(tgtInfo?.ports ?? {});
 
   const warnings = computeWarnings(connEntries, srcPorts, tgtPorts);
-  const status = computeStatus(connEntries, srcPorts, tgtPorts, edgeIsDown, warnings);
+  const status = computeStatus(connEntries, srcPorts, tgtPorts, warnings);
 
   const header = buildEdgeHeader(
     srcId, srcName, srcType,

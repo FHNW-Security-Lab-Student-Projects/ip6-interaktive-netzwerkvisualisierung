@@ -9,6 +9,7 @@ import { NODE_HIERARCHY } from '../node-factory.ts';
 import { loadBasegraph } from '../graph-loader.ts';
 import { groupByUpstreamNode } from '../graph-transforms.ts';
 import { setupDetailPanel, setupToolbar, setupSearch } from '../components/index.ts';
+import { buildDeviceMap, enrichEdges, applyEdgeState } from '../edge-enricher.ts';
 
 export const title = 'API Network: Compound Graph';
 export const description =
@@ -64,4 +65,13 @@ export async function mount(container: HTMLElement): Promise<void> {
   setupToolbar(ctrl, NODE_HIERARCHY, 'none');
   setupSearch(ctrl, nodes);
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);
+
+  const deviceNodeIds = raw.nodes
+    .filter(n => n.data.node_type === 'device')
+    .map(n => n.data.id as string);
+
+  buildDeviceMap(deviceNodeIds, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID }).then(deviceMap => {
+    enrichEdges(cy, deviceMap);
+    cy.on('add', 'edge', evt => applyEdgeState(evt.target as cytoscape.EdgeSingular, deviceMap));
+  });
 }

@@ -65,7 +65,7 @@ export const Colors = {
 
   // Operational states — base colors; lighter/darker variants computed below
   STATE_DOWN:      '#dc2626',  // red — matches .panel-status-dot--down
-  STATE_WARNING:   '#a07828',  // dark amber (distinct from HOST slate-gray)
+  STATE_WARNING:   '#f59e0b',  // amber — matches .panel-status-dot--warn
   STATE_HIGHLIGHT: '#3a82cc',  // azure blue
   STATE_DISABLED:  '#2e3d4c',  // near-black slate
 
@@ -339,7 +339,7 @@ export function createNetworkStyles(): any[] {
       selector: 'edge.lag',
       style: {
         'line-style': 'double',
-        'width': 3,
+        'width': 5,
       },
     },
     {
@@ -357,9 +357,10 @@ export function createNetworkStyles(): any[] {
     {
       selector: 'edge.routed',
       style: {
-        'target-arrow-shape': 'triangle',
-        'target-arrow-color': Colors.EDGE,
-        'arrow-scale': 1.2,
+        'line-color': Colors.ROUTER,
+        'line-style': 'dashed',
+        'line-dash-pattern': [3, 6],
+        'width': 2,
       },
     },
 
@@ -396,6 +397,13 @@ export function createNetworkStyles(): any[] {
         'opacity': 1,
       },
     },
+
+    // LAG + state: after state overrides so these win by order.
+    // down/disabled: keep the thicker line so the LAG is recognisable even when broken.
+    // warning: full LAG style (double, width 5) with the exact status-indicator amber — no lightening.
+    { selector: 'edge.lag.down',     style: { 'width': 5 } },
+    { selector: 'edge.lag.disabled', style: { 'width': 5, 'opacity': 0.5 } },
+    { selector: 'edge.lag.warning',  style: { 'line-style': 'double', 'width': 5, 'line-color': Colors.STATE_WARNING } },
 
     // :selected, defined last so it always wins
     {

@@ -3,6 +3,7 @@ import type { DeviceInfoOutput } from '../generated/types.gen.ts';
 import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import { setupDetailPanel } from '../components/index.ts';
+import { enrichEdges } from '../edge-enricher.ts';
 
 export const title = 'Demo: Edge Warning Rules';
 export const description =
@@ -196,6 +197,7 @@ export async function mount(container: HTMLElement): Promise<void> {
   ]);
 
   const panelOpts = setupDetailPanel(cy, { mockDeviceData: mockMap });
+  enrichEdges(cy, mockMap);
 
   cy.on('tap', 'node', event => {
     event.stopPropagation();
