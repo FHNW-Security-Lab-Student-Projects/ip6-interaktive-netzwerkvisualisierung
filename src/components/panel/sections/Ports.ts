@@ -2,6 +2,7 @@ import type { DeviceInfoOutput, PortInfo } from '../../../generated/types.gen.ts
 import type { PanelSection } from '../types.ts';
 import { buildPaginatedTable } from '../table.ts';
 import { normalizeStr, normalizeVlanId } from '../normalize.ts';
+import { makeNodeName } from '../utils.ts';
 
 type NeighEntry = { neighId: string; neighName: string };
 
@@ -44,14 +45,6 @@ function buildNeighborMap(info: DeviceInfoOutput): Map<string, NeighEntry[]> {
   return result;
 }
 
-function makeNeighLink(entry: NeighEntry, onNodeSelect?: (nodeId: string) => void): HTMLSpanElement {
-  const link = document.createElement('span');
-  link.className = onNodeSelect ? 'neigh-link neigh-link--clickable' : 'neigh-link';
-  link.textContent = entry.neighName;
-  if (onNodeSelect) link.addEventListener('click', () => onNodeSelect(entry.neighId));
-  return link;
-}
-
 function buildContent(
   ports: PortInfo[],
   neighborMap: Map<string, NeighEntry[]>,
@@ -72,11 +65,11 @@ function buildContent(
     const entries = neighborMap.get(p.if_no) ?? neighborMap.get(p.if_no_short ?? '');
     if (entries && entries.length > 0) {
       if (entries.length === 1) {
-        neighTd.append(makeNeighLink(entries[0], onNodeSelect));
+        neighTd.append(makeNodeName(entries[0].neighName, entries[0].neighId, onNodeSelect));
       } else {
         const stack = document.createElement('div');
         stack.className = 'neigh-stack';
-        for (const entry of entries) stack.append(makeNeighLink(entry, onNodeSelect));
+        for (const entry of entries) stack.append(makeNodeName(entry.neighName, entry.neighId, onNodeSelect));
         neighTd.append(stack);
       }
     } else {

@@ -1,3 +1,46 @@
+// Generic text element: plain, copy-on-click, or navigate-on-click.
+// Always sets title so full text is visible on hover (handles truncation).
+export function makeTextEl(
+  text: string,
+  opts?: {
+    navigate?: () => void;
+    copy?: string;      // text to copy; omit for navigate or plain
+    tooltip?: string;   // overrides title; defaults to text
+    className?: string;
+  },
+): HTMLSpanElement {
+  const el = document.createElement('span');
+  el.textContent = text;
+  el.title = opts?.tooltip ?? text;
+  if (opts?.className) el.className = opts.className;
+  if (opts?.navigate) {
+    el.classList.add('text-link');
+    el.addEventListener('click', opts.navigate);
+  } else if (opts?.copy !== undefined) {
+    makeCopyable(el, opts.copy);
+  }
+  return el;
+}
+
+// Node name rendered consistently across all panels.
+// Always styled as a graph-device name (blue, semi-bold).
+// Adds text-link behavior only when onNodeSelect is provided.
+export function makeNodeName(
+  name: string,
+  nodeId: string,
+  onNodeSelect?: (id: string) => void,
+): HTMLSpanElement {
+  const el = document.createElement('span');
+  el.textContent = name;
+  el.title = name;
+  el.className = 'node-name';
+  if (onNodeSelect) {
+    el.classList.add('text-link');
+    el.addEventListener('click', () => onNodeSelect(nodeId));
+  }
+  return el;
+}
+
 export function makeCopyable(el: HTMLElement, text: string): void {
   el.classList.add('copyable');
   el.title = text;

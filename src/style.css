@@ -364,11 +364,31 @@ footer p {
 /* Copyable items */
 
 .copyable {
-  cursor: pointer;
+  cursor: copy;
 }
 
 .copyable:hover {
   opacity: 0.7;
+}
+
+/* Clickable navigation links */
+
+.text-link {
+  color: #3a6ea5;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.text-link:hover {
+  color: #1e4d8c;
+}
+
+/* Graph device names — styled even when not clickable */
+
+.node-name {
+  color: #3a6ea5;
+  font-weight: 500;
 }
 
 /* Floating "Copied!" toast (appended to body on click) */
@@ -530,23 +550,6 @@ footer p {
   cursor: default;
 }
 
-/* Neighbor specific */
-
-.neigh-link {
-  color: #3a6ea5;
-  font-weight: 500;
-}
-
-.neigh-link--clickable {
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.neigh-link--clickable:hover {
-  color: #1e4d8c;
-}
-
 .neigh-stack {
   display: flex;
   flex-direction: column;
@@ -591,18 +594,6 @@ footer p {
 .edge-conn-if {
   color: #888;
   font-size: 0.9rem;
-}
-
-/* Clickable "TYPE NAME IF" links in edge panel */
-.edge-link {
-  color: #3a6ea5;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.edge-link:hover {
-  color: #1e4d8c;
 }
 
 /* Port state colors */

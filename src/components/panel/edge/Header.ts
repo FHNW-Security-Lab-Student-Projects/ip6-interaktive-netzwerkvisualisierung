@@ -1,4 +1,4 @@
-import { makeStatusDot, makeChip, type StatusLevel } from '../utils.ts';
+import { makeStatusDot, makeChip, makeNodeName, type StatusLevel } from '../utils.ts';
 
 export function buildEdgeHeader(
   srcId: string, srcName: string, srcType: string,
@@ -19,14 +19,7 @@ export function buildEdgeHeader(
   const makeNameLink = (nodeId: string, type: string, name: string): HTMLElement => {
     const wrapper = document.createElement('span');
     wrapper.className = 'edge-endpoint';
-    const nameEl = document.createElement('span');
-    nameEl.className = 'edge-endpoint-name';
-    nameEl.textContent = name;
-    if (onNodeSelect) {
-      nameEl.classList.add('edge-link');
-      nameEl.addEventListener('click', () => onNodeSelect(nodeId));
-    }
-    wrapper.append(nameEl);
+    wrapper.append(makeNodeName(name, nodeId, onNodeSelect));
     if (type) wrapper.append(makeChip(type));
     return wrapper;
   };

@@ -1,6 +1,7 @@
 import type { DeviceInfoOutput, NeighborInfoOutput } from '../../../generated/types.gen.ts';
 import type { PanelSection } from '../types.ts';
 import { buildPaginatedTable } from '../table.ts';
+import { makeNodeName } from '../utils.ts';
 
 export function buildNeighborsSection(info: DeviceInfoOutput, onNodeSelect?: (nodeId: string) => void): PanelSection {
   const neighbors = info.neighbors ? Object.values(info.neighbors) : [];
@@ -22,13 +23,7 @@ function buildContent(neighbors: NeighborInfoOutput[], onNodeSelect?: (nodeId: s
 
       const tdNeigh = document.createElement('td');
       const nameText = n.name || n.ip_address || n.neigh_id;
-      const link = document.createElement('span');
-      link.className = onNodeSelect ? 'neigh-link neigh-link--clickable' : 'neigh-link';
-      link.textContent = nameText;
-      if (onNodeSelect) {
-        link.addEventListener('click', () => onNodeSelect(n.neigh_id));
-      }
-      tdNeigh.append(link);
+      tdNeigh.append(makeNodeName(nameText, n.neigh_id, onNodeSelect));
       if (!n.name || n.status === 'unknown') {
         const disc = document.createElement('span');
         disc.className = 'neigh-disc';

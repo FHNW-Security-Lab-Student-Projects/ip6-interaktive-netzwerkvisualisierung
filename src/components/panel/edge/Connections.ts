@@ -1,6 +1,6 @@
 import type { DeviceInfoOutput, PortInfo } from '../../../generated/types.gen.ts';
 import type { AccordionItem } from '../../Accordion.ts';
-import { makeStatusDot, makeChip } from '../utils.ts';
+import { makeStatusDot, makeChip, makeNodeName } from '../utils.ts';
 import { buildPaginatedTable } from '../table.ts';
 import { normalizeStr } from '../normalize.ts';
 
@@ -46,16 +46,6 @@ function buildConnectionContent(
   tgtId: string, tgtName: string, tgtIf: string, tgtPort: PortInfo | undefined,
   onNodeSelect?: (nodeId: string) => void,
 ): HTMLElement {
-  const makeNameHeader = (nodeId: string, name: string): HTMLElement => {
-    const span = document.createElement('span');
-    span.textContent = name;
-    if (onNodeSelect) {
-      span.className = 'edge-link';
-      span.addEventListener('click', () => onNodeSelect(nodeId));
-    }
-    return span;
-  };
-
   const makeRow = (label: string, srcVal: string, tgtVal: string): HTMLTableRowElement => {
     const tr = document.createElement('tr');
     const tdL = document.createElement('td'); tdL.className = 'td-left'; tdL.textContent = label;
@@ -77,7 +67,7 @@ function buildConnectionContent(
   if (srcDesc || tgtDesc) rows.push(makeRow('Description', srcDesc ?? '—', tgtDesc ?? '—'));
 
   return buildPaginatedTable(
-    ['', makeNameHeader(srcId, srcName), makeNameHeader(tgtId, tgtName)],
+    ['', makeNodeName(srcName, srcId, onNodeSelect), makeNodeName(tgtName, tgtId, onNodeSelect)],
     rows,
   );
 }

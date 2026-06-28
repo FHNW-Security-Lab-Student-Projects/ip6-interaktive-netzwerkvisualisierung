@@ -1,6 +1,7 @@
 import type { DeviceInfoOutput, SpanningTreeOutput } from '../../../generated/types.gen.ts';
 import { buildPaginatedTable } from '../table.ts';
 import type { ConnEntry } from './Connections.ts';
+import { makeNodeName } from '../utils.ts';
 
 function findStpInterface(stp: SpanningTreeOutput | null | undefined, ifName: string) {
   if (!stp?.instances) return null;
@@ -12,11 +13,12 @@ function findStpInterface(stp: SpanningTreeOutput | null | undefined, ifName: st
 }
 
 export function buildStpSection(
-  srcName: string,
-  tgtName: string,
+  srcId: string, srcName: string,
+  tgtId: string, tgtName: string,
   connEntries: ConnEntry[],
   srcInfo: DeviceInfoOutput | null,
   tgtInfo: DeviceInfoOutput | null,
+  onNodeSelect?: (nodeId: string) => void,
 ): { content: HTMLElement; disabled: boolean } {
   if (!srcInfo?.stp && !tgtInfo?.stp) {
     const el = document.createElement('div');
@@ -62,5 +64,5 @@ export function buildStpSection(
     return tr;
   });
 
-  return { content: buildPaginatedTable(['', srcName, tgtName], rows), disabled: false };
+  return { content: buildPaginatedTable(['', makeNodeName(srcName, srcId, onNodeSelect), makeNodeName(tgtName, tgtId, onNodeSelect)], rows), disabled: false };
 }

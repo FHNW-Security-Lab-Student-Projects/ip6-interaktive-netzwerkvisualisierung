@@ -97,14 +97,14 @@ export function buildEdgePanel(
     onNodeSelect,
   );
 
-  const vlansSection = buildVlansSection(srcName, tgtName, connEntries, srcPorts, tgtPorts);
+  const vlansSection = buildVlansSection(srcId, srcName, tgtId, tgtName, connEntries, srcPorts, tgtPorts, onNodeSelect);
   accordionItems.push({
     label: 'VLANs', key: 'vlans', content: vlansSection.content,
     open: !vlansSection.disabled && openAccordions.has('vlans'),
     disabled: vlansSection.disabled,
   });
 
-  const stpSection = buildStpSection(srcName, tgtName, connEntries, srcInfo, tgtInfo);
+  const stpSection = buildStpSection(srcId, srcName, tgtId, tgtName, connEntries, srcInfo, tgtInfo, onNodeSelect);
   accordionItems.push({
     label: 'Spanning Tree', key: 'stp', content: stpSection.content,
     open: !stpSection.disabled && openAccordions.has('stp'),

@@ -2,13 +2,15 @@ import type { PortInfo } from '../../../generated/types.gen.ts';
 import { buildPaginatedTable } from '../table.ts';
 import { findPort, type ConnEntry } from './Connections.ts';
 import { normalizeStr, normalizeVlanId } from '../normalize.ts';
+import { makeNodeName } from '../utils.ts';
 
 export function buildVlansSection(
-  srcName: string,
-  tgtName: string,
+  srcId: string, srcName: string,
+  tgtId: string, tgtName: string,
   connEntries: ConnEntry[],
   srcPorts: PortInfo[],
   tgtPorts: PortInfo[],
+  onNodeSelect?: (nodeId: string) => void,
 ): { content: HTMLElement; disabled: boolean } {
   const pairs = connEntries.map(e => ({
     entry: e,
@@ -74,5 +76,5 @@ export function buildVlansSection(
     ));
   }
 
-  return { content: buildPaginatedTable(['', srcName, tgtName], rows), disabled: false };
+  return { content: buildPaginatedTable(['', makeNodeName(srcName, srcId, onNodeSelect), makeNodeName(tgtName, tgtId, onNodeSelect)], rows), disabled: false };
 }
