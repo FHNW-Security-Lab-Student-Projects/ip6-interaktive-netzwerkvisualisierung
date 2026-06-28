@@ -11,7 +11,9 @@ export function findPort(ports: PortInfo[], ifName: string): PortInfo | undefine
 }
 
 export function pairStatus(sp: PortInfo | undefined, tp: PortInfo | undefined): 'online' | 'down' {
-  return sp?.if_state === 'down' || tp?.if_state === 'down' ? 'down' : 'online';
+  // err-disabled is functionally down — port blocked by switch, no traffic passes
+  const isDown = (p: PortInfo | undefined) => p?.if_state === 'down' || p?.if_state === 'err-disabled';
+  return isDown(sp) || isDown(tp) ? 'down' : 'online';
 }
 
 function buildConnectionLabelEl(
@@ -21,6 +23,7 @@ function buildConnectionLabelEl(
   connState: 'online' | 'down',
   srcLagName: string | null,
   tgtLagName: string | null,
+  typeClasses: string[],
 ): HTMLElement {
   const el = document.createElement('span');
   el.className = 'accordion-label-content';
@@ -38,6 +41,9 @@ function buildConnectionLabelEl(
   const lagNames = [...new Set([srcLagName, tgtLagName].filter(Boolean))] as string[];
   for (const n of lagNames) el.append(makeChip(`LAG: ${n}`));
 
+  // 'lag' is already communicated via the LAG: name chip; show chips for other edge types
+  for (const cls of typeClasses.filter(c => c !== 'lag')) el.append(makeChip(cls));
+
   return el;
 }
 
@@ -46,8 +52,9 @@ function buildConnectionContent(
   tgtId: string, tgtName: string, tgtIf: string, tgtPort: PortInfo | undefined,
   onNodeSelect?: (nodeId: string) => void,
 ): HTMLElement {
-  const makeRow = (label: string, srcVal: string, tgtVal: string): HTMLTableRowElement => {
+  const makeRow = (label: string, srcVal: string, tgtVal: string, warn = false): HTMLTableRowElement => {
     const tr = document.createElement('tr');
+    if (warn) tr.className = 'table-row-warn';
     const tdL = document.createElement('td'); tdL.className = 'td-left'; tdL.textContent = label;
     const tdS = document.createElement('td'); tdS.textContent = srcVal;
     const tdT = document.createElement('td'); tdT.textContent = tgtVal;
@@ -55,11 +62,40 @@ function buildConnectionContent(
     return tr;
   };
 
+  const knownVal = (v: string | null | undefined) => !!(v && v !== 'auto' && v !== 'unknown');
+
   const rows: HTMLTableRowElement[] = [
     makeRow('Interface', srcIf, tgtIf),
-    makeRow('State',  normalizeStr(srcPort?.if_state)  ?? '—', normalizeStr(tgtPort?.if_state)  ?? '—'),
-    makeRow('Speed',  normalizeStr(srcPort?.speed)      ?? '—', normalizeStr(tgtPort?.speed)      ?? '—'),
-    makeRow('Duplex', normalizeStr(srcPort?.duplex)     ?? '—', normalizeStr(tgtPort?.duplex)     ?? '—'),
+    makeRow(
+      'Type',
+      normalizeStr(srcPort?.port_type) ?? '—',
+      normalizeStr(tgtPort?.port_type) ?? '—',
+      !!(srcPort?.port_type && tgtPort?.port_type &&
+         srcPort.port_type !== 'unknown' && tgtPort.port_type !== 'unknown' &&
+         srcPort.port_type !== tgtPort.port_type),
+    ),
+    makeRow(
+      'State',
+      normalizeStr(srcPort?.if_state) ?? '—',
+      normalizeStr(tgtPort?.if_state) ?? '—',
+      !!(
+        (srcPort?.if_state && tgtPort?.if_state && srcPort.if_state !== tgtPort.if_state) ||
+        srcPort?.if_state === 'err-disabled' ||
+        tgtPort?.if_state === 'err-disabled'
+      ),
+    ),
+    makeRow(
+      'Speed',
+      normalizeStr(srcPort?.speed) ?? '—',
+      normalizeStr(tgtPort?.speed) ?? '—',
+      knownVal(srcPort?.speed) && knownVal(tgtPort?.speed) && srcPort?.speed !== tgtPort?.speed,
+    ),
+    makeRow(
+      'Duplex',
+      normalizeStr(srcPort?.duplex) ?? '—',
+      normalizeStr(tgtPort?.duplex) ?? '—',
+      knownVal(srcPort?.duplex) && knownVal(tgtPort?.duplex) && srcPort?.duplex !== tgtPort?.duplex,
+    ),
   ];
 
   const srcDesc = srcPort?.description ?? null;
@@ -78,6 +114,7 @@ export function buildConnectionItems(
   tgtId: string, tgtName: string, tgtPorts: PortInfo[],
   srcInfo: DeviceInfoOutput | null,
   tgtInfo: DeviceInfoOutput | null,
+  typeClasses: string[],
   openAccordions: Set<string>,
   onNodeSelect?: (nodeId: string) => void,
 ): AccordionItem[] {
@@ -92,7 +129,7 @@ export function buildConnectionItems(
     const srcLagName = findLagName(srcInfo, entry.ifLocal);
     const tgtLagName = findLagName(tgtInfo, entry.ifRemote);
     return {
-      label: buildConnectionLabelEl(entry.ifLocal, entry.ifRemote, sp?.port_type, connState, srcLagName, tgtLagName),
+      label: buildConnectionLabelEl(entry.ifLocal, entry.ifRemote, sp?.port_type, connState, srcLagName, tgtLagName, typeClasses),
       key,
       content: buildConnectionContent(
         srcId, srcName, entry.ifLocal, sp,

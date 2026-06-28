@@ -1,6 +1,7 @@
 import type { HostResponse } from '../../generated/types.gen.ts';
 import { makeCopyable, makeChip, makeStatusDot, formatTimestamp, formatDateString } from './utils.ts';
 import { makeNodeName } from './utils.ts';
+import { STALE_THRESHOLD_MS } from '../../network-styles.ts';
 
 export function buildHostPanelEl(
   host: HostResponse,
@@ -17,8 +18,8 @@ export function buildHostPanelEl(
   const heroRow = document.createElement('div');
   heroRow.className = 'panel-hero-row';
 
-  // HostInfoOutput has no "known" equivalent, so hosts always show the neutral grey dot.
-  heroRow.append(makeStatusDot('unknown'));
+  // Hosts have no "known" equivalent; use last_seen staleness directly.
+  heroRow.append(makeStatusDot(Date.now() - info.last_seen * 1000 > STALE_THRESHOLD_MS ? 'down' : 'online'));
 
   const nameEl = document.createElement('span');
   nameEl.className = 'panel-device-name';

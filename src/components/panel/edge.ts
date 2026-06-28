@@ -9,7 +9,7 @@ import { buildVlansSection } from './edge/Vlans.ts';
 import { buildStpSection } from './edge/Stp.ts';
 import { buildEdgeHeader } from './edge/Header.ts';
 
-const EDGE_TYPE_CLASSES = new Set(['logical', 'lagg', 'uplink', 'routed']);
+const EDGE_TYPE_CLASSES = new Set(['logical', 'lag', 'uplink', 'routed']);
 
 function computeStatus(
   connEntries: ConnEntry[],
@@ -27,7 +27,7 @@ function computeStatus(
       pairStatus(findPort(srcPorts, entry.ifLocal), findPort(tgtPorts, entry.ifRemote)),
     );
     if (pairStatuses.every(s => s === 'down')) return 'down';
-    if (pairStatuses.some(s => s === 'down')) return 'warn'; // partial failure, e.g. one LAG member down
+    if (pairStatuses.some(s => s === 'down')) return 'warn';
   }
 
   if (warnings.length > 0) return 'warn';
@@ -84,7 +84,6 @@ export function buildEdgePanel(
     tgtId, tgtName, tgtType,
     status, warnings,
     discoveredBySrc, discoveredByTgt,
-    typeClasses,
     onNodeSelect,
   );
 
@@ -93,6 +92,7 @@ export function buildEdgePanel(
     srcId, srcName, srcPorts,
     tgtId, tgtName, tgtPorts,
     srcInfo, tgtInfo,
+    typeClasses,
     openAccordions,
     onNodeSelect,
   );

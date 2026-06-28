@@ -1,6 +1,6 @@
 import type cytoscape from 'cytoscape';
 import { getDevice, getHost } from '../generated/sdk.gen.ts';
-import type { DeviceResponse, HostResponse } from '../generated/types.gen.ts';
+import type { DeviceInfoOutput, DeviceResponse, HostResponse } from '../generated/types.gen.ts';
 import type { ExpandCollapseOptions } from '../expand-collapse.ts';
 import { buildHeader } from './panel/header.ts';
 import { buildSections } from './panel/sections.ts';
@@ -13,12 +13,13 @@ export type DetailPanelSetup = ExpandCollapseOptions & {
 
 export function setupDetailPanel(
   cy: cytoscape.Core,
-  opts?: { networkId?: number; snapshotId?: number },
+  opts?: { networkId?: number; snapshotId?: number; mockDeviceData?: Map<string, DeviceInfoOutput> },
 ): DetailPanelSetup {
   const panelEl = document.getElementById('device-panel');
   if (!panelEl) return { setFocusNode: () => {} };
 
   const panel = new DetailPanel(panelEl);
+  if (opts?.mockDeviceData) panel.setMockDeviceData(opts.mockDeviceData);
   let selectedNodeId: string | null = null;
   let focusNodeFn: ((nodeId: string) => void) | null = null;
 
@@ -104,6 +105,11 @@ export class DetailPanel {
   private openAccordions = new Set<string>();
   private onNodeSelect?: (nodeId: string) => void;
   private onHide?: () => void;
+  private mockDeviceData?: Map<string, DeviceInfoOutput>;
+
+  setMockDeviceData(map: Map<string, DeviceInfoOutput>): void {
+    this.mockDeviceData = map;
+  }
 
   constructor(container: HTMLElement) {
     this.container = container;
@@ -189,13 +195,18 @@ export class DetailPanel {
     const effectiveTarget = edgeData.orig_target ?? edgeData.target;
 
     const query = { explorer_network_id: opts?.networkId, snapshot_id: opts?.snapshotId };
+    const fetchIfNeeded = (id: string) =>
+      this.mockDeviceData?.has(id)
+        ? Promise.resolve(undefined)
+        : getDevice({ path: { device_id: id }, query });
+
     const [srcResult, tgtResult] = await Promise.all([
-      getDevice({ path: { device_id: effectiveSource }, query }),
-      getDevice({ path: { device_id: effectiveTarget }, query }),
+      fetchIfNeeded(effectiveSource),
+      fetchIfNeeded(effectiveTarget),
     ]);
 
-    const srcInfo = srcResult.data?.data?.data ?? null;
-    const tgtInfo = tgtResult.data?.data?.data ?? null;
+    const srcInfo = this.mockDeviceData?.get(effectiveSource) ?? srcResult?.data?.data?.data ?? null;
+    const tgtInfo = this.mockDeviceData?.get(effectiveTarget) ?? tgtResult?.data?.data?.data ?? null;
 
     this.setContent(buildEdgePanel(
       edge, cy, effectiveSource, effectiveTarget, srcInfo, tgtInfo,

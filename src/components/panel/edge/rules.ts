@@ -6,13 +6,13 @@ import { normalizeVlanId } from '../normalize.ts';
 type WarningRule = (entry: ConnEntry, sp: PortInfo | undefined, tp: PortInfo | undefined) => string | null;
 
 // Check for type mismatches between connected ports, e.g. trunk vs access
-const typeMismatch: WarningRule = (_, sp, tp) => {
+const typeMismatch: WarningRule = (entry, sp, tp) => {
   if (
     sp?.port_type && tp?.port_type &&
     sp.port_type !== 'unknown' && tp.port_type !== 'unknown' &&
     sp.port_type !== tp.port_type
   ) {
-    return `Type mismatch: ${sp.port_type} / ${tp.port_type}`;
+    return `Type mismatch on ${entry.ifLocal} ↔ ${entry.ifRemote}: ${sp.port_type} / ${tp.port_type}`;
   }
   return null;
 };

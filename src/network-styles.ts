@@ -64,7 +64,7 @@ export const Colors = {
   EDGE:     '#68788a',  // medium slate
 
   // Operational states — base colors; lighter/darker variants computed below
-  STATE_DOWN:      '#b03838',  // dark crimson
+  STATE_DOWN:      '#dc2626',  // red — matches .panel-status-dot--down
   STATE_WARNING:   '#a07828',  // dark amber (distinct from HOST slate-gray)
   STATE_HIGHLIGHT: '#3a82cc',  // azure blue
   STATE_DISABLED:  '#2e3d4c',  // near-black slate
@@ -78,7 +78,7 @@ export const EdgeClass = {
   // Virtual overlay (VPN, VLAN, GRE tunnel). Dashed gray line.
   LOGICAL:  'logical',
   // Link aggregation group (802.3ad, port channel). Double solid line.
-  LAGG:     'lagg',
+  LAG:      'lag',
   // Redundant uplink to a second router. Curved dashed blue arc.
   UPLINK:   'uplink',
   // Routed / L3 peering (BGP, static route). Solid line with arrowhead.
@@ -125,6 +125,9 @@ function nodeTypeColor(ele: cytoscape.NodeSingular): string {
   return Colors.COMPOUND; // group
 }
 
+
+// A device not seen within this window is treated as down.
+export const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000;
 
 // Stylesheet
 // Selector order: base -> type shapes -> compound box -> collapsed -> node states -> edge base -> edge types -> edge states -> :selected
@@ -333,7 +336,7 @@ export function createNetworkStyles(): any[] {
       },
     },
     {
-      selector: 'edge.lagg',
+      selector: 'edge.lag',
       style: {
         'line-style': 'double',
         'width': 3,

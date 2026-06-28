@@ -636,7 +636,7 @@ footer p {
   text-align: left;
 }
 
-.vlan-mismatch td {
+.table-row-warn td {
   background: #fef3c7;
   color: #92400e;
 }

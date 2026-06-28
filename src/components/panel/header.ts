@@ -1,6 +1,7 @@
 import ciscoLogo from '../../../assets/cisco.png';
 import type { DeviceResponse } from '../../generated/types.gen.ts';
 import { makeCopyable, makeChip, makeStatusDot, formatTimestamp, formatDateString } from './utils.ts';
+import { STALE_THRESHOLD_MS } from '../../network-styles.ts';
 
 export function buildHeader(device: DeviceResponse, context?: { nodeType?: string; deviceType?: string }): HTMLElement {
   const info = device.data;
@@ -11,8 +12,9 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
   const heroRow = document.createElement('div');
   heroRow.className = 'panel-hero-row';
 
-  // "known" means we can log in and actively collect data from the device.
-  const dot = makeStatusDot(info.known ? 'online' : 'unknown');
+  // "known" = we can log in and collect data. "down" = known but last_seen is stale.
+  const isStale = !!info.last_seen && Date.now() - info.last_seen * 1000 > STALE_THRESHOLD_MS;
+  const dot = makeStatusDot(!info.known ? 'unknown' : isStale ? 'down' : 'online');
 
   const nameEl = document.createElement('span');
   nameEl.className = 'panel-device-name';

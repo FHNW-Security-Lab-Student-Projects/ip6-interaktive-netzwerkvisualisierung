@@ -7,7 +7,6 @@ export function buildEdgeHeader(
   warnings: string[],
   discoveredBySrc: boolean,
   discoveredByTgt: boolean,
-  typeClasses: string[],
   onNodeSelect?: (nodeId: string) => void,
 ): HTMLElement {
   const header = document.createElement('div');
@@ -35,20 +34,13 @@ export function buildEdgeHeader(
   heroRow.append(makeStatusDot(status), makeNameLink(srcId, srcType, srcName), sep, makeNameLink(tgtId, tgtType, tgtName));
   header.append(heroRow);
 
-  if (status === 'warn') {
+  if (warnings.length > 0) {
     for (const reason of warnings) {
       const w = document.createElement('div');
       w.className = 'edge-warning-item';
       w.textContent = `⚠ ${reason}`;
       header.append(w);
     }
-  }
-
-  if (typeClasses.length > 0) {
-    const chipsRow = document.createElement('div');
-    chipsRow.className = 'panel-chips-row';
-    typeClasses.forEach(cls => chipsRow.append(makeChip(cls)));
-    header.append(chipsRow);
   }
 
   return header;

@@ -39,7 +39,7 @@ export function buildVlansSection(
     mismatch: boolean,
   ): HTMLTableRowElement => {
     const tr = document.createElement('tr');
-    if (mismatch) tr.className = 'vlan-mismatch';
+    if (mismatch) tr.className = 'table-row-warn';
     const tdL = document.createElement('td'); tdL.className = 'td-left'; tdL.textContent = label;
     const tdS = document.createElement('td'); tdS.textContent = srcVal != null ? String(srcVal) : '—';
     const tdT = document.createElement('td'); tdT.textContent = tgtVal != null ? String(tgtVal) : '—';
