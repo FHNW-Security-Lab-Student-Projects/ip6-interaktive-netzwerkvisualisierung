@@ -4,51 +4,12 @@ import type { AccordionItem } from '../Accordion.ts';
 import { createAccordion } from '../Accordion.ts';
 import type { StatusLevel } from './utils.ts';
 import { type ConnEntry, findPort, pairStatus, buildConnectionItems } from './edge/Connections.ts';
+import { computeWarnings } from './edge/rules.ts';
 import { buildVlansSection } from './edge/Vlans.ts';
 import { buildStpSection } from './edge/Stp.ts';
 import { buildEdgeHeader } from './edge/Header.ts';
 
 const EDGE_TYPE_CLASSES = new Set(['logical', 'lagg', 'uplink', 'routed']);
-
-function computeWarnings(connEntries: ConnEntry[], srcPorts: PortInfo[], tgtPorts: PortInfo[]): string[] {
-  const warnings: string[] = [];
-  const seenTypeMismatch = new Set<string>();
-
-  for (const entry of connEntries) {
-    const sp = findPort(srcPorts, entry.ifLocal);
-    const tp = findPort(tgtPorts, entry.ifRemote);
-
-    if (
-      sp?.port_type && tp?.port_type &&
-      sp.port_type !== 'unknown' && tp.port_type !== 'unknown' &&
-      sp.port_type !== tp.port_type
-    ) {
-      const key = `${sp.port_type}/${tp.port_type}`;
-      if (!seenTypeMismatch.has(key)) {
-        seenTypeMismatch.add(key);
-        warnings.push(`Type mismatch: ${sp.port_type} / ${tp.port_type}`);
-      }
-    }
-
-    if (sp?.if_state && tp?.if_state && sp.if_state !== tp.if_state) {
-      warnings.push(`Asymmetric state on ${entry.ifLocal} ↔ ${entry.ifRemote}: ${sp.if_state} / ${tp.if_state}`);
-    }
-
-    const spTagged = sp?.tagged ?? null;
-    const tpTagged = tp?.tagged ?? null;
-    if ((spTagged !== null || tpTagged !== null) && spTagged !== tpTagged) {
-      warnings.push(`Tagged VLAN mismatch on ${entry.ifLocal} ↔ ${entry.ifRemote}`);
-    }
-
-    const spNative = sp?.untagged ?? sp?.vlan_id ?? null;
-    const tpNative = tp?.untagged ?? tp?.vlan_id ?? null;
-    if ((spNative !== null || tpNative !== null) && spNative !== tpNative) {
-      warnings.push(`Native VLAN mismatch on ${entry.ifLocal} ↔ ${entry.ifRemote}`);
-    }
-  }
-
-  return warnings;
-}
 
 function computeStatus(
   connEntries: ConnEntry[],
