@@ -26,19 +26,49 @@ export async function buildDeviceMap(
   return map;
 }
 
-function isStpBlocking(stp: SpanningTreeOutput | null | undefined, ifName: string): boolean {
+export interface StpInstanceOption { key: string; label: string; protocol: string; }
+
+export function collectStpInstances(deviceMap: Map<string, DeviceInfoOutput>): StpInstanceOption[] {
+  const seen = new Map<string, StpInstanceOption>();
+  for (const device of deviceMap.values()) {
+    const stp = device.stp;
+    if (!stp?.instances) continue;
+    for (const [key, inst] of Object.entries(stp.instances)) {
+      if (seen.has(key)) continue;
+      const label = inst.mapped_vlans ? `${key} (${inst.mapped_vlans})` : key;
+      seen.set(key, { key, label, protocol: stp.protocol });
+    }
+  }
+  return [...seen.values()].sort((a, b) => a.key.localeCompare(b.key, undefined, { numeric: true }));
+}
+
+function isStpBlocking(
+  stp: SpanningTreeOutput | null | undefined,
+  ifName: string,
+  instanceKey?: string | null,
+): boolean {
   if (!stp?.instances) return false;
+  if (instanceKey) {
+    const inst = stp.instances[instanceKey];
+    const iface = inst?.interfaces?.find(i => i.if_no === ifName || i.if_no_short === ifName);
+    return iface?.state === 'Blocking';
+  }
+  // No specific instance: blocked only if Blocking in some instance AND never Forwarding in any
+  let foundBlocking = false;
   for (const inst of Object.values(stp.instances)) {
     const iface = inst.interfaces?.find(i => i.if_no === ifName || i.if_no_short === ifName);
-    if (iface?.state === 'Blocking') return true;
+    if (!iface) continue;
+    if (iface.state === 'Forwarding') return false;
+    if (iface.state === 'Blocking') foundBlocking = true;
   }
-  return false;
+  return foundBlocking;
 }
 
 function classifyEdgeState(
   connEntries: ConnEntry[],
   srcInfo: DeviceInfoOutput | null,
   tgtInfo: DeviceInfoOutput | null,
+  instanceKey?: string | null,
 ): 'down' | 'disabled' | 'warning' | null {
   if (!connEntries.length) return null;
 
@@ -52,7 +82,7 @@ function classifyEdgeState(
 
   // STP blocking: port physically up but protocol-blocked — not broken, just not forwarding
   const stpBlocked = connEntries.some(e =>
-    isStpBlocking(srcInfo?.stp, e.ifLocal) || isStpBlocking(tgtInfo?.stp, e.ifRemote));
+    isStpBlocking(srcInfo?.stp, e.ifLocal, instanceKey) || isStpBlocking(tgtInfo?.stp, e.ifRemote, instanceKey));
   if (stpBlocked) return 'disabled';
 
   const warnings = computeWarnings(connEntries, srcPorts, tgtPorts);
@@ -84,7 +114,11 @@ function isRoutedPort(info: DeviceInfoOutput | null, ifName: string): boolean {
 
 const STATE_CLASSES = 'down disabled warning';
 
-export function applyEdgeState(edge: cytoscape.EdgeSingular, deviceMap: Map<string, DeviceInfoOutput>): void {
+export function applyEdgeState(
+  edge: cytoscape.EdgeSingular,
+  deviceMap: Map<string, DeviceInfoOutput>,
+  instanceKey?: string | null,
+): void {
   const srcId = (edge.data('orig_source') as string | undefined) ?? edge.source().id();
   const tgtId = (edge.data('orig_target') as string | undefined) ?? edge.target().id();
 
@@ -104,7 +138,7 @@ export function applyEdgeState(edge: cytoscape.EdgeSingular, deviceMap: Map<stri
 
   if (srcInfo || tgtInfo) {
     connEntries = resolveConnEntries(srcInfo, tgtInfo, srcId, tgtId);
-    stateClass = classifyEdgeState(connEntries, srcInfo, tgtInfo);
+    stateClass = classifyEdgeState(connEntries, srcInfo, tgtInfo, instanceKey);
     isLag = connEntries.some(e => isLagMember(srcInfo, e.ifLocal) || isLagMember(tgtInfo, e.ifRemote));
     isRouted = connEntries.some(e => isRoutedPort(srcInfo, e.ifLocal) || isRoutedPort(tgtInfo, e.ifRemote));
   }
@@ -119,6 +153,10 @@ export function applyEdgeState(edge: cytoscape.EdgeSingular, deviceMap: Map<stri
   if (stateClass) edge.addClass(stateClass);
 }
 
-export function enrichEdges(cy: cytoscape.Core, deviceMap: Map<string, DeviceInfoOutput>): void {
-  cy.edges().forEach(edge => applyEdgeState(edge, deviceMap));
+export function enrichEdges(
+  cy: cytoscape.Core,
+  deviceMap: Map<string, DeviceInfoOutput>,
+  instanceKey?: string | null,
+): void {
+  cy.edges().forEach(edge => applyEdgeState(edge, deviceMap, instanceKey));
 }

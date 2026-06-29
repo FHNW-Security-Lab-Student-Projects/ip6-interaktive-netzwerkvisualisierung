@@ -41,6 +41,8 @@ export function buildEdgePanel(
   openAccordions: Set<string>,
   onToggle: (key: string, isOpen: boolean) => void,
   onNodeSelect?: (nodeId: string) => void,
+  stpInstanceKey?: string | null,
+  macResolver?: (mac: string) => { id: string; name: string } | null,
 ): HTMLElement {
   const srcName = srcInfo?.name ?? (cy.$id(srcId).data('title') as string | undefined) ?? srcId;
   const tgtName = tgtInfo?.name ?? (cy.$id(tgtId).data('title') as string | undefined) ?? tgtId;
@@ -100,7 +102,7 @@ export function buildEdgePanel(
     disabled: vlansSection.disabled,
   });
 
-  const stpSection = buildStpSection(srcId, srcName, tgtId, tgtName, connEntries, srcInfo, tgtInfo, onNodeSelect);
+  const stpSection = buildStpSection(srcId, srcName, tgtId, tgtName, connEntries, srcInfo, tgtInfo, onNodeSelect, stpInstanceKey, macResolver);
   accordionItems.push({
     label: 'Spanning Tree', key: 'stp', content: stpSection.content,
     open: !stpSection.disabled && openAccordions.has('stp'),

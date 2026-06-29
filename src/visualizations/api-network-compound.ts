@@ -9,7 +9,7 @@ import { NODE_HIERARCHY } from '../node-factory.ts';
 import { loadBasegraph } from '../graph-loader.ts';
 import { groupByUpstreamNode } from '../graph-transforms.ts';
 import { setupDetailPanel, setupToolbar, setupSearch } from '../components/index.ts';
-import { buildDeviceMap, enrichEdges, applyEdgeState } from '../edge-enricher.ts';
+import { buildDeviceMap, enrichEdges, applyEdgeState, collectStpInstances } from '../edge-enricher.ts';
 
 export const title = 'API Network: Compound Graph';
 export const description =
@@ -59,7 +59,16 @@ export async function mount(container: HTMLElement): Promise<void> {
   setupZoom(cy);
 
   cy.style().update();
-  const panelOpts = setupDetailPanel(cy, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
+
+  let selectedStpKey: string | null = null;
+  const macToDevice = new Map<string, { id: string; name: string } | null>();
+
+  const panelOpts = setupDetailPanel(cy, {
+    networkId: NETWORK_ID,
+    snapshotId: SNAPSHOT_ID,
+    getStpInstanceKey: () => selectedStpKey,
+    resolveBridgeMac: (mac) => macToDevice.get(mac) ?? null,
+  });
   const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'none', panelOpts);
   panelOpts.setFocusNode(id => ctrl.focusNode(id));
   setupToolbar(ctrl, NODE_HIERARCHY, 'none');
@@ -70,8 +79,61 @@ export async function mount(container: HTMLElement): Promise<void> {
     .filter(n => n.data.node_type === 'device')
     .map(n => n.data.id as string);
 
+  // Show STP picker immediately with just "None"; instances are added once device data loads
+  const toolbar = document.getElementById('toolbar');
+  let stpSelect: HTMLSelectElement | null = null;
+  if (toolbar) {
+    const label = document.createElement('span');
+    label.textContent = 'STP';
+    stpSelect = document.createElement('select');
+    const noneOpt = document.createElement('option');
+    noneOpt.value = '';
+    noneOpt.textContent = 'None';
+    stpSelect.append(noneOpt);
+    toolbar.append(label, stpSelect);
+  }
+
   buildDeviceMap(deviceNodeIds, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID }).then(deviceMap => {
+    for (const [deviceId, info] of deviceMap) {
+      for (const inst of Object.values(info.stp?.instances ?? {})) {
+        const mac = inst.bridge_address?.address;
+        if (mac) {
+          if (macToDevice.has(mac)) {
+            macToDevice.set(mac, null); // collision: two devices share this bridge MAC
+          } else {
+            macToDevice.set(mac, { id: deviceId, name: info.name });
+          }
+        }
+      }
+    }
     enrichEdges(cy, deviceMap);
-    cy.on('add', 'edge', evt => applyEdgeState(evt.target as cytoscape.EdgeSingular, deviceMap));
+
+    const stpInstances = collectStpInstances(deviceMap);
+    if (stpInstances.length >= 1 && stpSelect) {
+      const byProtocol = new Map<string, typeof stpInstances>();
+      for (const inst of stpInstances) {
+        if (!byProtocol.has(inst.protocol)) byProtocol.set(inst.protocol, []);
+        byProtocol.get(inst.protocol)!.push(inst);
+      }
+      for (const [proto, group] of byProtocol) {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = proto;
+        for (const { key, label: lbl } of group) {
+          const opt = document.createElement('option');
+          opt.value = key;
+          opt.textContent = lbl;
+          optgroup.append(opt);
+        }
+        stpSelect.append(optgroup);
+      }
+    }
+
+    stpSelect?.addEventListener('change', () => {
+      selectedStpKey = stpSelect!.value || null;
+      enrichEdges(cy, deviceMap, selectedStpKey);
+      panelOpts.refreshCurrentPanel();
+    });
+
+    cy.on('add', 'edge', evt => applyEdgeState(evt.target as cytoscape.EdgeSingular, deviceMap, selectedStpKey));
   });
 }

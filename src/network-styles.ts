@@ -102,7 +102,7 @@ export const NodeState = {
 export const EdgeState = {
   // Port down or cable unplugged.
   DOWN:      'down',
-  // Admin shut or STP blocked.
+  // Admin shut or STP blocked — port is up but not forwarding traffic.
   DISABLED:  'disabled',
   // High utilization or errors.
   WARNING:   'warning',
@@ -368,8 +368,11 @@ export function createNetworkStyles(): any[] {
     {
       selector: 'edge.disabled',
       style: {
-        'line-color': lighten(Colors.STATE_DISABLED, 0.15),
-        'opacity': 0.5,
+        // STP-blocked: link is physically up but not forwarding — show as muted dashed, not "dead"
+        'line-color': lighten(Colors.EDGE, 0.25),
+        'line-style': 'dashed',
+        'line-dash-pattern': [4, 5],
+        'opacity': 0.85,
       },
     },
     {

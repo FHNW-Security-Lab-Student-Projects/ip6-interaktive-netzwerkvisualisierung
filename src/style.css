@@ -646,6 +646,32 @@ footer p {
   color: #b91c1c;
 }
 
+/* STP section header: protocol chip + instance selector */
+.stp-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+}
+
+.stp-root-row td {
+  padding: 10px 14px;
+  background: #f8fafc;
+  font-size: 0.85rem;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.stp-instance-select {
+  font-size: 12px;
+  padding: 2px 4px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #fff;
+  color: #334155;
+  cursor: pointer;
+}
+
 /* ── Compound node placeholder ────────────────────────────── */
 
 .panel-placeholder {
