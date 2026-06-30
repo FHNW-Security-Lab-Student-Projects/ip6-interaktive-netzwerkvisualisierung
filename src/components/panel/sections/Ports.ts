@@ -54,7 +54,7 @@ function buildContent(
     const tr = document.createElement('tr');
     const state = p.if_state ?? 'unknown';
     tr.innerHTML = `
-      <td>${p.if_no_short ?? p.if_no}</td>
+      <td>${p.if_no}</td>
       <td><span class="port-state port-state--${state}">${state}</span></td>
       <td>${p.port_type ?? '—'}</td>
       <td>${normalizeStr(p.tagged) ?? normalizeVlanId(p.vlan_id) ?? '—'}</td>
