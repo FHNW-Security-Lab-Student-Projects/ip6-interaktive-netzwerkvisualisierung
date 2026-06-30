@@ -8,15 +8,16 @@ import { enrichEdges } from '../edge-enricher.ts';
 export const title = 'Demo: Edge Warning Rules';
 export const description =
   'Synthetic graph demonstrating edge panel behaviour. ' +
-  'Pair A: click the edge to see all 7 warning rules. ' +
+  'Pair A: click the edge to see typeMismatch, asymmetricState, speedMismatch, duplexMismatch, errDisabled, taggedVlanMismatch, nativeVlanMismatch. ' +
   'Pair B: LAG with one member down (warn). ' +
-  'Pair C: LAG with both members down (down).';
+  'Pair C: LAG with both members down (down). ' +
+  'Pair D: routed ports on mismatched subnets (subnet mismatch warning).';
 
-// Pair A — triggers all 7 warning rules across 4 connection pairs:
-//   c1 (Gi0/1 <-> Gi1/1): typeMismatch, asymmetricState, speedMismatch, duplexMismatch
+// Pair A — triggers 7 warning rules across 4 connection pairs:
+//   c1 (Gi0/1 <-> Gi1/1): typeMismatch (trunk/access), asymmetricState, speedMismatch, duplexMismatch
 //   c2 (Gi0/2 <-> Gi1/2): errDisabled, asymmetricState
 //   c3 (Gi0/3 <-> Gi1/3): taggedVlanMismatch
-//   c4 (Gi0/4 <-> Gi1/4): nativeVlanMismatch
+//   c4 (Gi0/4 <-> Gi1/4): nativeVlanMismatch (both trunk, different native VLANs)
 const mockRouterA: DeviceInfoOutput = {
   serial: '',
   name: 'Demo Router A',
@@ -27,7 +28,7 @@ const mockRouterA: DeviceInfoOutput = {
     'Gi0/1': { if_no: 'Gi0/1', port_type: 'trunk', if_state: 'up', speed: '1G', duplex: 'full' },
     'Gi0/2': { if_no: 'Gi0/2', if_state: 'err-disabled' },
     'Gi0/3': { if_no: 'Gi0/3', tagged: '10,20,30' },
-    'Gi0/4': { if_no: 'Gi0/4', untagged: 100 },
+    'Gi0/4': { if_no: 'Gi0/4', port_type: 'trunk', untagged: 100 },
   },
   neighbors: {
     'demo-switch-a': {
@@ -53,7 +54,7 @@ const mockSwitchA: DeviceInfoOutput = {
     'Gi1/1': { if_no: 'Gi1/1', port_type: 'access', if_state: 'down', speed: '100M', duplex: 'half' },
     'Gi1/2': { if_no: 'Gi1/2', if_state: 'up' },
     'Gi1/3': { if_no: 'Gi1/3', tagged: '10,20' },
-    'Gi1/4': { if_no: 'Gi1/4', untagged: 200 },
+    'Gi1/4': { if_no: 'Gi1/4', port_type: 'trunk', untagged: 200 },
   },
   neighbors: { 'demo-router-a': { neigh_id: 'demo-router-a', name: 'Demo Router A', connections: {} } },
 };
@@ -136,6 +137,45 @@ const mockSwitchC: DeviceInfoOutput = {
   neighbors: { 'demo-router-c': { neigh_id: 'demo-router-c', name: 'Demo Router C', connections: {} } },
 };
 
+// Pair D — routed-to-routed subnet mismatch
+const mockRouterD: DeviceInfoOutput = {
+  serial: '',
+  name: 'Demo Router D',
+  ip_address: '10.99.0.1',
+  known: true,
+  last_seen: Math.floor(Date.now() / 1000) - 3600,
+  ports: {
+    'Gi0/1': { if_no: 'Gi0/1', port_type: 'routed', if_state: 'up' },
+  },
+  ip_configs: {
+    'Gi0/1': { interface_name: 'Gi0/1', ip_interfaces: ['10.99.0.1/30'] },
+  },
+  neighbors: {
+    'demo-router-e': {
+      neigh_id: 'demo-router-e',
+      name: 'Demo Router E',
+      connections: { c1: { if_local: 'Gi0/1', if_remote: 'Gi1/1' } },
+    },
+  },
+};
+
+const mockRouterE: DeviceInfoOutput = {
+  serial: '',
+  name: 'Demo Router E',
+  ip_address: '192.168.99.1',
+  known: true,
+  last_seen: Math.floor(Date.now() / 1000) - 3600,
+  ports: {
+    'Gi1/1': { if_no: 'Gi1/1', port_type: 'routed', if_state: 'up' },
+  },
+  ip_configs: {
+    'Gi1/1': { interface_name: 'Gi1/1', ip_interfaces: ['192.168.99.1/30'] },
+  },
+  neighbors: {
+    'demo-router-d': { neigh_id: 'demo-router-d', name: 'Demo Router D', connections: {} },
+  },
+};
+
 export async function mount(container: HTMLElement): Promise<void> {
   const cy = cytoscape({
     container,
@@ -181,6 +221,19 @@ export async function mount(container: HTMLElement): Promise<void> {
         position: { x: 600, y: 650 },
       },
       { group: 'edges', data: { id: 'demo-edge-c', source: 'demo-router-c', target: 'demo-switch-c' }, classes: 'lag' },
+
+      // Pair D: routed subnet mismatch
+      {
+        group: 'nodes',
+        data: { id: 'demo-router-d', node_type: 'device', device_type: 'router', label: 'Demo Router D\n10.99.0.1', title: 'Demo Router D' },
+        position: { x: 200, y: 900 },
+      },
+      {
+        group: 'nodes',
+        data: { id: 'demo-router-e', node_type: 'device', device_type: 'router', label: 'Demo Router E\n192.168.99.1', title: 'Demo Router E' },
+        position: { x: 600, y: 900 },
+      },
+      { group: 'edges', data: { id: 'demo-edge-d', source: 'demo-router-d', target: 'demo-router-e' }, classes: 'routed' },
     ],
     layout: { name: 'preset' },
   });
@@ -194,6 +247,8 @@ export async function mount(container: HTMLElement): Promise<void> {
     ['demo-switch-b', mockSwitchB],
     ['demo-router-c', mockRouterC],
     ['demo-switch-c', mockSwitchC],
+    ['demo-router-d', mockRouterD],
+    ['demo-router-e', mockRouterE],
   ]);
 
   const panelOpts = setupDetailPanel(cy, { mockDeviceData: mockMap });

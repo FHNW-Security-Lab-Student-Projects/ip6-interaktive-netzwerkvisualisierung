@@ -3,7 +3,7 @@ import type { AccordionItem } from '../../Accordion.ts';
 import { makeStatusDot, makeChip, makeNodeName } from '../utils.ts';
 import { buildPaginatedTable } from '../table.ts';
 import { normalizeStr } from '../normalize.ts';
-import { ACCESS_TRUNK } from './rules.ts';
+import { ACCESS_TRUNK, networkAddress } from './rules.ts';
 
 export type ConnEntry = { ifLocal: string; ifRemote: string };
 
@@ -52,6 +52,8 @@ function buildConnectionContent(
   srcId: string, srcName: string, srcIf: string, srcPort: PortInfo | undefined,
   tgtId: string, tgtName: string, tgtIf: string, tgtPort: PortInfo | undefined,
   onNodeSelect?: (nodeId: string) => void,
+  srcIpCidrs?: string[],
+  tgtIpCidrs?: string[],
 ): HTMLElement {
   const makeRow = (label: string, srcVal: string, tgtVal: string, warn = false): HTMLTableRowElement => {
     const tr = document.createElement('tr');
@@ -99,6 +101,13 @@ function buildConnectionContent(
     ),
   ];
 
+  if (srcPort?.port_type === 'routed' || tgtPort?.port_type === 'routed') {
+    const srcNets = (srcIpCidrs ?? []).map(networkAddress).filter(Boolean) as string[];
+    const tgtNets = (tgtIpCidrs ?? []).map(networkAddress).filter(Boolean) as string[];
+    const mismatch = srcNets.length > 0 && tgtNets.length > 0 && !srcNets.some(n => tgtNets.includes(n));
+    rows.push(makeRow('IP', srcIpCidrs?.join(', ') ?? '—', tgtIpCidrs?.join(', ') ?? '—', mismatch));
+  }
+
   const srcDesc = srcPort?.description ?? null;
   const tgtDesc = tgtPort?.description ?? null;
   if (srcDesc || tgtDesc) rows.push(makeRow('Description', srcDesc ?? '—', tgtDesc ?? '—'));
@@ -129,6 +138,8 @@ export function buildConnectionItems(
     const key = `${entry.ifLocal} ↔ ${entry.ifRemote}`;
     const srcLagName = findLagName(srcInfo, entry.ifLocal);
     const tgtLagName = findLagName(tgtInfo, entry.ifRemote);
+    const srcIpCidrs = srcInfo?.ip_configs?.[entry.ifLocal]?.ip_interfaces ?? undefined;
+    const tgtIpCidrs = tgtInfo?.ip_configs?.[entry.ifRemote]?.ip_interfaces ?? undefined;
     return {
       label: buildConnectionLabelEl(entry.ifLocal, entry.ifRemote, sp?.port_type, connState, srcLagName, tgtLagName, typeClasses),
       key,
@@ -136,6 +147,8 @@ export function buildConnectionItems(
         srcId, srcName, entry.ifLocal, sp,
         tgtId, tgtName, entry.ifRemote, tp,
         onNodeSelect,
+        srcIpCidrs,
+        tgtIpCidrs,
       ),
       open: openAccordions.has(key),
     };

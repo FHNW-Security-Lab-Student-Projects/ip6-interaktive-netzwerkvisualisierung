@@ -80,7 +80,11 @@ export function buildEdgePanel(
   const srcPorts = Object.values(srcInfo?.ports ?? {});
   const tgtPorts = Object.values(tgtInfo?.ports ?? {});
 
-  const warnings = computeWarnings(connEntries, srcPorts, tgtPorts);
+  const warnings = computeWarnings(
+    connEntries, srcPorts, tgtPorts,
+    srcInfo?.ip_configs ?? undefined,
+    tgtInfo?.ip_configs ?? undefined,
+  );
   const status = computeStatus(connEntries, srcPorts, tgtPorts, warnings);
 
   const header = buildEdgeHeader(
