@@ -75,6 +75,8 @@ export function setupDetailPanel(
   panel.setHideHandler(() => {
     cy.nodes().unselect();
     cy.edges().unselect();
+    selectedNodeId = null;
+    lastEdge = null;
   });
 
   cy.on('tap', event => {
