@@ -8,7 +8,7 @@ import type { AnyTypedNode } from '../node-factory.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
 import { loadBasegraph } from '../graph-loader.ts';
 import { groupByUpstreamNode } from '../graph-transforms.ts';
-import { setupDetailPanel, setupToolbar, setupSearch } from '../components/index.ts';
+import { setupDetailPanel, setupToolbar, setupSearch, setupStpEnrichment } from '../components/index.ts';
 
 export const title = 'API Network: Compound Graph';
 export const description =
@@ -56,12 +56,23 @@ export async function mount(container: HTMLElement): Promise<void> {
     style: createNetworkStyles(),
   });
   setupZoom(cy);
-
   cy.style().update();
-  const panelOpts = setupDetailPanel(cy, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
+
+  const deviceNodeIds = raw.nodes
+    .filter(n => n.data.node_type === 'device')
+    .map(n => n.data.id as string);
+
+  const stpCtrl = setupStpEnrichment(cy, deviceNodeIds, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
+  const panelOpts = setupDetailPanel(cy, {
+    networkId: NETWORK_ID,
+    snapshotId: SNAPSHOT_ID,
+    getStpInstanceKey: stpCtrl.getSelectedKey,
+    resolveBridgeMac: stpCtrl.resolveBridgeMac,
+  });
   const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'none', panelOpts);
   panelOpts.setFocusNode(id => ctrl.focusNode(id));
   setupToolbar(ctrl, NODE_HIERARCHY, 'none');
   setupSearch(ctrl, nodes);
+  stpCtrl.start(panelOpts);
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);
 }

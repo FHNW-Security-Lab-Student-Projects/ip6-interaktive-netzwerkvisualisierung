@@ -15,11 +15,8 @@ function computeStatus(
   connEntries: ConnEntry[],
   srcPorts: PortInfo[],
   tgtPorts: PortInfo[],
-  edgeIsDown: boolean,
   warnings: string[],
 ): StatusLevel {
-  if (edgeIsDown) return 'down';
-
   if (connEntries.length > 0) {
     // Derive overall status from per-pair statuses so the header dot is always
     // consistent with what the individual accordion rows show.
@@ -44,6 +41,8 @@ export function buildEdgePanel(
   openAccordions: Set<string>,
   onToggle: (key: string, isOpen: boolean) => void,
   onNodeSelect?: (nodeId: string) => void,
+  stpInstanceKey?: string | null,
+  macResolver?: (mac: string) => { id: string; name: string } | null,
 ): HTMLElement {
   const srcName = srcInfo?.name ?? (cy.$id(srcId).data('title') as string | undefined) ?? srcId;
   const tgtName = tgtInfo?.name ?? (cy.$id(tgtId).data('title') as string | undefined) ?? tgtId;
@@ -55,7 +54,6 @@ export function buildEdgePanel(
     ?? 'unknown';
 
   const classes = edge.classes().filter(Boolean);
-  const edgeIsDown = classes.includes('down') || classes.includes('disabled');
   const typeClasses = classes.filter(c => EDGE_TYPE_CLASSES.has(c));
 
   const discoveredBySrc = !!srcInfo?.neighbors?.[tgtId];
@@ -77,7 +75,7 @@ export function buildEdgePanel(
   const tgtPorts = Object.values(tgtInfo?.ports ?? {});
 
   const warnings = computeWarnings(connEntries, srcPorts, tgtPorts);
-  const status = computeStatus(connEntries, srcPorts, tgtPorts, edgeIsDown, warnings);
+  const status = computeStatus(connEntries, srcPorts, tgtPorts, warnings);
 
   const header = buildEdgeHeader(
     srcId, srcName, srcType,
@@ -104,7 +102,7 @@ export function buildEdgePanel(
     disabled: vlansSection.disabled,
   });
 
-  const stpSection = buildStpSection(srcId, srcName, tgtId, tgtName, connEntries, srcInfo, tgtInfo, onNodeSelect);
+  const stpSection = buildStpSection(srcId, srcName, tgtId, tgtName, connEntries, srcInfo, tgtInfo, onNodeSelect, stpInstanceKey, macResolver);
   accordionItems.push({
     label: 'Spanning Tree', key: 'stp', content: stpSection.content,
     open: !stpSection.disabled && openAccordions.has('stp'),

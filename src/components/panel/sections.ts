@@ -14,6 +14,8 @@ export function buildSections(
   openAccordions: Set<string>,
   onToggle: (label: string, isOpen: boolean) => void,
   onNodeSelect?: (nodeId: string) => void,
+  defaultStpKey?: string | null,
+  macResolver?: (mac: string) => { id: string; name: string } | null,
 ): HTMLElement {
   const wrapper = document.createElement('div');
   wrapper.className = 'panel-sections';
@@ -22,7 +24,7 @@ export function buildSections(
     buildNeighborsSection(info, onNodeSelect),
     buildPortsSection(info, onNodeSelect),
     buildLagsSection(info),
-    buildSpanningTreeSection(info),
+    buildSpanningTreeSection(info, defaultStpKey, macResolver, onNodeSelect),
     buildVlansSection(info),
     buildVrfsSection(info),
     buildIpConfigsSection(info),

@@ -1,7 +1,6 @@
 import type { HostResponse } from '../../generated/types.gen.ts';
 import { makeCopyable, makeChip, makeStatusDot, formatTimestamp, formatDateString } from './utils.ts';
 import { makeNodeName } from './utils.ts';
-import { STALE_THRESHOLD_MS } from '../../network-styles.ts';
 
 export function buildHostPanelEl(
   host: HostResponse,
@@ -18,8 +17,9 @@ export function buildHostPanelEl(
   const heroRow = document.createElement('div');
   heroRow.className = 'panel-hero-row';
 
-  // Hosts have no "known" equivalent; use last_seen staleness directly.
-  heroRow.append(makeStatusDot(Date.now() - info.last_seen * 1000 > STALE_THRESHOLD_MS ? 'down' : 'online'));
+  // The status dot means "collector reachable". Hosts are passively discovered (ARP/MAC)
+  // and never collected from, so the dot is always unknown. last_seen communicates recency.
+  heroRow.append(makeStatusDot('unknown'));
 
   const nameEl = document.createElement('span');
   nameEl.className = 'panel-device-name';

@@ -9,18 +9,28 @@ import { buildHostPanelEl } from './panel/host-panel.ts';
 
 export type DetailPanelSetup = ExpandCollapseOptions & {
   setFocusNode: (fn: (nodeId: string) => void) => void;
+  refreshCurrentPanel: () => void;
 };
 
 export function setupDetailPanel(
   cy: cytoscape.Core,
-  opts?: { networkId?: number; snapshotId?: number; mockDeviceData?: Map<string, DeviceInfoOutput> },
+  opts?: {
+    networkId?: number;
+    snapshotId?: number;
+    mockDeviceData?: Map<string, DeviceInfoOutput>;
+    getStpInstanceKey?: () => string | null;
+    resolveBridgeMac?: (mac: string) => { id: string; name: string } | null;
+  },
 ): DetailPanelSetup {
   const panelEl = document.getElementById('device-panel');
-  if (!panelEl) return { setFocusNode: () => {} };
+  if (!panelEl) return { setFocusNode: () => {}, refreshCurrentPanel: () => {} };
 
   const panel = new DetailPanel(panelEl);
   if (opts?.mockDeviceData) panel.setMockDeviceData(opts.mockDeviceData);
+  if (opts?.getStpInstanceKey) panel.setStpKeyGetter(opts.getStpInstanceKey);
+  if (opts?.resolveBridgeMac) panel.setMacResolver(opts.resolveBridgeMac);
   let selectedNodeId: string | null = null;
+  let lastEdge: cytoscape.EdgeSingular | null = null;
   let focusNodeFn: ((nodeId: string) => void) | null = null;
 
   const updatePanel = (nodeId: string) => {
@@ -75,6 +85,7 @@ export function setupDetailPanel(
     cy.edges().unselect();
     edge.select();
     selectedNodeId = null;
+    lastEdge = edge;
     void panel.showEdge(edge, cy, opts);
   });
 
@@ -82,10 +93,15 @@ export function setupDetailPanel(
     onNodeClick: (nodeId) => {
       cy.edges().unselect();
       selectedNodeId = nodeId;
+      lastEdge = null;
       updatePanel(nodeId);
     },
     onExpand: (nodeId) => { if (nodeId === selectedNodeId) updatePanel(nodeId); },
     setFocusNode: (fn) => { focusNodeFn = fn; },
+    refreshCurrentPanel: () => {
+      if (selectedNodeId) updatePanel(selectedNodeId);
+      else if (lastEdge) void panel.showEdge(lastEdge, cy, opts);
+    },
   };
 }
 
@@ -106,9 +122,19 @@ export class DetailPanel {
   private onNodeSelect?: (nodeId: string) => void;
   private onHide?: () => void;
   private mockDeviceData?: Map<string, DeviceInfoOutput>;
+  private stpKeyGetter: (() => string | null) | null = null;
+  private macResolver: ((mac: string) => { id: string; name: string } | null) | null = null;
 
   setMockDeviceData(map: Map<string, DeviceInfoOutput>): void {
     this.mockDeviceData = map;
+  }
+
+  setStpKeyGetter(fn: () => string | null): void {
+    this.stpKeyGetter = fn;
+  }
+
+  setMacResolver(fn: (mac: string) => { id: string; name: string } | null): void {
+    this.macResolver = fn;
   }
 
   constructor(container: HTMLElement) {
@@ -213,6 +239,8 @@ export class DetailPanel {
       this.openAccordions,
       (key, isOpen) => { if (isOpen) { this.openAccordions.add(key); } else { this.openAccordions.delete(key); } },
       this.onNodeSelect,
+      this.stpKeyGetter?.() ?? null,
+      this.macResolver ?? undefined,
     ));
   }
 
@@ -238,7 +266,7 @@ export class DetailPanel {
       buildHeader(device, context),
       buildSections(device.data, this.openAccordions, (lbl, isOpen) => {
         if (isOpen) { this.openAccordions.add(lbl); } else { this.openAccordions.delete(lbl); }
-      }, this.onNodeSelect),
+      }, this.onNodeSelect, this.stpKeyGetter?.() ?? null, this.macResolver ?? undefined),
     );
     return wrapper;
   }
