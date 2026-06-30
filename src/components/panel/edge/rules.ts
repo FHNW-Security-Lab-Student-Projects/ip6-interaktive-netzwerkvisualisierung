@@ -5,11 +5,14 @@ import { normalizeVlanId } from '../normalize.ts';
 // A rule inspects one connection pair and returns a warning string, or null if healthy.
 type WarningRule = (entry: ConnEntry, sp: PortInfo | undefined, tp: PortInfo | undefined) => string | null;
 
-// Check for type mismatches between connected ports, e.g. trunk vs access
+export const ACCESS_TRUNK = new Set(['access', 'trunk']);
+
+// Check for type mismatches between connected ports, e.g. trunk vs access.
+// Routed ports are a distinct operating mode and are not compared against access/trunk.
 const typeMismatch: WarningRule = (entry, sp, tp) => {
   if (
     sp?.port_type && tp?.port_type &&
-    sp.port_type !== 'unknown' && tp.port_type !== 'unknown' &&
+    ACCESS_TRUNK.has(sp.port_type) && ACCESS_TRUNK.has(tp.port_type) &&
     sp.port_type !== tp.port_type
   ) {
     return `Type mismatch on ${entry.ifLocal} ↔ ${entry.ifRemote}: ${sp.port_type} / ${tp.port_type}`;
@@ -36,8 +39,10 @@ const taggedVlanMismatch: WarningRule = (entry, sp, tp) => {
   return null;
 };
 
-// Check for native VLAN mismatches between connected ports
+// Check for native VLAN mismatches between connected ports.
+// Only meaningful on trunk ports — access and routed ports don't use native VLANs.
 const nativeVlanMismatch: WarningRule = (entry, sp, tp) => {
+  if (sp?.port_type !== 'trunk' || tp?.port_type !== 'trunk') return null;
   const a = normalizeVlanId(sp?.untagged) ?? normalizeVlanId(sp?.vlan_id) ?? null;
   const b = normalizeVlanId(tp?.untagged) ?? normalizeVlanId(tp?.vlan_id) ?? null;
   if ((a !== null || b !== null) && a !== b) {

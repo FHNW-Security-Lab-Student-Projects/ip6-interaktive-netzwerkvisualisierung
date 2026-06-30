@@ -3,6 +3,7 @@ import type { AccordionItem } from '../../Accordion.ts';
 import { makeStatusDot, makeChip, makeNodeName } from '../utils.ts';
 import { buildPaginatedTable } from '../table.ts';
 import { normalizeStr } from '../normalize.ts';
+import { ACCESS_TRUNK } from './rules.ts';
 
 export type ConnEntry = { ifLocal: string; ifRemote: string };
 
@@ -71,7 +72,7 @@ function buildConnectionContent(
       normalizeStr(srcPort?.port_type) ?? '—',
       normalizeStr(tgtPort?.port_type) ?? '—',
       !!(srcPort?.port_type && tgtPort?.port_type &&
-         srcPort.port_type !== 'unknown' && tgtPort.port_type !== 'unknown' &&
+         ACCESS_TRUNK.has(srcPort.port_type) && ACCESS_TRUNK.has(tgtPort.port_type) &&
          srcPort.port_type !== tgtPort.port_type),
     ),
     makeRow(
