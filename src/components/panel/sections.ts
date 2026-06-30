@@ -16,12 +16,13 @@ export function buildSections(
   onNodeSelect?: (nodeId: string) => void,
   defaultStpKey?: string | null,
   macResolver?: (mac: string) => { id: string; name: string } | null,
+  neighTypeResolver?: (nodeId: string) => string | undefined,
 ): HTMLElement {
   const wrapper = document.createElement('div');
   wrapper.className = 'panel-sections';
 
   const panels = [
-    buildNeighborsSection(info, onNodeSelect),
+    buildNeighborsSection(info, onNodeSelect, neighTypeResolver),
     buildPortsSection(info, onNodeSelect),
     buildLagsSection(info),
     buildSpanningTreeSection(info, defaultStpKey, macResolver, onNodeSelect),

@@ -29,6 +29,13 @@ export function setupDetailPanel(
   if (opts?.mockDeviceData) panel.setMockDeviceData(opts.mockDeviceData);
   if (opts?.getStpInstanceKey) panel.setStpKeyGetter(opts.getStpInstanceKey);
   if (opts?.resolveBridgeMac) panel.setMacResolver(opts.resolveBridgeMac);
+  panel.setNeighTypeResolver((nodeId: string) => {
+    const node = cy.$id(nodeId);
+    if (!node.length) return undefined;
+    const deviceType = node.data('device_type') as string | undefined;
+    if (deviceType) return deviceType;
+    return node.data('node_type') === 'host' ? 'host' : undefined;
+  });
   let selectedNodeId: string | null = null;
   let lastEdge: cytoscape.EdgeSingular | null = null;
   let focusNodeFn: ((nodeId: string) => void) | null = null;
@@ -125,6 +132,7 @@ export class DetailPanel {
   private mockDeviceData?: Map<string, DeviceInfoOutput>;
   private stpKeyGetter: (() => string | null) | null = null;
   private macResolver: ((mac: string) => { id: string; name: string } | null) | null = null;
+  private neighTypeResolver: ((nodeId: string) => string | undefined) | null = null;
 
   setMockDeviceData(map: Map<string, DeviceInfoOutput>): void {
     this.mockDeviceData = map;
@@ -136,6 +144,10 @@ export class DetailPanel {
 
   setMacResolver(fn: (mac: string) => { id: string; name: string } | null): void {
     this.macResolver = fn;
+  }
+
+  setNeighTypeResolver(fn: (nodeId: string) => string | undefined): void {
+    this.neighTypeResolver = fn;
   }
 
   constructor(container: HTMLElement) {
@@ -272,7 +284,7 @@ export class DetailPanel {
       buildHeader(device, context),
       buildSections(device.data, this.openAccordions, (lbl, isOpen) => {
         if (isOpen) { this.openAccordions.add(lbl); } else { this.openAccordions.delete(lbl); }
-      }, this.onNodeSelect, this.stpKeyGetter?.() ?? null, this.macResolver ?? undefined),
+      }, this.onNodeSelect, this.stpKeyGetter?.() ?? null, this.macResolver ?? undefined, this.neighTypeResolver ?? undefined),
     );
     return wrapper;
   }
