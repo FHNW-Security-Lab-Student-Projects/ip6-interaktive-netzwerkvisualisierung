@@ -42,6 +42,25 @@ export function setupDetailPanel(
   let lastEdge: cytoscape.EdgeSingular | null = null;
   let focusNodeFn: ((nodeId: string) => void) | null = null;
 
+  const applyFocus = (nodeId: string): void => {
+    const node = cy.$id(nodeId);
+    const selfAndDesc = node.union(node.descendants());
+    const connectedEdges = selfAndDesc.connectedEdges();
+    const connectedNodes = connectedEdges.connectedNodes().difference(selfAndDesc);
+    const keep = selfAndDesc
+      .union(connectedEdges)
+      .union(connectedNodes)
+      .union(connectedNodes.descendants())
+      .union(connectedNodes.ancestors())
+      .union(node.ancestors());
+    cy.elements().removeClass('faded');
+    cy.elements().not(keep).addClass('faded');
+  };
+
+  const clearFocus = (): void => {
+    cy.elements().removeClass('faded');
+  };
+
   const updatePanel = (nodeId: string) => {
     const node = cy.$id(nodeId);
     const nodeType = node.data('node_type') as string | undefined;
@@ -81,6 +100,7 @@ export function setupDetailPanel(
     cy.edges().unselect();
     selectedNodeId = null;
     lastEdge = null;
+    clearFocus();
   });
 
   cy.on('tap', event => {
@@ -88,6 +108,7 @@ export function setupDetailPanel(
       cy.nodes().unselect();
       cy.edges().unselect();
       panel.hide();
+      clearFocus();
     }
   });
 
@@ -99,6 +120,7 @@ export function setupDetailPanel(
     edge.select();
     selectedNodeId = null;
     lastEdge = edge;
+    clearFocus();
     void panel.showEdge(edge, cy, opts);
   });
 
@@ -108,6 +130,7 @@ export function setupDetailPanel(
       selectedNodeId = nodeId;
       lastEdge = null;
       updatePanel(nodeId);
+      applyFocus(nodeId);
     },
     onExpand: (nodeId) => { if (nodeId === selectedNodeId) updatePanel(nodeId); },
     setFocusNode: (fn) => { focusNodeFn = fn; },

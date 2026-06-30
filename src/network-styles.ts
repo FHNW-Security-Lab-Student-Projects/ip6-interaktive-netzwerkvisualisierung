@@ -408,6 +408,8 @@ export function createNetworkStyles(): any[] {
     { selector: 'edge.lag.disabled', style: { 'width': 5, 'opacity': 0.5 } },
     { selector: 'edge.lag.warning',  style: { 'line-style': 'double', 'width': 5, 'line-color': Colors.STATE_WARNING } },
 
+    { selector: '.faded', style: { opacity: 0.25 } },
+
     // :selected, defined last so it always wins
     {
       selector: 'node:selected',
