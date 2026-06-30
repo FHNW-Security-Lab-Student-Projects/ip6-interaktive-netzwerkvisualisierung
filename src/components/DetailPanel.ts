@@ -119,6 +119,7 @@ export class DetailPanel {
   private container: HTMLElement;
   private content: HTMLElement;
   private openAccordions = new Set<string>();
+  private savedScrollTop = 0;
   private onNodeSelect?: (nodeId: string) => void;
   private onHide?: () => void;
   private mockDeviceData?: Map<string, DeviceInfoOutput>;
@@ -186,6 +187,7 @@ export class DetailPanel {
 
   async show(deviceId: string, opts?: { networkId?: number; snapshotId?: number; nodeType?: string; deviceType?: string }): Promise<void> {
     this.container.removeAttribute('hidden');
+    this.savedScrollTop = this.container.scrollTop;
     this.setContent(this.buildLoading());
 
     const query = { explorer_network_id: opts?.networkId, snapshot_id: opts?.snapshotId };
@@ -194,18 +196,20 @@ export class DetailPanel {
       const { data, error } = await getHost({ path: { host_id: deviceId }, query });
       if (error || !data?.data) {
         this.setContent(this.buildError(deviceId));
-        return;
+      } else {
+        this.setContent(this.buildHostPanel(data.data, opts));
       }
-      this.setContent(this.buildHostPanel(data.data, opts));
+      requestAnimationFrame(() => { this.container.scrollTop = this.savedScrollTop; });
       return;
     }
 
     const { data, error } = await getDevice({ path: { device_id: deviceId }, query });
     if (error || !data?.data?.data) {
       this.setContent(this.buildError(deviceId));
-      return;
+    } else {
+      this.setContent(this.buildPanel(data.data, { nodeType: opts?.nodeType, deviceType: opts?.deviceType }));
     }
-    this.setContent(this.buildPanel(data.data, { nodeType: opts?.nodeType, deviceType: opts?.deviceType }));
+    requestAnimationFrame(() => { this.container.scrollTop = this.savedScrollTop; });
   }
 
   async showEdge(
@@ -214,6 +218,7 @@ export class DetailPanel {
     opts?: { networkId?: number; snapshotId?: number },
   ): Promise<void> {
     this.container.removeAttribute('hidden');
+    this.savedScrollTop = this.container.scrollTop;
     this.setContent(this.buildLoading());
 
     const edgeData = edge.data() as EdgePanelData;
@@ -242,6 +247,7 @@ export class DetailPanel {
       this.stpKeyGetter?.() ?? null,
       this.macResolver ?? undefined,
     ));
+    requestAnimationFrame(() => { this.container.scrollTop = this.savedScrollTop; });
   }
 
   showPlaceholder(nodeId: string, label?: string): void {
