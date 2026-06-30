@@ -46,6 +46,8 @@ export function setupDetailPanel(
     const isCollapsed = node.hasClass('collapsed');
     if (nodeType === 'group' || isCollapsed) {
       panel.showPlaceholder(nodeId, node.data('label') as string | undefined);
+    } else if (nodeType === 'custom') {
+      panel.showCustomNodePlaceholder(nodeId, node.data('label') as string | undefined);
     } else {
       panel.show(nodeId, {
         ...opts,
@@ -269,6 +271,11 @@ export class DetailPanel {
     this.setContent(this.buildCompoundPlaceholder(nodeId, label));
   }
 
+  showCustomNodePlaceholder(nodeId: string, label?: string): void {
+    this.container.removeAttribute('hidden');
+    this.setContent(this.buildCustomNodePlaceholder(nodeId, label));
+  }
+
   hide(): void {
     this.container.setAttribute('hidden', '');
     this.content.innerHTML = '';
@@ -322,6 +329,19 @@ export class DetailPanel {
     const sub = document.createElement('div');
     sub.className = 'placeholder-sub';
     sub.textContent = 'Group details coming soon.';
+    el.append(title, sub);
+    return el;
+  }
+
+  private buildCustomNodePlaceholder(nodeId: string, label?: string): HTMLElement {
+    const el = document.createElement('div');
+    el.className = 'panel-placeholder';
+    const title = document.createElement('div');
+    title.className = 'placeholder-title';
+    title.textContent = `Custom Node: ${label ?? nodeId}`;
+    const sub = document.createElement('div');
+    sub.className = 'placeholder-sub';
+    sub.textContent = 'No data available for custom nodes.';
     el.append(title, sub);
     return el;
   }
