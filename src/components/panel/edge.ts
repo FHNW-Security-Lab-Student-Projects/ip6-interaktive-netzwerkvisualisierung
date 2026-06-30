@@ -46,12 +46,18 @@ export function buildEdgePanel(
 ): HTMLElement {
   const srcName = srcInfo?.name ?? (cy.$id(srcId).data('title') as string | undefined) ?? srcId;
   const tgtName = tgtInfo?.name ?? (cy.$id(tgtId).data('title') as string | undefined) ?? tgtId;
-  const srcType = (cy.$id(srcId).data('device_type') as string | undefined)
-    ?? (edge.data('orig_source_device_type') as string | undefined)
-    ?? 'unknown';
-  const tgtType = (cy.$id(tgtId).data('device_type') as string | undefined)
-    ?? (edge.data('orig_target_device_type') as string | undefined)
-    ?? 'unknown';
+  const resolveNodeType = (nodeId: string, edgeFallback?: string): string => {
+    const node = cy.$id(nodeId);
+    if (node.length) {
+      const deviceType = node.data('device_type') as string | undefined;
+      if (deviceType) return deviceType;
+      const nodeType = node.data('node_type') as string | undefined;
+      if (nodeType === 'custom' || nodeType === 'host') return nodeType;
+    }
+    return edgeFallback ?? 'unknown';
+  };
+  const srcType = resolveNodeType(srcId, edge.data('orig_source_device_type') as string | undefined);
+  const tgtType = resolveNodeType(tgtId, edge.data('orig_target_device_type') as string | undefined);
 
   const classes = edge.classes().filter(Boolean);
   const typeClasses = classes.filter(c => EDGE_TYPE_CLASSES.has(c));

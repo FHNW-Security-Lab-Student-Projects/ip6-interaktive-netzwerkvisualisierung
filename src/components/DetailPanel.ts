@@ -34,7 +34,9 @@ export function setupDetailPanel(
     if (!node.length) return undefined;
     const deviceType = node.data('device_type') as string | undefined;
     if (deviceType) return deviceType;
-    return node.data('node_type') === 'host' ? 'host' : undefined;
+    const nodeType = node.data('node_type') as string | undefined;
+    if (nodeType === 'host' || nodeType === 'custom') return nodeType;
+    return undefined;
   });
   let selectedNodeId: string | null = null;
   let lastEdge: cytoscape.EdgeSingular | null = null;
