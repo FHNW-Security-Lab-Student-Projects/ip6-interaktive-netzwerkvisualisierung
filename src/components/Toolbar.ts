@@ -10,6 +10,7 @@ export function setupToolbar(
   if (!el) return;
 
   const label = document.createElement('span');
+  label.className = 'toolbar-label';
   label.textContent = 'Expand to level';
 
   const select = document.createElement('select');
@@ -50,9 +51,12 @@ export function setupSearch(
   dropdown.className = 'search-dropdown';
   dropdown.hidden = true;
 
-  wrapper.appendChild(input);
-  wrapper.appendChild(dropdown);
-  el.appendChild(wrapper);
+  const iconEl = document.createElement('span');
+  iconEl.className = 'search-input-icon';
+  iconEl.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="22" y2="22"/></svg>`;
+
+  wrapper.append(iconEl, input, dropdown);
+  el.append(wrapper);
 
   // ── helpers ──────────────────────────────────────────────────────────────
 

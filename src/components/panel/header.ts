@@ -18,7 +18,7 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
     ? `${staleHours / 24} day${staleHours / 24 === 1 ? '' : 's'}`
     : `${staleHours} hour${staleHours === 1 ? '' : 's'}`;
   const statusTooltip = !info.known
-    ? 'Unknown – device could not be discovered'
+    ? 'Unknown – device found but could not connect to collect details'
     : isStale
       ? `Not seen in the last ${staleLabel}`
       : 'Online';

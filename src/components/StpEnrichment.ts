@@ -33,7 +33,10 @@ export function setupStpEnrichment(
       let stpDomainBtn: HTMLButtonElement | null = null;
       const toolbar = document.getElementById('toolbar');
       if (toolbar) {
+        const divider = document.createElement('span');
+        divider.className = 'toolbar-divider';
         const label = document.createElement('span');
+        label.className = 'toolbar-label';
         label.textContent = 'STP';
         stpSelect = document.createElement('select');
         const noneOpt = document.createElement('option');
@@ -43,9 +46,10 @@ export function setupStpEnrichment(
         stpDomainBtn = document.createElement('button');
         stpDomainBtn.type = 'button';
         stpDomainBtn.className = 'toolbar-toggle';
-        stpDomainBtn.textContent = 'Domains';
+        stpDomainBtn.textContent = 'Show STP Domains';
+        stpDomainBtn.title = 'Color-code nodes by STP root bridge to visualize spanning tree domains';
         stpDomainBtn.disabled = true;
-        toolbar.append(label, stpSelect, stpDomainBtn);
+        toolbar.append(divider, label, stpSelect, stpDomainBtn);
       }
 
       buildDeviceMap(deviceNodeIds, query).then(deviceMap => {
