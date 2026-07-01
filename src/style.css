@@ -193,6 +193,7 @@ footer p {
   width: 400px;
   flex: none;
   overflow-y: auto;
+  overflow-x: hidden;
   border-left: 1px solid #e5e5e5;
   background: #fff;
   display: flex;
@@ -563,19 +564,19 @@ footer p {
 }
 
 .panel-table thead th {
-  padding: 10px 14px;
+  padding: 8px 10px;
   background: #dde9f4;
   color: #3a6ea5;
   font-weight: 600;
-  text-align: center;
+  text-align: left;
   border-bottom: 1px solid #c6d9ec;
   white-space: nowrap;
 }
 
 .panel-table tbody td {
-  padding: 9px 14px;
+  padding: 7px 10px;
   border-bottom: 1px dashed #eee;
-  text-align: center;
+  text-align: left;
   vertical-align: middle;
 }
 
@@ -585,6 +586,11 @@ footer p {
 
 .panel-table td.td-left {
   text-align: left;
+}
+
+.panel-table thead th:first-child,
+.panel-table tbody td:first-child {
+  padding-left: 20px;
 }
 
 /* Table footer / pagination */
