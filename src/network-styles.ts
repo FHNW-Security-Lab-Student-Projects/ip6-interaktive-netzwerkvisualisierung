@@ -202,6 +202,8 @@ export function createNetworkStyles(): any[] {
       selector: "node[node_type='device'][device_type='router']",
       style: {
         'shape': 'hexagon',
+        'width': 50,
+        'height': 44,
         'background-color': Colors.ROUTER,
         'background-opacity': 1,
         'background-image': NodeIcon.ROUTER,
