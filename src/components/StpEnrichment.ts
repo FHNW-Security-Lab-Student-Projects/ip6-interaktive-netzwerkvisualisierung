@@ -43,6 +43,7 @@ export function setupStpEnrichment(
         noneOpt.value = '';
         noneOpt.textContent = 'None';
         stpSelect.append(noneOpt);
+        stpSelect.title = 'Filter STP edge state and domain colors to a specific spanning tree instance';
         stpDomainBtn = document.createElement('button');
         stpDomainBtn.type = 'button';
         stpDomainBtn.className = 'toolbar-toggle';

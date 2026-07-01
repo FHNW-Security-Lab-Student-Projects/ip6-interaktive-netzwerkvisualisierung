@@ -1,3 +1,4 @@
+import type cytoscape from 'cytoscape';
 import type { ExpandCollapseController } from '../expand-collapse.ts';
 import type { HierarchyLevel, AnyTypedNode } from '../node-factory.ts';
 
@@ -27,10 +28,24 @@ export function setupToolbar(
     select.appendChild(opt);
   });
 
+  select.title = 'Expand all nodes down to the selected hierarchy level';
   select.addEventListener('change', () => ctrl.expandToLevel(select.value));
 
   el.appendChild(label);
   el.appendChild(select);
+}
+
+export function setupZoomFitButton(cy: cytoscape.Core): void {
+  const el = document.getElementById('toolbar');
+  if (!el) return;
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'toolbar-icon-btn';
+  btn.title = 'Zoom to fit — fit all nodes into view';
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>`;
+  btn.addEventListener('click', () => cy.fit(undefined, 40));
+  el.append(btn);
 }
 
 export function setupSearch(

@@ -803,6 +803,26 @@ footer p {
   color: #3a6ea5;
 }
 
+.toolbar-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.toolbar-icon-btn:hover {
+  background: #f0f5fb;
+  border-color: #3a6ea5;
+  color: #3a6ea5;
+}
+
 /* ── Landing page ─────────────────────────────────────────── */
 
 .landing-page {

@@ -8,7 +8,7 @@ import type { AnyTypedNode } from '../node-factory.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
 import { loadBasegraph } from '../graph-loader.ts';
 import { groupByUpstreamNode } from '../graph-transforms.ts';
-import { setupDetailPanel, setupToolbar, setupSearch, setupStpEnrichment } from '../components/index.ts';
+import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupStpEnrichment } from '../components/index.ts';
 
 export const title = 'API Network: Compound Graph';
 export const description =
@@ -75,6 +75,7 @@ export async function mount(container: HTMLElement): Promise<void> {
   panelOpts.setChildrenResolver(id => ctrl.getDirectChildren(id));
   setupToolbar(ctrl, NODE_HIERARCHY, 'none');
   setupSearch(ctrl, nodes);
+  setupZoomFitButton(cy);
   stpCtrl.start(panelOpts);
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);
 }
