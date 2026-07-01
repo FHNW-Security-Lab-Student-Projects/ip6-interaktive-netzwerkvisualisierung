@@ -358,6 +358,7 @@ export function setupExpandCollapse(
         runExpandCollapseLayout(cy, layout, snapshot, node.id());
       });
 
+      menu.addEventListener('mousedown', e => e.stopPropagation());
       menu.append(expandBtn, collapseBtn);
 
       container.style.position = 'relative';
