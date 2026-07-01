@@ -479,9 +479,9 @@ export function createNetworkStyles(): any[] {
     {
       selector: 'edge:selected',
       style: {
-        'line-color': Colors.SELECTED,
-        'width': 3.5,
-        'opacity': 1,
+        'overlay-color': Colors.SELECTED,
+        'overlay-opacity': 0.3,
+        'overlay-padding': 4,
       },
     },
   ];
