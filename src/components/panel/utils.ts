@@ -98,10 +98,11 @@ export function formatDateString(s: string | null | undefined): string | null {
 
 export type StatusLevel = 'online' | 'warn' | 'down' | 'unknown';
 
-export function makeStatusDot(status: StatusLevel): HTMLElement {
+export function makeStatusDot(status: StatusLevel, tooltip?: string): HTMLElement {
   const el = document.createElement('span');
   el.className = status !== 'unknown'
     ? `panel-status-dot panel-status-dot--${status}`
     : 'panel-status-dot';
+  if (tooltip) el.title = tooltip;
   return el;
 }

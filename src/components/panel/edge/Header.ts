@@ -31,7 +31,13 @@ export function buildEdgeHeader(
   sep.className = 'edge-hero-separator';
   sep.textContent = sepSymbol;
 
-  heroRow.append(makeStatusDot(status), makeNameLink(srcId, srcType, srcName), sep, makeNameLink(tgtId, tgtType, tgtName));
+  const statusTooltips: Record<StatusLevel, string> = {
+    online: 'All connections up',
+    warn: 'Degraded – some connections down or configuration warnings',
+    down: 'All connections down',
+    unknown: 'Unknown',
+  };
+  heroRow.append(makeStatusDot(status, statusTooltips[status]), makeNameLink(srcId, srcType, srcName), sep, makeNameLink(tgtId, tgtType, tgtName));
   header.append(heroRow);
 
   if (warnings.length > 0) {
