@@ -341,6 +341,12 @@ export function setupExpandCollapse(
 
       const rp = event.renderedPosition as { x: number; y: number };
 
+      // Use all selected compound nodes; fall back to just the right-clicked node.
+      const selectedCompounds = cy.nodes(':selected').filter(
+        n => (n as cytoscape.NodeSingular).isParent() || (n as cytoscape.NodeSingular).hasClass('collapsed')
+      ).toArray() as cytoscape.NodeSingular[];
+      const targets = selectedCompounds.length > 0 ? selectedCompounds : [node];
+
       const menu = document.createElement('div');
       menu.className = 'ctx-menu';
       activeMenu = menu;
@@ -350,7 +356,7 @@ export function setupExpandCollapse(
       expandBtn.addEventListener('click', () => {
         closeMenu();
         const snapshot = capturePositions(cy);
-        doExpandAll(node);
+        targets.forEach(t => doExpandAll(t));
         runExpandCollapseLayout(cy, layout, snapshot, node.id());
         options?.onExpand?.(node.id());
       });
@@ -360,7 +366,7 @@ export function setupExpandCollapse(
       collapseBtn.addEventListener('click', () => {
         closeMenu();
         const snapshot = capturePositions(cy);
-        doCollapseAll(node);
+        targets.forEach(t => doCollapseAll(t));
         runExpandCollapseLayout(cy, layout, snapshot, node.id());
       });
 
