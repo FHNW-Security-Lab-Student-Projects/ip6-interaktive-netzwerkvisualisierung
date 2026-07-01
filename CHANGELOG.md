@@ -1,3 +1,80 @@
+## [1.7.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.6.1...v1.7.0) (2026-07-01)
+
+### Features
+
+* add group context menu ([4202872](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/4202872edfe15e0525c3f2cdb33d84fa135bc992)), closes [ip6-26bb_netviz/netviz-docs#20](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz-docs/issues/20)
+* add initial stp context menu and edge implementation ([c5816b8](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/c5816b868b3091a257293b970492262c7313da10))
+* add mismatch rule for routed port subnets ([c9480b2](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/c9480b2154d630aa2b6bc53d321779a1eee901dc))
+* add node/device type to context menu neighbors accordion, sorted by interface name ([5af2fc2](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/5af2fc2c27bc7bc1ab72d9426671116a3171ce1e))
+* add separator between vlan interface pairs on edge context menu ([f8efed9](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/f8efed9019c06b7cabeefdb209e3678dcbf7d076))
+* add tooltips and zoom-to-fit to toolbar ([c03f841](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/c03f841732f68eeb29f19ddfe05682aaacda74f5))
+* add visual resize indicator to context menu ([09a308e](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/09a308ec13e7ae377786b703fb8ec2d47aad8816))
+* added title image ([d03ffef](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/d03ffef74b239093bd15ec6b14199e4cae411343))
+* align accordion tables ([401679e](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/401679e55dfe86523a4fc186d8b4f4b041259979))
+* apply expand/collapse all to all selected compound nodes ([7a0b0c6](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/7a0b0c6f92121596bb36628bb0c4efc248bd9f33))
+* collapse all clears savedExpanded so sub-compounds stay collapsed on re-expand ([54f90b8](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/54f90b841aeb743620eab996659a549e083fbc40))
+* deleted chevron and added icons ([483b1f5](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/483b1f5fce492fadd3dc168f7a54e1369b46aaff))
+* demo on edge warning states ([eceb7b3](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/eceb7b37124af472b2949de6dce730085272461a))
+* demo triangle ([5b8473a](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/5b8473a22f8b7e0ec4db7c6f1ef47298b9f5d6c8))
+* derive main link state based on interface pairs ([9e69d91](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/9e69d91ec0fb87107716949df6cd7e9ff03eae5e))
+* draft ([30e48ba](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/30e48baec3b48d37a6228d45146444cd5b4d8add))
+* draft 2 ([c38bf64](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/c38bf640227e7aeb5cef481447454f84d281ed9e))
+* enhance detail panel to support host data and add host panel component ([b041be7](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/b041be7537cc021b468c3824411cf56b363f8e51))
+* enhance node type resolution for detail and edge panels ([0e8398a](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/0e8398aa2c6619bffbe7d223e6a2cff744dbd018))
+* first draft main page ([da83810](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/da83810fe051a664d3befcf5739f7ee291bc7e63))
+* implement different edge styles ([5a672e0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/5a672e03ee0d79cbff063138a2de19d06aa91aa5))
+* implement more context via hover on context menu elements ([d3b532b](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/d3b532bd025259fb173c1bb752a7ad7c361cd9d2)), closes [ip6-26bb_netviz/netviz-docs#27](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz-docs/issues/27)
+* improve and align context menu for nodes and edges ([c48c634](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/c48c634cef92eec178b892d13c6184712eed1db3))
+* introduce DetailPanel component and refactor NodeDetailPanel usage ([bb2de24](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/bb2de248aa3e385f7101b9c3f7de8570462002b9))
+* normalize api values ([0cb98b9](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/0cb98b958e606a84fae45bca7610f139d4deec19))
+* preserve approximate scroll position in context menu ([7e8717c](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/7e8717c3633f587ede29021f0299e147d04873d9))
+* preserve edge thickness and color on edge select ([4159ec0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/4159ec012b0b402019a1502d98676a4c0174fb99)), closes [ip6-26bb_netviz/netviz-docs#22](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz-docs/issues/22)
+* reduced image size ([b421d1b](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/b421d1b3130debd8749732d7a7de5a2b4f458fe5))
+* right-click context menu with recursive expand/collapse on compound nodes ([bec30dc](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/bec30dc556041b32bbb28528452be4d85e4ee0c4))
+* show connected nodes in ports accordion ([ba01906](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/ba019060d7fb3553fe5e52d6de0130bc153817e7))
+* show same context menu for expanded / collapsed non-group compound nodes ([cee6b3e](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/cee6b3e276867b231cb528c2872548feb4aa0117))
+
+### Bug Fixes
+
+* always use full interface name ([a5754c9](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/a5754c99467447e7b2ada60e209912011ef62804))
+* consistent styling for toolbar icons ([01c5372](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/01c53720e47ef789c20353ef24198372b76ebedf))
+* demo triangle ([cef64fc](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/cef64fcce0df3af7a9ee4b41ad0a6b59bb739007))
+* do not apply stp styling to edges if stp protocol/instance hasn't explicitly been selected ([028a6fb](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/028a6fbf9ae00c346fa97f445b6ef6069c05339c))
+* do not poll api for custom devices and show appropriate message in context menu ([de0465c](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/de0465ca31772ae953f77fcf0863e121b5e4a827))
+* host icons included ([c647134](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/c647134ed820dce829cbf5d7821b23ab694acfaf))
+* icon align ([fc6a74e](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/fc6a74e8a0b3d5849cd92315668d18c8de0bd737))
+* main page ([c2f7ae0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/c2f7ae0c334743101c2c0ca94c281c28507a78bf))
+* main page ([dcce013](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/dcce013944d9e4c0a1dc3f9fff5dc65d1dfc7358))
+* pipeline ([2bc20ef](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/2bc20ef8261bfb851b9fd6882f09a90aecfac477))
+* prevent context menu from reappearing on stp instance change ([42064b7](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/42064b72786afa0821f8e0bb6193d7151720ecf8))
+* properly render mac address ([3e9b916](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/3e9b9164cc89fbba7a8a44fc7e1ebe965c22e82c))
+* router scaling ([b02d7f8](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/b02d7f82842477bd30e769c9ed2664104e0b858c))
+* stop mousedown propagation so ctx-menu buttons actually fire ([faa20c3](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/faa20c302f37f71c9ee2d853c33e6d41705b8abf))
+* toolbar layout ([d1759e6](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/d1759e656badf99ed13cb02257dc67ec665b5788))
+* unselect node or edge when context menu is closed via button ([b4ba8a6](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/b4ba8a641a8b9b5f27f52bca77841450ce31a625))
+* use hardware serial ([4ca2987](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/4ca2987a41d769605082113acff95282cba08969))
+* warning rules for edges ([69cf0b6](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/69cf0b66fadd6d0db6aac5d771e8dcc446342397))
+
+### Documentation
+
+* add right-click context menu design spec ([861d76e](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/861d76e7bee39dda17e632c371d270f917e881a5))
+
+### Refactoring
+
+* cleanup stp implementation ([7b32bb0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/7b32bb0bdb3f1f9f1bcf464d6ce024c95a3f0290))
+* extract warning rules to own file and add new ones ([93ab347](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/93ab3475d42af6483df7dd4ddb2bcf18af25f57c))
+* implement double-click to expand/collapse nodes instead of right-click ([bd7fdd1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/bd7fdd156284a291ccf94c309aeaf7b9be435b81))
+* improve node spacing to reduce overlaps ([6165514](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/61655145f6373c705f0878965b7ceca7e0f9ebfc))
+* improve warning display in context menu ([074f907](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/074f9075ae6543c0513f22058f3e682808382d34))
+* reduce overlapping compounds ([4a71746](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/4a717463ea27106ece271a2bbf96ca1d8a511d10))
+* remove fixture script and integrate custom graph loader for visualizations ([8a7374d](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/8a7374df0ef78ea146c34f5f22349474d3f7f9bc))
+* standardize textual types ([e92bbed](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/e92bbeddc963de778f061da302d0b819be67a4ec))
+* style and rearrange the app toolbar ([2349c43](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/2349c439633d6e400c4f7799829e77a962e1218b)), closes [ip6-26bb_netviz/netviz-docs#15](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz-docs/issues/15)
+
+### Reverts
+
+* remove design spec doc ([bb879ca](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/bb879ca49d3c4fa03f9fb6774b67ea54042278b4))
+
 ## [1.6.1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.6.0...v1.6.1) (2026-06-18)
 
 ### Bug Fixes
