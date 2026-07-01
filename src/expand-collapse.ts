@@ -315,6 +315,12 @@ export function setupExpandCollapse(
     }
   }
 
+  function doCollapseAll(node: cytoscape.NodeSingular): void {
+    doCollapse(node);
+    // Clear savedExpanded for all descendants so re-expanding shows them as collapsed pills.
+    getAllDescendants(node.id()).forEach(desc => savedExpanded.delete(desc.data.id));
+  }
+
   function setupContextMenu(): void {
     let activeMenu: HTMLElement | null = null;
 
@@ -350,11 +356,11 @@ export function setupExpandCollapse(
       });
 
       const collapseBtn = document.createElement('button');
-      collapseBtn.textContent = 'Collapse';
+      collapseBtn.textContent = 'Collapse all';
       collapseBtn.addEventListener('click', () => {
         closeMenu();
         const snapshot = capturePositions(cy);
-        doCollapse(node);
+        doCollapseAll(node);
         runExpandCollapseLayout(cy, layout, snapshot, node.id());
       });
 
