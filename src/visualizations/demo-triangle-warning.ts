@@ -100,7 +100,7 @@ export async function mount(container: HTMLElement): Promise<void> {
 
   cy.on('tap', 'node', event => {
     event.stopPropagation();
-    panelOpts.onNodeClick?.((event.target as cytoscape.NodeSingular).id());
+    panelOpts.onNodeClick?.((event.target as cytoscape.NodeSingular).id(), false);
   });
 
   cy.fit(undefined, 80);
