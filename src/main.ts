@@ -4,6 +4,10 @@ import './style.css';
 import { Visualization } from './types.ts';
 
 const modules = import.meta.glob<Visualization>('./visualizations/*.ts');
+const metaModules = import.meta.glob<{ title?: string; description?: string }>(
+  './visualizations/*.ts',
+  { eager: true }
+);
 
 function nameFromPath(path: string): string {
   return path.replace('./visualizations/', '').replace('.ts', '');
@@ -11,6 +15,12 @@ function nameFromPath(path: string): string {
 
 function toDisplayName(name: string): string {
   return name.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+}
+
+function getCategory(name: string): string {
+  if (name.startsWith('api-')) return 'API';
+  if (name.startsWith('hierarcy-')) return 'Hierarchy';
+  return 'Minimal';
 }
 
 const app = document.getElementById('app')!;
@@ -23,11 +33,25 @@ function renderLanding(): void {
     currentPositionsKey = null;
   }
   const names = Object.keys(modules).map(nameFromPath);
+  const cards = names.map(name => {
+    const meta = metaModules[`./visualizations/${name}.ts`];
+    const title = meta?.title ?? toDisplayName(name);
+    const description = meta?.description ?? '';
+    const category = getCategory(name);
+    return `
+      <a class="landing-card" href="#${name}">
+        <span class="landing-badge landing-badge--${category.toLowerCase()}">${category}</span>
+        <h2>${title}</h2>
+        ${description ? `<p>${description}</p>` : ''}
+      </a>`;
+  }).join('');
+
   app.innerHTML = `
-    <h1>Network Visualizations</h1>
-    <ul>
-      ${names.map(name => `<li><a href="#${name}">${toDisplayName(name)}</a></li>`).join('')}
-    </ul>
+    <div class="landing-header">
+      <h1>Network Visualizations</h1>
+      <p class="landing-subtitle">${names.length} prototypes</p>
+    </div>
+    <div class="landing-grid">${cards}</div>
   `;
 }
 
