@@ -47,12 +47,15 @@ export function setupDetailPanel(
     const selfAndDesc = node.union(node.descendants());
     const connectedEdges = selfAndDesc.connectedEdges();
     const connectedNodes = connectedEdges.connectedNodes().difference(selfAndDesc);
+    const siblings = node.parent().children();
     const keep = selfAndDesc
       .union(connectedEdges)
       .union(connectedNodes)
       .union(connectedNodes.descendants())
       .union(connectedNodes.ancestors())
-      .union(node.ancestors());
+      .union(node.ancestors())
+      .union(siblings)
+      .union(siblings.edgesWith(siblings));
     cy.elements().removeClass('faded');
     cy.elements().not(keep).addClass('faded');
   };
