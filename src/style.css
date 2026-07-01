@@ -722,7 +722,7 @@ footer p {
 }
 
 .landing-left {
-  flex: 0 0 420px;
+  flex: 0 0 520px;
   overflow-y: auto;
   padding-bottom: 32px;
 }
@@ -737,8 +737,8 @@ footer p {
 }
 
 .landing-image {
-  max-width: 100%;
-  max-height: 80vh;
+  max-width: 420px;
+  max-height: 55vh;
   object-fit: contain;
   opacity: 0.85;
 }
