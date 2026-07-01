@@ -1,3 +1,21 @@
+import { getIconData, iconToSVG } from '@iconify/utils';
+import { icons as simpleIcons } from '@iconify-json/simple-icons';
+
+export function vendorBadgeUrl(vendor: string): string | null {
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const candidates = [normalize(vendor), normalize(vendor.split(/[\s,._]/)[0])];
+  for (const name of candidates) {
+    const data = getIconData(simpleIcons, name);
+    if (data) {
+      const { attributes, body } = iconToSVG(data, { height: 'auto' });
+      const vb = (attributes as Record<string, string>).viewBox ?? '0 0 24 24';
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${body.replace(/currentColor/g, '#444')}</svg>`;
+      return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    }
+  }
+  return null;
+}
+
 // Generic text element: plain, copy-on-click, or navigate-on-click.
 // Always sets title so full text is visible on hover (handles truncation).
 export function makeTextEl(

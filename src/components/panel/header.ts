@@ -1,6 +1,5 @@
-import ciscoLogo from '../../../assets/cisco.png';
 import type { DeviceResponse } from '../../generated/types.gen.ts';
-import { makeCopyable, makeChip, makeStatusDot, formatTimestamp, formatDateString } from './utils.ts';
+import { makeCopyable, makeChip, makeStatusDot, formatTimestamp, formatDateString, vendorBadgeUrl } from './utils.ts';
 import { STALE_THRESHOLD_MS } from '../../network-styles.ts';
 
 export function buildHeader(device: DeviceResponse, context?: { nodeType?: string; deviceType?: string }): HTMLElement {
@@ -24,10 +23,11 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
 
   heroRow.append(dot, nameEl);
 
-  if (info.version?.vendor?.toLowerCase() === 'cisco') {
+  const badgeUrl = info.version?.vendor ? vendorBadgeUrl(info.version.vendor) : null;
+  if (badgeUrl) {
     const badge = document.createElement('img');
-    badge.src = ciscoLogo;
-    badge.alt = 'Cisco';
+    badge.src = badgeUrl;
+    badge.alt = info.version!.vendor!;
     badge.className = 'vendor-badge';
     heroRow.append(badge);
   }

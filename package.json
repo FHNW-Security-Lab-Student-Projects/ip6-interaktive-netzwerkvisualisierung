@@ -14,10 +14,13 @@
     "prepare": "husky && (pnpm run generate:types || true)"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "dependencies": {
     "@iconify-json/carbon": "^1.2.20",
+    "@iconify-json/simple-icons": "^1.2.88",
     "@iconify/utils": "^3.1.3",
     "cytoscape": "^3.31.0",
     "cytoscape-cola": "^2.5.1",
