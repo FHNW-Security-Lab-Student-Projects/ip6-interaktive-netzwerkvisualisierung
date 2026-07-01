@@ -56,16 +56,13 @@ function renderLanding(): void {
   }).join('');
 
   app.innerHTML = `
-    <div class="landing-split">
-      <div class="landing-left">
-        <div class="landing-header">
-          <h1>Network Visualizations</h1>
-        </div>
-        <div class="landing-list">${sections}</div>
-      </div>
-      <div class="landing-right">
+    <div class="landing-page">
+      <div class="landing-header">
         <img src="${titleImage}" alt="" class="landing-image" />
+        <h1>NETVIZ</h1>
+        <p class="landing-subtitle">Interactive network visualization prototypes</p>
       </div>
+      <div class="landing-columns">${sections}</div>
     </div>
   `;
 }
