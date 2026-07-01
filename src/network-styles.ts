@@ -24,6 +24,7 @@ const NodeIcon = {
   UNKNOWN: iconUrl(carbonIcons,    'help'),
 } as const;
 
+
 // t = 0..1: fraction to move toward white (lighten) or black (darken).
 
 function channels(hex: string): [number, number, number] {
@@ -128,6 +129,46 @@ function nodeTypeColor(ele: cytoscape.NodeSingular): string {
 
 // A device not seen within this window is treated as down.
 export const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000;
+
+// Generates a data URL for the compound node label badge: colored rect + optional Carbon icon + text.
+// Handles multi-line labels (newline-separated) by stacking lines vertically, centered horizontally.
+function compoundBadgeUrl(label: string, iconName: string | null, bgColor: string, borderColor: string): string {
+  const lines = label.split('\n');
+  const padX = 8;
+  const padY = 6;
+  const lineH = 14;
+  const gap = iconName ? 6 : 0;
+  const totalH = padY + lines.length * lineH + padY;
+  const iconSize = totalH - 2 * padY; // icon fills full text height
+  const iconW = iconName ? iconSize : 0;
+  const maxLineWidth = Math.ceil(Math.max(...lines.map(l => l.length)) * 6.2);
+  const totalW = padX + iconW + gap + maxLineWidth + padX;
+  const textCenterX = padX + iconW + gap + maxLineWidth / 2;
+
+  let iconPart = '';
+  if (iconName) {
+    const data = getIconData(carbonIcons, iconName);
+    if (data) {
+      const { attributes, body } = iconToSVG(data, { height: 'auto' });
+      const vb = (attributes as Record<string, string>).viewBox ?? '0 0 32 32';
+      iconPart = `<svg x="${padX}" y="${padY}" width="${iconSize}" height="${iconSize}" viewBox="${vb}">${body.replace(/currentColor/g, '#fff')}</svg>`;
+    }
+  }
+
+  const textLines = lines.map((line, i) => {
+    const y = padY + i * lineH + lineH * 0.78;
+    const isFirst = i === 0;
+    return `<text x="${textCenterX}" y="${y}" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="${isFirst ? 'bold' : 'normal'}" fill="#fff" opacity="${isFirst ? 1 : 0.8}">${line}</text>`;
+  }).join('');
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${totalH}">
+    <rect rx="4" ry="4" width="${totalW}" height="${totalH}" fill="${bgColor}" stroke="${borderColor}" stroke-width="1"/>
+    ${iconPart}
+    ${textLines}
+  </svg>`;
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
 
 // Stylesheet
 // Selector order: base -> type shapes -> compound box -> collapsed -> node states -> edge base -> edge types -> edge states -> :selected
@@ -235,25 +276,43 @@ export function createNetworkStyles(): any[] {
         'shape': 'round-rectangle',
         'background-color': (ele: cytoscape.NodeSingular) => nodeTypeColor(ele),
         'background-opacity': 0.07,
-        'background-image': 'none',
+        'background-image': (ele: cytoscape.NodeSingular) => {
+          const label = (ele.data('label') as string) ?? '';
+          const dt = ele.data('device_type') as string | undefined;
+          const nt = ele.data('node_type') as string | undefined;
+          const bgColor = nodeTypeColor(ele);
+          const borderColor = darken(bgColor, 0.25);
+          let iconName: string | null = null;
+          if (nt === 'device') {
+            if (dt === 'router') iconName = 'router';
+            else if (dt === 'switch') iconName = 'switch-layer-2';
+          }
+          return compoundBadgeUrl(label, iconName, bgColor, borderColor);
+        },
+        'background-width': (ele: cytoscape.NodeSingular) => {
+          const label = (ele.data('label') as string) ?? '';
+          const lines = label.split('\n');
+          const dt = ele.data('device_type') as string | undefined;
+          const nt = ele.data('node_type') as string | undefined;
+          const hasIcon = nt === 'device' && (dt === 'router' || dt === 'switch');
+          const maxLineW = Math.ceil(Math.max(...lines.map(l => l.length)) * 6.2);
+          return `${7 + (hasIcon ? 19 : 0) + maxLineW + 7}px`;
+        },
+        'background-height': (ele: cytoscape.NodeSingular) => {
+          const label = (ele.data('label') as string) ?? '';
+          const lines = label.split('\n');
+          return `${5 + lines.length * 13 + 5}px`;
+        },
+        'background-position-x': '50%',
+        'background-position-y': '10px',
+        'background-fit': 'none',
         'border-width': 0,
         'padding': '48px',
         'shadow-blur': 0,
         'shadow-opacity': 0,
-        'label': (ele: cytoscape.NodeSingular) => `${(ele.data('label') as string) ?? ''} ⌄`,
-        'text-valign': 'top',
-        'text-halign': 'center',
-        'text-margin-y': 14,
-        'font-size': '10px',
-        'font-weight': 'bold',
-        'color': '#ffffff',
-        'text-background-color': (ele: cytoscape.NodeSingular) => nodeTypeColor(ele),
-        'text-background-opacity': 1,
-        'text-background-shape': 'roundrectangle',
-        'text-background-padding': '4px',
-        'text-border-color': (ele: cytoscape.NodeSingular) => darken(nodeTypeColor(ele), 0.25),
-        'text-border-width': 1,
-        'text-border-opacity': 1,
+        'label': '',
+        'text-background-opacity': 0,
+        'text-border-opacity': 0,
         'z-index': 2,
         'cursor': 'pointer',
       },
