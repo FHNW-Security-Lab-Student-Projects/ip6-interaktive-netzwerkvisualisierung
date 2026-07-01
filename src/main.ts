@@ -2,8 +2,13 @@ import './api/client.ts';
 import './style.css';
 
 import { Visualization } from './types.ts';
+import titleImage from '../assets/title-image.png';
 
 const modules = import.meta.glob<Visualization>('./visualizations/*.ts');
+const metaModules = import.meta.glob<{ title?: string; description?: string }>(
+  './visualizations/*.ts',
+  { eager: true }
+);
 
 function nameFromPath(path: string): string {
   return path.replace('./visualizations/', '').replace('.ts', '');
@@ -11,6 +16,12 @@ function nameFromPath(path: string): string {
 
 function toDisplayName(name: string): string {
   return name.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+}
+
+function getCategory(name: string): string {
+  if (name.startsWith('api-')) return 'API';
+  if (name.startsWith('hierarcy-')) return 'Hierarchy';
+  return 'Minimal';
 }
 
 const app = document.getElementById('app')!;
@@ -23,11 +34,36 @@ function renderLanding(): void {
     currentPositionsKey = null;
   }
   const names = Object.keys(modules).map(nameFromPath);
+
+  const grouped: Record<string, { name: string; title: string }[]> = {};
+  for (const name of names) {
+    const meta = metaModules[`./visualizations/${name}.ts`];
+    const title = meta?.title ?? toDisplayName(name);
+    const category = getCategory(name);
+    if (!grouped[category]) grouped[category] = [];
+    grouped[category].push({ name, title });
+  }
+
+  const sections = Object.entries(grouped).map(([category, items]) => {
+    const rows = items.map(({ name, title }) =>
+      `<a class="landing-row" href="#${name}">${title}</a>`
+    ).join('');
+    return `
+      <div class="landing-section">
+        <h2 class="landing-section-title">${category}</h2>
+        ${rows}
+      </div>`;
+  }).join('');
+
   app.innerHTML = `
-    <h1>Network Visualizations</h1>
-    <ul>
-      ${names.map(name => `<li><a href="#${name}">${toDisplayName(name)}</a></li>`).join('')}
-    </ul>
+    <div class="landing-page">
+      <div class="landing-header">
+        <img src="${titleImage}" alt="" class="landing-image" />
+        <h1>NETVIZ</h1>
+        <p class="landing-subtitle">Interactive network visualization prototypes</p>
+      </div>
+      <div class="landing-columns">${sections}</div>
+    </div>
   `;
 }
 
@@ -44,6 +80,7 @@ async function renderVisualization(name: string): Promise<void> {
     <div id="toolbar"></div>
     <div id="viz-wrapper">
       <div id="viz"></div>
+      <div id="panel-resize-handle" hidden></div>
       <aside id="device-panel" hidden></aside>
     </div>
     <footer>

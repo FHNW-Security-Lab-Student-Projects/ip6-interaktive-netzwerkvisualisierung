@@ -1,6 +1,6 @@
-import ciscoLogo from '../../../assets/cisco.png';
 import type { DeviceResponse } from '../../generated/types.gen.ts';
-import { makeCopyable, makeChip, formatTimestamp, formatDateString } from './utils.ts';
+import { makeCopyable, makeChip, makeStatusDot, formatTimestamp, formatDateString, vendorBadgeUrl } from './utils.ts';
+import { STALE_THRESHOLD_MS } from '../../network-styles.ts';
 
 export function buildHeader(device: DeviceResponse, context?: { nodeType?: string; deviceType?: string }): HTMLElement {
   const info = device.data;
@@ -11,8 +11,18 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
   const heroRow = document.createElement('div');
   heroRow.className = 'panel-hero-row';
 
-  const dot = document.createElement('span');
-  dot.className = `panel-status-dot${info.known ? ' panel-status-dot--known' : ''}`;
+  // "known" = we can log in and collect data. "down" = known but last_seen is stale.
+  const isStale = !!info.last_seen && Date.now() - info.last_seen * 1000 > STALE_THRESHOLD_MS;
+  const staleHours = STALE_THRESHOLD_MS / (60 * 60 * 1000);
+  const staleLabel = staleHours % 24 === 0
+    ? `${staleHours / 24} day${staleHours / 24 === 1 ? '' : 's'}`
+    : `${staleHours} hour${staleHours === 1 ? '' : 's'}`;
+  const statusTooltip = !info.known
+    ? 'Unknown – device found but could not connect to collect details'
+    : isStale
+      ? `Not seen in the last ${staleLabel}`
+      : 'Online';
+  const dot = makeStatusDot(!info.known ? 'unknown' : isStale ? 'down' : 'online', statusTooltip);
 
   const nameEl = document.createElement('span');
   nameEl.className = 'panel-device-name';
@@ -22,10 +32,11 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
 
   heroRow.append(dot, nameEl);
 
-  if (info.version?.vendor?.toLowerCase() === 'cisco') {
+  const badgeUrl = info.version?.vendor ? vendorBadgeUrl(info.version.vendor) : null;
+  if (badgeUrl) {
     const badge = document.createElement('img');
-    badge.src = ciscoLogo;
-    badge.alt = 'Cisco';
+    badge.src = badgeUrl;
+    badge.alt = info.version!.vendor!;
     badge.className = 'vendor-badge';
     heroRow.append(badge);
   }
@@ -43,16 +54,17 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
   // Row 3: Chips (horizontal row)
   const chips = document.createElement('div');
   chips.className = 'panel-chips-row';
-  const addChip = (text: string) => {
-    const chip = makeChip(text);
-    makeCopyable(chip, text);
+  const addChip = (label: string, value: string) => {
+    const chip = makeChip(value);
+    makeCopyable(chip, value);
+    chip.title = `${label}: ${value}`;
     chips.append(chip);
   };
-  if (context?.nodeType)      addChip(context.nodeType);
-  if (context?.deviceType)    addChip(context.deviceType);
-  if (info.version?.vendor)   addChip(info.version.vendor);
-  if (info.version?.model)    addChip(info.version.model);
-  if (info.version?.software) addChip(info.version.software);
+  if (context?.nodeType)      addChip('type', context.nodeType);
+  if (context?.deviceType)    addChip('device', context.deviceType);
+  if (info.version?.vendor)   addChip('vendor', info.version.vendor);
+  if (info.version?.model)    addChip('model', info.version.model);
+  if (info.version?.software) addChip('firmware', info.version.software);
   if (chips.children.length > 0) header.append(chips);
 
   // Row 4: Info grid
@@ -94,8 +106,8 @@ function buildInfoGrid(device: DeviceResponse): HTMLElement {
     grid.append(cell);
   };
 
-  add('MAC', info.mac ? String(info.mac) : null);
-  add('Serial', info.serial || null);
+  add('MAC', info.mac?.address ?? null);
+  add('Serial', info.version?.serial ?? null);
   add('First Seen', formatDateString(device.created), device.created);
   add('Last Seen', formatTimestamp(info.last_seen), info.last_seen ? String(info.last_seen) : undefined);
 

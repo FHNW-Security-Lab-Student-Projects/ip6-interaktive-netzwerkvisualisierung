@@ -1,5 +1,5 @@
 export function buildPaginatedTable(
-  headers: string[],
+  headers: (string | HTMLElement)[],
   rows: HTMLTableRowElement[],
   pageSize = 25,
 ): HTMLElement {
@@ -13,7 +13,8 @@ export function buildPaginatedTable(
   const headerRow = document.createElement('tr');
   for (const h of headers) {
     const th = document.createElement('th');
-    th.textContent = h;
+    if (typeof h === 'string') th.textContent = h;
+    else th.append(h);
     headerRow.append(th);
   }
   thead.append(headerRow);

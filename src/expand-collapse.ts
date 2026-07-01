@@ -27,20 +27,17 @@ function separateSiblingCompounds(cy: cytoscape.Core): void {
         const a = compounds[i];
         const b = compounds[j];
         if (a.ancestors().has(b) || b.ancestors().has(a)) continue;
-
-        const bbA = a.boundingBox({});
-        const bbB = b.boundingBox({});
+        const bbA = a.boundingBox({ includeLabels: true });
+        const bbB = b.boundingBox({ includeLabels: true });
         const overlapX = Math.min(bbA.x2, bbB.x2) - Math.max(bbA.x1, bbB.x1);
         const overlapY = Math.min(bbA.y2, bbB.y2) - Math.max(bbA.y1, bbB.y1);
         if (overlapX <= 0 || overlapY <= 0) continue;
-
         changed = true;
         const margin = 20;
         const cAx = (bbA.x1 + bbA.x2) / 2;
         const cAy = (bbA.y1 + bbA.y2) / 2;
         const cBx = (bbB.x1 + bbB.x2) / 2;
         const cBy = (bbB.y1 + bbB.y2) / 2;
-
         let dx = 0, dy = 0;
         if (overlapX < overlapY) {
           const push = (overlapX + margin) / 2;
@@ -49,14 +46,12 @@ function separateSiblingCompounds(cy: cytoscape.Core): void {
           const push = (overlapY + margin) / 2;
           dy = cAy < cBy ? -push : push;
         }
-
         a.descendants().not(':parent').shift({ x: dx, y: dy });
         b.descendants().not(':parent').shift({ x: -dx, y: -dy });
       }
     }
   }
 
-  // Capture converged positions, restore starts, then animate to finals.
   const endPos = new Map<string, cytoscape.Position>();
   allLeaves.forEach(n => {
     const id = (n as cytoscape.NodeSingular).id();
@@ -168,11 +163,14 @@ function getInitialNodes(rootNodes: AnyTypedNode[], hierarchy?: HierarchyLevel[]
 export interface ExpandCollapseOptions {
   onNodeClick?: (nodeId: string, isCompound: boolean) => void;
   onExpand?: (nodeId: string) => void;
+  onCollapse?: (nodeId: string) => void;
 }
 
 export interface ExpandCollapseController {
   expandToLevel: (level: string | 'all' | 'none') => void;
   focusNode: (nodeId: string) => void;
+  getDirectChildCount: (nodeId: string) => number;
+  getDirectChildren: (nodeId: string) => AnyTypedNode[];
 }
 
 // Wires up interactive expand/collapse for compound nodes.
@@ -229,12 +227,20 @@ export function setupExpandCollapse(
       if (addedPairs.has(pairKey)) return;
       addedPairs.add(pairKey);
       const isOriginal = repSrc === edge.data.source && repTgt === edge.data.target;
+      const srcNodeData = nodes.find(n => n.data.id === edge.data.source)?.data as { device_type?: string } | undefined;
+      const tgtNodeData = nodes.find(n => n.data.id === edge.data.target)?.data as { device_type?: string } | undefined;
       cy.add({
         data: {
           ...edge.data,
           id: isOriginal ? edge.data.id : `__lifted__${pairKey}`,
           source: repSrc,
           target: repTgt,
+          ...(!isOriginal && {
+            orig_source: edge.data.source,
+            orig_target: edge.data.target,
+            orig_source_device_type: srcNodeData?.device_type,
+            orig_target_device_type: tgtNodeData?.device_type,
+          }),
         },
         ...(edge.classes !== undefined ? { classes: edge.classes } : {}),
       } as cytoscape.ElementDefinition);
@@ -298,6 +304,93 @@ export function setupExpandCollapse(
     syncEdges();
   }
 
+  function doExpandAll(node: cytoscape.NodeSingular): void {
+    doExpand(node);
+    let collapsed = node.descendants('.collapsed') as cytoscape.NodeCollection;
+    while (collapsed.length > 0) {
+      collapsed.forEach(n => doExpand(n as cytoscape.NodeSingular));
+      collapsed = node.descendants('.collapsed');
+    }
+  }
+
+  function doCollapseAll(node: cytoscape.NodeSingular): void {
+    doCollapse(node);
+    // Clear savedExpanded for all descendants so re-expanding shows them as collapsed pills.
+    getAllDescendants(node.id()).forEach(desc => savedExpanded.delete(desc.data.id));
+  }
+
+  function setupContextMenu(): void {
+    let activeMenu: HTMLElement | null = null;
+
+    function closeMenu(): void {
+      activeMenu?.remove();
+      activeMenu = null;
+    }
+
+    cy.on('cxttap', 'node', event => {
+      event.stopPropagation();
+      closeMenu();
+
+      const node = event.target as cytoscape.NodeSingular;
+      if (!node.isParent() && !node.hasClass('collapsed')) return;
+
+      const container = cy.container();
+      if (!container) return;
+
+      const rp = event.renderedPosition as { x: number; y: number };
+
+      // Use all selected compound nodes; fall back to just the right-clicked node.
+      const selectedCompounds = cy.nodes(':selected').filter(
+        n => (n as cytoscape.NodeSingular).isParent() || (n as cytoscape.NodeSingular).hasClass('collapsed')
+      ).toArray() as cytoscape.NodeSingular[];
+      const targets = selectedCompounds.length > 0 ? selectedCompounds : [node];
+
+      const menu = document.createElement('div');
+      menu.className = 'ctx-menu';
+      activeMenu = menu;
+
+      const expandBtn = document.createElement('button');
+      expandBtn.textContent = 'Expand all';
+      expandBtn.addEventListener('click', () => {
+        closeMenu();
+        const snapshot = capturePositions(cy);
+        targets.forEach(t => doExpandAll(t));
+        runExpandCollapseLayout(cy, layout, snapshot, node.id());
+        options?.onExpand?.(node.id());
+      });
+
+      const collapseBtn = document.createElement('button');
+      collapseBtn.textContent = 'Collapse all';
+      collapseBtn.addEventListener('click', () => {
+        closeMenu();
+        const snapshot = capturePositions(cy);
+        targets.forEach(t => doCollapseAll(t));
+        runExpandCollapseLayout(cy, layout, snapshot, node.id());
+      });
+
+      menu.addEventListener('mousedown', e => e.stopPropagation());
+      menu.append(expandBtn, collapseBtn);
+
+      container.style.position = 'relative';
+      container.append(menu);
+
+      const maxX = container.offsetWidth - menu.offsetWidth - 4;
+      const maxY = container.offsetHeight - menu.offsetHeight - 4;
+      menu.style.left = `${Math.min(rp.x, maxX)}px`;
+      menu.style.top  = `${Math.min(rp.y, maxY)}px`;
+    });
+
+    cy.on('tap', () => closeMenu());
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeMenu();
+    });
+
+    document.addEventListener('mousedown', e => {
+      if (activeMenu && !activeMenu.contains(e.target as Node)) closeMenu();
+    });
+  }
+
   // Start with only the outermost hierarchy level present among root nodes.
   const allRootNodes = nodes.filter(n => n.data.parent === undefined);
   const rootNodes = getInitialNodes(allRootNodes, hierarchy);
@@ -344,10 +437,15 @@ export function setupExpandCollapse(
 
   // Prevent the browser's native context menu on the canvas.
   cy.container()?.addEventListener('contextmenu', e => e.preventDefault());
+  setupContextMenu();
 
-  // Right-click: expand collapsed compound / collapse expanded compound.
-  cy.on('cxttap', 'node', event => {
+  // Double-click: expand collapsed compound / collapse expanded compound.
+  // Declared here so the tap handler below can cancel it on double-click.
+  let tapTimer: ReturnType<typeof setTimeout> | null = null;
+
+  cy.on('dbltap', 'node', event => {
     event.stopPropagation();
+    if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; }
     const node = event.target as cytoscape.NodeSingular;
 
     if (node.hasClass('collapsed')) {
@@ -360,15 +458,21 @@ export function setupExpandCollapse(
 
     if (node.isParent()) {
       doCollapse(node);
+      options?.onCollapse?.(node.id());
     }
   });
 
-  // Left-click: fire onNodeClick for any node (leaf or compound).
+  // Single-click: fire onNodeClick for any node (leaf or compound).
+  // Debounced so a double-click can cancel it before the panel opens.
   cy.on('tap', 'node', event => {
     event.stopPropagation();
     const node = event.target as cytoscape.NodeSingular;
     const isCompound = node.isParent() || node.hasClass('collapsed');
-    options?.onNodeClick?.(node.id(), isCompound);
+    if (tapTimer) clearTimeout(tapTimer);
+    tapTimer = setTimeout(() => {
+      tapTimer = null;
+      options?.onNodeClick?.(node.id(), isCompound);
+    }, 250);
   });
 
   return {
@@ -421,7 +525,11 @@ export function setupExpandCollapse(
     },
 
     expandToLevel(level: string | 'all' | 'none'): void {
-      activeLayout?.stop();
+      // Null sentinels BEFORE stopping so in-flight layoutstop handlers detect cancellation.
+      const prevLayout = activeLayout;
+      activeLayout = null;
+      activeOnStop = null;
+      prevLayout?.stop();
 
       if (levelIndex(level) <= levelIndex(currentLevel)) {
         // Going shallower or same: collapse everything and start fresh.
@@ -443,7 +551,22 @@ export function setupExpandCollapse(
       const layoutOpts = { ...layout.expandCollapse(), randomize: false };
       const layoutInstance = cy.layout(layoutOpts);
       activeLayout = layoutInstance;
+
+      layoutInstance.on('layoutstop', () => {
+        if (activeLayout === layoutInstance) {
+          separateSiblingCompounds(cy);
+        }
+      });
+
       layoutInstance.run();
+    },
+
+    getDirectChildCount(nodeId: string): number {
+      return getDirectChildren(nodeId).length;
+    },
+
+    getDirectChildren(nodeId: string): AnyTypedNode[] {
+      return getDirectChildren(nodeId);
     },
   };
 }

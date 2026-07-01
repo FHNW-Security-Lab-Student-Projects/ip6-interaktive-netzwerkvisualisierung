@@ -1,5 +1,6 @@
 export interface AccordionItem {
-  label: string;
+  label: string | HTMLElement;
+  key?: string;
   content: HTMLElement | string;
   open?: boolean;
   disabled?: boolean;
@@ -30,7 +31,11 @@ export function createAccordion(items: AccordionItem[]): HTMLElement {
 
     const labelSpan = document.createElement('span');
     labelSpan.className = 'accordion-label';
-    labelSpan.textContent = item.label;
+    if (typeof item.label === 'string') {
+      labelSpan.textContent = item.label;
+    } else {
+      labelSpan.append(item.label);
+    }
 
     header.append(labelSpan);
     header.insertAdjacentHTML('beforeend', chevronSvg);

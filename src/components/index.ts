@@ -1,4 +1,6 @@
 export { createAccordion } from './Accordion.ts';
 export type { AccordionItem } from './Accordion.ts';
-export { NodeDetailPanel, setupNodeDetailPanel } from './NodeDetailPanel.ts';
-export { setupToolbar, setupSearch } from './Toolbar.ts';
+export { DetailPanel, setupDetailPanel } from './DetailPanel.ts';
+export { setupToolbar, setupSearch, setupZoomFitButton } from './Toolbar.ts';
+export { setupStpEnrichment } from './StpEnrichment.ts';
+export type { StpEnrichmentController } from './StpEnrichment.ts';
