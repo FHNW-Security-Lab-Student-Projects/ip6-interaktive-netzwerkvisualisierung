@@ -306,10 +306,10 @@ export function createNetworkStyles(): any[] {
           return `${5 + lines.length * 13 + 5}px`;
         },
         'background-position-x': '50%',
-        'background-position-y': '10px',
+        'background-position-y': '14px',
         'background-fit': 'none',
         'border-width': 0,
-        'padding': '48px',
+        'padding': '72px',
         'shadow-blur': 0,
         'shadow-opacity': 0,
         'label': '',

@@ -28,8 +28,8 @@ function separateSiblingCompounds(cy: cytoscape.Core): void {
         const b = compounds[j];
         if (a.ancestors().has(b) || b.ancestors().has(a)) continue;
 
-        const bbA = a.boundingBox({});
-        const bbB = b.boundingBox({});
+        const bbA = a.boundingBox({ includeLabels: true });
+        const bbB = b.boundingBox({ includeLabels: true });
         const overlapX = Math.min(bbA.x2, bbB.x2) - Math.max(bbA.x1, bbB.x1);
         const overlapY = Math.min(bbA.y2, bbB.y2) - Math.max(bbA.y1, bbB.y1);
         if (overlapX <= 0 || overlapY <= 0) continue;

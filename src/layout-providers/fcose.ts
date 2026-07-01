@@ -17,6 +17,7 @@ export const fcoseProvider: LayoutProvider = {
       name: 'fcose',
       animate: false,
       quality: 'proof',
+      nodeDimensionsIncludeLabels: true,
       idealEdgeLength: 120,
       nodeSeparation: 75,
     } as cytoscape.LayoutOptions;
@@ -27,6 +28,7 @@ export const fcoseProvider: LayoutProvider = {
       animate: true,
       animationDuration: 400,
       quality: 'proof',
+      nodeDimensionsIncludeLabels: true,
       idealEdgeLength: 120,
       nodeSeparation: 75,
     } as cytoscape.LayoutOptions;
@@ -45,6 +47,7 @@ export const fcoseLargeProvider: LayoutProvider = {
       name: 'fcose',
       animate: false,
       quality: 'proof',
+      nodeDimensionsIncludeLabels: true,
       idealEdgeLength: 250,
       nodeSeparation: 150,
       packComponents: true,
@@ -58,6 +61,7 @@ export const fcoseLargeProvider: LayoutProvider = {
       animate: true,
       animationDuration: 400,
       quality: 'proof',
+      nodeDimensionsIncludeLabels: true,
       idealEdgeLength: 250,
       nodeSeparation: 250,
       nodeRepulsion: 45000,
