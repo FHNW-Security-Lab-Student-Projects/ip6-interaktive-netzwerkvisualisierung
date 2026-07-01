@@ -788,8 +788,9 @@ footer p {
 }
 
 .toolbar-toggle:hover:not(:disabled) {
-  background: #f5f5f5;
-  border-color: #bbb;
+  background: #f0f5fb;
+  border-color: #3a6ea5;
+  color: #3a6ea5;
 }
 
 .toolbar-toggle:disabled {
