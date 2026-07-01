@@ -695,6 +695,94 @@ footer p {
   color: #3a6ea5;
 }
 
+/* ── Landing page ─────────────────────────────────────────── */
+
+.landing-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.landing-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 64px 24px 48px;
+  gap: 16px;
+}
+
+.landing-header h1 {
+  margin: 0;
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #111;
+}
+
+.landing-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #111;
+  letter-spacing: 0.03em;
+}
+
+.landing-image {
+  max-width: 300px;
+  max-height: 180px;
+  object-fit: contain;
+  opacity: 0.85;
+}
+
+.landing-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0 48px;
+  padding: 32px 64px 64px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.landing-section-title {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #aaa;
+}
+
+.landing-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 0;
+  font-size: 0.95rem;
+  color: #111;
+  text-decoration: none;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.landing-row::after {
+  content: '→';
+  color: #ccc;
+  font-size: 0.85rem;
+  flex: none;
+}
+
+.landing-row:last-child {
+  border-bottom: none;
+}
+
+.landing-row:hover {
+  color: #3a6ea5;
+}
+
+.landing-row:hover::after {
+  color: #3a6ea5;
+}
+
 /* ── Compound node placeholder ────────────────────────────── */
 
 .panel-placeholder {
