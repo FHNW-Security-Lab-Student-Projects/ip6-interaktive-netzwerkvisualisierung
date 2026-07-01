@@ -59,6 +59,7 @@ footer p {
   font-size: 0.85rem;
   color: #555;
   min-height: 48px;
+  position: relative;
 }
 
 #toolbar:empty {
@@ -101,11 +102,11 @@ footer p {
 }
 
 .search-wrapper {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 .search-input-icon {
@@ -817,6 +818,7 @@ footer p {
   color: #555;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
+  margin-left: auto;
 }
 .toolbar-icon-btn:hover {
   background: #f0f5fb;
