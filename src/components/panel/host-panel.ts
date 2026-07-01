@@ -1,6 +1,5 @@
 import type { HostResponse } from '../../generated/types.gen.ts';
-import { makeCopyable, makeChip, makeStatusDot, formatTimestamp, formatDateString } from './utils.ts';
-import { makeNodeName } from './utils.ts';
+import { makeCopyable, makeChip, makeStatusDot, formatTimestamp, formatDateString, makeNodeName, vendorBadgeUrl } from './utils.ts';
 
 export function buildHostPanelEl(
   host: HostResponse,
@@ -27,6 +26,15 @@ export function buildHostPanelEl(
   nameEl.textContent = displayName;
   makeCopyable(nameEl, displayName);
   heroRow.append(nameEl);
+
+  const badgeUrl = info.vendor ? vendorBadgeUrl(info.vendor) : null;
+  if (badgeUrl) {
+    const badge = document.createElement('img');
+    badge.src = badgeUrl;
+    badge.alt = info.vendor!;
+    badge.className = 'vendor-badge';
+    heroRow.append(badge);
+  }
   header.append(heroRow);
 
   // Chips
