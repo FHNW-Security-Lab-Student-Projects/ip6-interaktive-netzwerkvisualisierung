@@ -1,7 +1,26 @@
-import ciscoLogo from '../../../assets/cisco.png';
 import type { DeviceResponse } from '../../generated/types.gen.ts';
 import { makeCopyable, makeChip, makeStatusDot, formatTimestamp, formatDateString } from './utils.ts';
 import { STALE_THRESHOLD_MS } from '../../network-styles.ts';
+import { getIconData, iconToSVG } from '@iconify/utils';
+import { icons as simpleIcons } from '@iconify-json/simple-icons';
+
+function vendorBadgeUrl(vendor: string): string | null {
+  const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const candidates = [
+    normalize(vendor),
+    normalize(vendor.split(/[\s,._]/)[0]),
+  ];
+  for (const name of candidates) {
+    const data = getIconData(simpleIcons, name);
+    if (data) {
+      const { attributes, body } = iconToSVG(data, { height: 'auto' });
+      const vb = (attributes as Record<string, string>).viewBox ?? '0 0 24 24';
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${body.replace(/currentColor/g, '#444')}</svg>`;
+      return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    }
+  }
+  return null;
+}
 
 export function buildHeader(device: DeviceResponse, context?: { nodeType?: string; deviceType?: string }): HTMLElement {
   const info = device.data;
@@ -24,10 +43,11 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
 
   heroRow.append(dot, nameEl);
 
-  if (info.version?.vendor?.toLowerCase() === 'cisco') {
+  const badgeUrl = info.version?.vendor ? vendorBadgeUrl(info.version.vendor) : null;
+  if (badgeUrl) {
     const badge = document.createElement('img');
-    badge.src = ciscoLogo;
-    badge.alt = 'Cisco';
+    badge.src = badgeUrl;
+    badge.alt = info.version!.vendor!;
     badge.className = 'vendor-badge';
     heroRow.append(badge);
   }
