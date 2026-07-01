@@ -36,13 +36,12 @@ function renderLanding(): void {
   const cards = names.map(name => {
     const meta = metaModules[`./visualizations/${name}.ts`];
     const title = meta?.title ?? toDisplayName(name);
-    const description = meta?.description ?? '';
+   // const description = meta?.description ?? '';
     const category = getCategory(name);
     return `
       <a class="landing-card" href="#${name}">
         <span class="landing-badge landing-badge--${category.toLowerCase()}">${category}</span>
-        <h2>${title}</h2>
-        ${description ? `<p>${description}</p>` : ''}
+        <span class="landing-card-title">${title}</span>
       </a>`;
   }).join('');
 
