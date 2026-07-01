@@ -21,6 +21,7 @@ function toDisplayName(name: string): string {
 function getCategory(name: string): string {
   if (name.startsWith('api-')) return 'API';
   if (name.startsWith('hierarcy-')) return 'Hierarchy';
+  if (name.startsWith('demo-')) return 'Demo';
   return 'Minimal';
 }
 
