@@ -484,6 +484,13 @@ footer p {
   font-style: italic;
 }
 
+.compound-hint {
+  padding: 4px 20px 8px;
+  font-size: 0.8rem;
+  color: #888;
+  text-align: center;
+}
+
 /* Tables */
 
 .table-wrapper {

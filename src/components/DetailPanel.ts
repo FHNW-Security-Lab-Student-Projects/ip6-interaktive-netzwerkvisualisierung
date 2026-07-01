@@ -9,6 +9,7 @@ import { buildHostPanelEl } from './panel/host-panel.ts';
 
 export type DetailPanelSetup = ExpandCollapseOptions & {
   setFocusNode: (fn: (nodeId: string) => void) => void;
+  setChildCountResolver: (fn: (id: string) => number) => void;
   refreshCurrentPanel: () => void;
 };
 
@@ -23,7 +24,7 @@ export function setupDetailPanel(
   },
 ): DetailPanelSetup {
   const panelEl = document.getElementById('device-panel');
-  if (!panelEl) return { setFocusNode: () => {}, refreshCurrentPanel: () => {} };
+  if (!panelEl) return { setFocusNode: () => {}, setChildCountResolver: () => {}, refreshCurrentPanel: () => {} };
 
   const panel = new DetailPanel(panelEl);
   if (opts?.mockDeviceData) panel.setMockDeviceData(opts.mockDeviceData);
@@ -41,20 +42,24 @@ export function setupDetailPanel(
   let selectedNodeId: string | null = null;
   let lastEdge: cytoscape.EdgeSingular | null = null;
   let focusNodeFn: ((nodeId: string) => void) | null = null;
+  let childCountResolver: ((id: string) => number) | null = null;
 
   const updatePanel = (nodeId: string) => {
     const node = cy.$id(nodeId);
     const nodeType = node.data('node_type') as string | undefined;
-    const isCollapsed = node.hasClass('collapsed');
-    if (nodeType === 'group' || isCollapsed) {
+    if (nodeType === 'group') {
       panel.showPlaceholder(nodeId, node.data('label') as string | undefined);
     } else if (nodeType === 'custom') {
       panel.showCustomNodePlaceholder(nodeId, node.data('label') as string | undefined);
     } else {
+      const childCount = node.hasClass('collapsed') && childCountResolver
+        ? childCountResolver(nodeId)
+        : undefined;
       panel.show(nodeId, {
         ...opts,
         nodeType,
         deviceType: node.data('device_type') as string | undefined,
+        childCount,
       });
     }
   };
@@ -109,8 +114,10 @@ export function setupDetailPanel(
       lastEdge = null;
       updatePanel(nodeId);
     },
-    onExpand: (nodeId) => { if (nodeId === selectedNodeId) updatePanel(nodeId); },
+    onExpand: (nodeId) => { if (nodeId === selectedNodeId) panel.hideHint(); },
+    onCollapse: (nodeId) => { if (nodeId === selectedNodeId && childCountResolver) panel.showHint(childCountResolver(nodeId)); },
     setFocusNode: (fn) => { focusNodeFn = fn; },
+    setChildCountResolver: (fn) => { childCountResolver = fn; },
     refreshCurrentPanel: () => {
       if (selectedNodeId) updatePanel(selectedNodeId);
       else if (lastEdge) void panel.showEdge(lastEdge, cy, opts);
@@ -139,6 +146,7 @@ export class DetailPanel {
   private stpKeyGetter: (() => string | null) | null = null;
   private macResolver: ((mac: string) => { id: string; name: string } | null) | null = null;
   private neighTypeResolver: ((nodeId: string) => string | undefined) | null = null;
+  private hintEl: HTMLElement | null = null;
 
   setMockDeviceData(map: Map<string, DeviceInfoOutput>): void {
     this.mockDeviceData = map;
@@ -203,7 +211,8 @@ export class DetailPanel {
     this.onHide = fn;
   }
 
-  async show(deviceId: string, opts?: { networkId?: number; snapshotId?: number; nodeType?: string; deviceType?: string }): Promise<void> {
+  async show(deviceId: string, opts?: { networkId?: number; snapshotId?: number; nodeType?: string; deviceType?: string; childCount?: number }): Promise<void> {
+    this.hintEl = null;
     this.container.removeAttribute('hidden');
     this.savedScrollTop = this.container.scrollTop;
     this.setContent(this.buildLoading());
@@ -225,7 +234,7 @@ export class DetailPanel {
     if (error || !data?.data?.data) {
       this.setContent(this.buildError(deviceId));
     } else {
-      this.setContent(this.buildPanel(data.data, { nodeType: opts?.nodeType, deviceType: opts?.deviceType }));
+      this.setContent(this.buildPanel(data.data, { nodeType: opts?.nodeType, deviceType: opts?.deviceType, childCount: opts?.childCount }));
     }
     requestAnimationFrame(() => { this.container.scrollTop = this.savedScrollTop; });
   }
@@ -289,10 +298,39 @@ export class DetailPanel {
     this.content.append(el);
   }
 
-  private buildPanel(device: DeviceResponse, context?: { nodeType?: string; deviceType?: string }): HTMLElement {
+  private createHintEl(count: number): HTMLDivElement {
+    const el = document.createElement('div');
+    el.className = 'compound-hint';
+    el.textContent = `Contains ${count} ${count === 1 ? 'child' : 'children'} — double-click to expand`;
+    return el;
+  }
+
+  showHint(count: number): void {
+    if (count <= 0) return;
+    if (this.hintEl) { this.hintEl.hidden = false; return; }
+    const header = this.content.querySelector<HTMLElement>('.panel-header');
+    if (!header) return;
+    this.hintEl = this.createHintEl(count);
+    const chips = header.querySelector('.panel-chips-row');
+    if (chips) chips.after(this.hintEl);
+    else header.append(this.hintEl);
+  }
+
+  hideHint(): void {
+    if (this.hintEl) this.hintEl.hidden = true;
+  }
+
+  private buildPanel(device: DeviceResponse, context?: { nodeType?: string; deviceType?: string; childCount?: number }): HTMLElement {
     const wrapper = document.createElement('div');
+    const header = buildHeader(device, context);
+    if (context?.childCount) {
+      this.hintEl = this.createHintEl(context.childCount);
+      const chips = header.querySelector('.panel-chips-row');
+      if (chips) chips.after(this.hintEl);
+      else header.append(this.hintEl);
+    }
     wrapper.append(
-      buildHeader(device, context),
+      header,
       buildSections(device.data, this.openAccordions, (lbl, isOpen) => {
         if (isOpen) { this.openAccordions.add(lbl); } else { this.openAccordions.delete(lbl); }
       }, this.onNodeSelect, this.stpKeyGetter?.() ?? null, this.macResolver ?? undefined, this.neighTypeResolver ?? undefined),

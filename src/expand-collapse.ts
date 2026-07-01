@@ -168,11 +168,13 @@ function getInitialNodes(rootNodes: AnyTypedNode[], hierarchy?: HierarchyLevel[]
 export interface ExpandCollapseOptions {
   onNodeClick?: (nodeId: string, isCompound: boolean) => void;
   onExpand?: (nodeId: string) => void;
+  onCollapse?: (nodeId: string) => void;
 }
 
 export interface ExpandCollapseController {
   expandToLevel: (level: string | 'all' | 'none') => void;
   focusNode: (nodeId: string) => void;
+  getDirectChildCount: (nodeId: string) => number;
 }
 
 // Wires up interactive expand/collapse for compound nodes.
@@ -372,6 +374,7 @@ export function setupExpandCollapse(
 
     if (node.isParent()) {
       doCollapse(node);
+      options?.onCollapse?.(node.id());
     }
   });
 
@@ -461,6 +464,10 @@ export function setupExpandCollapse(
       const layoutInstance = cy.layout(layoutOpts);
       activeLayout = layoutInstance;
       layoutInstance.run();
+    },
+
+    getDirectChildCount(nodeId: string): number {
+      return getDirectChildren(nodeId).length;
     },
   };
 }

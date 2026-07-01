@@ -61,6 +61,7 @@ export async function mount(container: HTMLElement): Promise<void> {
   const panelOpts = setupDetailPanel(cy, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
   const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'switch', panelOpts);
   panelOpts.setFocusNode(id => ctrl.focusNode(id));
+  panelOpts.setChildCountResolver(id => ctrl.getDirectChildCount(id));
   setupToolbar(ctrl, NODE_HIERARCHY, 'switch');
   setupSearch(ctrl, nodes);
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);
