@@ -47,21 +47,10 @@ function isStpBlocking(
   ifName: string,
   instanceKey?: string | null,
 ): boolean {
-  if (!stp?.instances) return false;
-  if (instanceKey) {
-    const inst = stp.instances[instanceKey];
-    const iface = inst?.interfaces?.find(i => i.if_no === ifName || i.if_no_short === ifName);
-    return iface?.state === 'Blocking';
-  }
-  // No specific instance: blocked only if Blocking in some instance AND never Forwarding in any
-  let foundBlocking = false;
-  for (const inst of Object.values(stp.instances)) {
-    const iface = inst.interfaces?.find(i => i.if_no === ifName || i.if_no_short === ifName);
-    if (!iface) continue;
-    if (iface.state === 'Forwarding') return false;
-    if (iface.state === 'Blocking') foundBlocking = true;
-  }
-  return foundBlocking;
+  if (!stp?.instances || !instanceKey) return false;
+  const inst = stp.instances[instanceKey];
+  const iface = inst?.interfaces?.find(i => i.if_no === ifName || i.if_no_short === ifName);
+  return iface?.state === 'Blocking';
 }
 
 function classifyEdgeState(
