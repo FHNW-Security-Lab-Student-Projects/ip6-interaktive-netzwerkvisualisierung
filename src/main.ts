@@ -80,6 +80,7 @@ async function renderVisualization(name: string): Promise<void> {
     <div id="toolbar"></div>
     <div id="viz-wrapper">
       <div id="viz"></div>
+      <div id="panel-resize-handle" hidden></div>
       <aside id="device-panel" hidden></aside>
     </div>
     <footer>

@@ -153,6 +153,7 @@ export class DetailPanel {
   private macResolver: ((mac: string) => { id: string; name: string } | null) | null = null;
   private neighTypeResolver: ((nodeId: string) => string | undefined) | null = null;
   private hintEl: HTMLElement | null = null;
+  private resizeHandle: HTMLElement | null = null;
 
   setMockDeviceData(map: Map<string, DeviceInfoOutput>): void {
     this.mockDeviceData = map;
@@ -172,10 +173,9 @@ export class DetailPanel {
 
   constructor(container: HTMLElement) {
     this.container = container;
+    this.resizeHandle = document.getElementById('panel-resize-handle');
 
-    const handle = document.createElement('div');
-    handle.className = 'panel-resize-handle';
-    container.prepend(handle);
+    const handle = this.resizeHandle;
 
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
@@ -190,23 +190,31 @@ export class DetailPanel {
     container.append(this.content);
 
     let drag: { startX: number; startW: number } | null = null;
-    handle.addEventListener('mousedown', e => {
-      drag = { startX: e.clientX, startW: container.offsetWidth };
-      document.body.style.userSelect = 'none';
-      document.body.style.cursor = 'col-resize';
-      e.preventDefault();
-    });
-    document.addEventListener('mousemove', e => {
-      if (!drag) return;
-      const dx = drag.startX - e.clientX;
-      container.style.width = `${Math.max(280, Math.min(800, drag.startW + dx))}px`;
-    });
-    document.addEventListener('mouseup', () => {
-      if (!drag) return;
-      drag = null;
-      document.body.style.userSelect = '';
-      document.body.style.cursor = '';
-    });
+    if (handle) {
+      handle.addEventListener('pointerdown', e => {
+        handle.setPointerCapture(e.pointerId);
+        drag = { startX: e.clientX, startW: container.offsetWidth };
+        document.body.style.userSelect = 'none';
+        document.body.style.cursor = 'col-resize';
+        e.preventDefault();
+      });
+      handle.addEventListener('pointermove', e => {
+        if (!drag) return;
+        const dx = drag.startX - e.clientX;
+        container.style.width = `${Math.max(280, Math.min(800, drag.startW + dx))}px`;
+      });
+      handle.addEventListener('pointerup', () => {
+        if (!drag) return;
+        drag = null;
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+      });
+    }
+  }
+
+  private revealPanel(): void {
+    this.container.removeAttribute('hidden');
+    this.resizeHandle?.removeAttribute('hidden');
   }
 
   setNodeSelectHandler(fn: (nodeId: string) => void): void {
@@ -219,7 +227,7 @@ export class DetailPanel {
 
   async show(deviceId: string, opts?: { networkId?: number; snapshotId?: number; nodeType?: string; deviceType?: string; childCount?: number }): Promise<void> {
     this.hintEl = null;
-    this.container.removeAttribute('hidden');
+    this.revealPanel();
     this.savedScrollTop = this.container.scrollTop;
     this.setContent(this.buildLoading());
 
@@ -250,7 +258,7 @@ export class DetailPanel {
     cy: cytoscape.Core,
     opts?: { networkId?: number; snapshotId?: number },
   ): Promise<void> {
-    this.container.removeAttribute('hidden');
+    this.revealPanel();
     this.savedScrollTop = this.container.scrollTop;
     this.setContent(this.buildLoading());
 
@@ -284,7 +292,7 @@ export class DetailPanel {
   }
 
   showGroupPanel(nodeId: string, label: string | undefined, children: AnyTypedNode[]): void {
-    this.container.removeAttribute('hidden');
+    this.revealPanel();
     this.setContent(buildGroupPanelEl(
       label ?? nodeId,
       children,
@@ -295,17 +303,18 @@ export class DetailPanel {
   }
 
   showPlaceholder(nodeId: string, label?: string): void {
-    this.container.removeAttribute('hidden');
+    this.revealPanel();
     this.setContent(this.buildCompoundPlaceholder(nodeId, label));
   }
 
   showCustomNodePlaceholder(nodeId: string, label?: string): void {
-    this.container.removeAttribute('hidden');
+    this.revealPanel();
     this.setContent(this.buildCustomNodePlaceholder(nodeId, label));
   }
 
   hide(): void {
     this.container.setAttribute('hidden', '');
+    this.resizeHandle?.setAttribute('hidden', '');
     this.content.innerHTML = '';
     this.onHide?.();
   }

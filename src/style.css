@@ -194,7 +194,6 @@ footer p {
   flex: none;
   overflow-y: auto;
   overflow-x: hidden;
-  border-left: 1px solid #e5e5e5;
   background: #fff;
   display: flex;
   flex-direction: column;
@@ -205,22 +204,40 @@ footer p {
   display: none;
 }
 
-/* Resize handle */
+/* Resize handle — flex sibling between canvas and panel */
 
-.panel-resize-handle {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 5px;
+#panel-resize-handle {
+  width: 8px;
+  flex: none;
   cursor: col-resize;
-  z-index: 10;
-  background: transparent;
+  background: #fff;
+  position: relative;
   transition: background 0.15s;
 }
 
-.panel-resize-handle:hover {
-  background: rgba(59, 130, 246, 0.25);
+#panel-resize-handle[hidden] {
+  display: none;
+}
+
+#panel-resize-handle:hover {
+  background: #c5d9f0;
+}
+
+#panel-resize-handle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 24px;
+  width: 5px;
+  border-left: 2px solid #bbb;
+  border-right: 2px solid #bbb;
+  transition: border-color 0.15s;
+}
+
+#panel-resize-handle:hover::before {
+  border-color: #3a6ea5;
 }
 
 .panel-close-btn {
