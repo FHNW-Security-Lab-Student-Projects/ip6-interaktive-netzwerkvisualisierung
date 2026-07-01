@@ -714,61 +714,81 @@ footer p {
   color: #999;
 }
 
-.landing-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-  padding: 24px;
+.landing-split {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  overflow: hidden;
 }
 
-.landing-card {
-  display: block;
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  padding: 16px 18px 18px;
-  text-decoration: none;
-  color: inherit;
-  cursor: pointer;
-  transition: box-shadow 0.15s, border-color 0.15s;
+.landing-left {
+  flex: 0 0 420px;
+  overflow-y: auto;
+  padding-bottom: 32px;
 }
 
-.landing-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border-color: #c0c0c0;
+.landing-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  overflow: hidden;
 }
 
-.landing-badge {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 20px;
+.landing-image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  opacity: 0.85;
+}
+
+.landing-list {
+  padding: 8px 24px 32px;
+}
+
+.landing-section {
+  margin-top: 28px;
+}
+
+.landing-section-title {
+  margin: 0 0 6px;
   font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: #aaa;
 }
 
-.landing-badge--api {
-  background: #dde9f4;
+.landing-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 0;
+  font-size: 0.95rem;
+  color: #111;
+  text-decoration: none;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+
+.landing-row::after {
+  content: '→';
+  color: #ccc;
+  font-size: 0.85rem;
+  flex: none;
+}
+
+.landing-row:last-child {
+  border-bottom: none;
+}
+
+.landing-row:hover {
   color: #3a6ea5;
 }
 
-.landing-badge--hierarchy {
-  background: #e4f0e4;
-  color: #3d7040;
-}
-
-.landing-badge--minimal {
-  background: #f0f0f0;
-  color: #666;
-}
-
-.landing-card-title {
-  display: block;
-  margin-top: 8px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #111;
+.landing-row:hover::after {
+  color: #3a6ea5;
 }
 
 /* ── Compound node placeholder ────────────────────────────── */

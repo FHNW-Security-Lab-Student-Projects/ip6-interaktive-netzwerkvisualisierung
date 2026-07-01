@@ -2,6 +2,7 @@ import './api/client.ts';
 import './style.css';
 
 import { Visualization } from './types.ts';
+import titleImage from '../assets/title-image.png';
 
 const modules = import.meta.glob<Visualization>('./visualizations/*.ts');
 const metaModules = import.meta.glob<{ title?: string; description?: string }>(
@@ -33,24 +34,39 @@ function renderLanding(): void {
     currentPositionsKey = null;
   }
   const names = Object.keys(modules).map(nameFromPath);
-  const cards = names.map(name => {
+
+  const grouped: Record<string, { name: string; title: string }[]> = {};
+  for (const name of names) {
     const meta = metaModules[`./visualizations/${name}.ts`];
     const title = meta?.title ?? toDisplayName(name);
-   // const description = meta?.description ?? '';
     const category = getCategory(name);
+    if (!grouped[category]) grouped[category] = [];
+    grouped[category].push({ name, title });
+  }
+
+  const sections = Object.entries(grouped).map(([category, items]) => {
+    const rows = items.map(({ name, title }) =>
+      `<a class="landing-row" href="#${name}">${title}</a>`
+    ).join('');
     return `
-      <a class="landing-card" href="#${name}">
-        <span class="landing-badge landing-badge--${category.toLowerCase()}">${category}</span>
-        <span class="landing-card-title">${title}</span>
-      </a>`;
+      <div class="landing-section">
+        <h2 class="landing-section-title">${category}</h2>
+        ${rows}
+      </div>`;
   }).join('');
 
   app.innerHTML = `
-    <div class="landing-header">
-      <h1>Network Visualizations</h1>
-      <p class="landing-subtitle">${names.length} prototypes</p>
+    <div class="landing-split">
+      <div class="landing-left">
+        <div class="landing-header">
+          <h1>Network Visualizations</h1>
+        </div>
+        <div class="landing-list">${sections}</div>
+      </div>
+      <div class="landing-right">
+        <img src="${titleImage}" alt="" class="landing-image" />
+      </div>
     </div>
-    <div class="landing-grid">${cards}</div>
   `;
 }
 
