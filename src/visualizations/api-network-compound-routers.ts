@@ -62,6 +62,7 @@ export async function mount(container: HTMLElement): Promise<void> {
   const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'router', panelOpts);
   panelOpts.setFocusNode(id => ctrl.focusNode(id));
   panelOpts.setChildCountResolver(id => ctrl.getDirectChildCount(id));
+  panelOpts.setChildrenResolver(id => ctrl.getDirectChildren(id));
   setupToolbar(ctrl, NODE_HIERARCHY, 'router');
   setupSearch(ctrl, nodes);
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);

@@ -13,7 +13,16 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
 
   // "known" = we can log in and collect data. "down" = known but last_seen is stale.
   const isStale = !!info.last_seen && Date.now() - info.last_seen * 1000 > STALE_THRESHOLD_MS;
-  const dot = makeStatusDot(!info.known ? 'unknown' : isStale ? 'down' : 'online');
+  const staleHours = STALE_THRESHOLD_MS / (60 * 60 * 1000);
+  const staleLabel = staleHours % 24 === 0
+    ? `${staleHours / 24} day${staleHours / 24 === 1 ? '' : 's'}`
+    : `${staleHours} hour${staleHours === 1 ? '' : 's'}`;
+  const statusTooltip = !info.known
+    ? 'Unknown – device could not be discovered'
+    : isStale
+      ? `Not seen in the last ${staleLabel}`
+      : 'Online';
+  const dot = makeStatusDot(!info.known ? 'unknown' : isStale ? 'down' : 'online', statusTooltip);
 
   const nameEl = document.createElement('span');
   nameEl.className = 'panel-device-name';
@@ -45,16 +54,17 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
   // Row 3: Chips (horizontal row)
   const chips = document.createElement('div');
   chips.className = 'panel-chips-row';
-  const addChip = (text: string) => {
-    const chip = makeChip(text);
-    makeCopyable(chip, text);
+  const addChip = (label: string, value: string) => {
+    const chip = makeChip(value);
+    makeCopyable(chip, value);
+    chip.title = `${label}: ${value}`;
     chips.append(chip);
   };
-  if (context?.nodeType)      addChip(context.nodeType);
-  if (context?.deviceType)    addChip(context.deviceType);
-  if (info.version?.vendor)   addChip(info.version.vendor);
-  if (info.version?.model)    addChip(info.version.model);
-  if (info.version?.software) addChip(info.version.software);
+  if (context?.nodeType)      addChip('type', context.nodeType);
+  if (context?.deviceType)    addChip('device', context.deviceType);
+  if (info.version?.vendor)   addChip('vendor', info.version.vendor);
+  if (info.version?.model)    addChip('model', info.version.model);
+  if (info.version?.software) addChip('firmware', info.version.software);
   if (chips.children.length > 0) header.append(chips);
 
   // Row 4: Info grid

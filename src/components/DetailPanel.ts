@@ -2,14 +2,17 @@ import type cytoscape from 'cytoscape';
 import { getDevice, getHost } from '../generated/sdk.gen.ts';
 import type { DeviceInfoOutput, DeviceResponse, HostResponse } from '../generated/types.gen.ts';
 import type { ExpandCollapseOptions } from '../expand-collapse.ts';
+import type { AnyTypedNode } from '../node-factory.ts';
 import { buildHeader } from './panel/header.ts';
 import { buildSections } from './panel/sections.ts';
 import { buildEdgePanel } from './panel/edge.ts';
 import { buildHostPanelEl } from './panel/host-panel.ts';
+import { buildGroupPanelEl } from './panel/group-panel.ts';
 
 export type DetailPanelSetup = ExpandCollapseOptions & {
   setFocusNode: (fn: (nodeId: string) => void) => void;
   setChildCountResolver: (fn: (id: string) => number) => void;
+  setChildrenResolver: (fn: (id: string) => AnyTypedNode[]) => void;
   refreshCurrentPanel: () => void;
 };
 
@@ -24,7 +27,7 @@ export function setupDetailPanel(
   },
 ): DetailPanelSetup {
   const panelEl = document.getElementById('device-panel');
-  if (!panelEl) return { setFocusNode: () => {}, setChildCountResolver: () => {}, refreshCurrentPanel: () => {} };
+  if (!panelEl) return { setFocusNode: () => {}, setChildCountResolver: () => {}, setChildrenResolver: () => {}, refreshCurrentPanel: () => {} };
 
   const panel = new DetailPanel(panelEl);
   if (opts?.mockDeviceData) panel.setMockDeviceData(opts.mockDeviceData);
@@ -43,12 +46,14 @@ export function setupDetailPanel(
   let lastEdge: cytoscape.EdgeSingular | null = null;
   let focusNodeFn: ((nodeId: string) => void) | null = null;
   let childCountResolver: ((id: string) => number) | null = null;
+  let childrenResolver: ((id: string) => AnyTypedNode[]) | null = null;
 
   const updatePanel = (nodeId: string) => {
     const node = cy.$id(nodeId);
     const nodeType = node.data('node_type') as string | undefined;
     if (nodeType === 'group') {
-      panel.showPlaceholder(nodeId, node.data('label') as string | undefined);
+      const children = childrenResolver?.(nodeId) ?? [];
+      panel.showGroupPanel(nodeId, node.data('label') as string | undefined, children);
     } else if (nodeType === 'custom') {
       panel.showCustomNodePlaceholder(nodeId, node.data('label') as string | undefined);
     } else {
@@ -118,6 +123,7 @@ export function setupDetailPanel(
     onCollapse: (nodeId) => { if (nodeId === selectedNodeId && childCountResolver) panel.showHint(childCountResolver(nodeId)); },
     setFocusNode: (fn) => { focusNodeFn = fn; },
     setChildCountResolver: (fn) => { childCountResolver = fn; },
+    setChildrenResolver: (fn) => { childrenResolver = fn; },
     refreshCurrentPanel: () => {
       if (selectedNodeId) updatePanel(selectedNodeId);
       else if (lastEdge) void panel.showEdge(lastEdge, cy, opts);
@@ -275,6 +281,17 @@ export class DetailPanel {
       this.macResolver ?? undefined,
     ));
     requestAnimationFrame(() => { this.container.scrollTop = this.savedScrollTop; });
+  }
+
+  showGroupPanel(nodeId: string, label: string | undefined, children: AnyTypedNode[]): void {
+    this.container.removeAttribute('hidden');
+    this.setContent(buildGroupPanelEl(
+      label ?? nodeId,
+      children,
+      this.openAccordions,
+      (key, isOpen) => { if (isOpen) this.openAccordions.add(key); else this.openAccordions.delete(key); },
+      this.onNodeSelect,
+    ));
   }
 
   showPlaceholder(nodeId: string, label?: string): void {
