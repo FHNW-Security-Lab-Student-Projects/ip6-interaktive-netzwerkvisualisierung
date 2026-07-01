@@ -491,6 +491,11 @@ footer p {
   text-align: center;
 }
 
+.group-member-row {
+  padding: 4px 20px 4px 28px;
+  font-size: 0.9rem;
+}
+
 /* Tables */
 
 .table-wrapper {

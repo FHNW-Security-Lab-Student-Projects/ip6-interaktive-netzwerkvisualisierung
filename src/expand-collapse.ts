@@ -175,6 +175,7 @@ export interface ExpandCollapseController {
   expandToLevel: (level: string | 'all' | 'none') => void;
   focusNode: (nodeId: string) => void;
   getDirectChildCount: (nodeId: string) => number;
+  getDirectChildren: (nodeId: string) => AnyTypedNode[];
 }
 
 // Wires up interactive expand/collapse for compound nodes.
@@ -556,6 +557,10 @@ export function setupExpandCollapse(
 
     getDirectChildCount(nodeId: string): number {
       return getDirectChildren(nodeId).length;
+    },
+
+    getDirectChildren(nodeId: string): AnyTypedNode[] {
+      return getDirectChildren(nodeId);
     },
   };
 }
