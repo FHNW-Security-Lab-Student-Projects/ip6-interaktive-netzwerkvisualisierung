@@ -27,20 +27,17 @@ function separateSiblingCompounds(cy: cytoscape.Core): void {
         const a = compounds[i];
         const b = compounds[j];
         if (a.ancestors().has(b) || b.ancestors().has(a)) continue;
-
         const bbA = a.boundingBox({ includeLabels: true });
         const bbB = b.boundingBox({ includeLabels: true });
         const overlapX = Math.min(bbA.x2, bbB.x2) - Math.max(bbA.x1, bbB.x1);
         const overlapY = Math.min(bbA.y2, bbB.y2) - Math.max(bbA.y1, bbB.y1);
         if (overlapX <= 0 || overlapY <= 0) continue;
-
         changed = true;
         const margin = 20;
         const cAx = (bbA.x1 + bbA.x2) / 2;
         const cAy = (bbA.y1 + bbA.y2) / 2;
         const cBx = (bbB.x1 + bbB.x2) / 2;
         const cBy = (bbB.y1 + bbB.y2) / 2;
-
         let dx = 0, dy = 0;
         if (overlapX < overlapY) {
           const push = (overlapX + margin) / 2;
@@ -49,14 +46,12 @@ function separateSiblingCompounds(cy: cytoscape.Core): void {
           const push = (overlapY + margin) / 2;
           dy = cAy < cBy ? -push : push;
         }
-
         a.descendants().not(':parent').shift({ x: dx, y: dy });
         b.descendants().not(':parent').shift({ x: -dx, y: -dy });
       }
     }
   }
 
-  // Capture converged positions, restore starts, then animate to finals.
   const endPos = new Map<string, cytoscape.Position>();
   allLeaves.forEach(n => {
     const id = (n as cytoscape.NodeSingular).id();
@@ -530,7 +525,11 @@ export function setupExpandCollapse(
     },
 
     expandToLevel(level: string | 'all' | 'none'): void {
-      activeLayout?.stop();
+      // Null sentinels BEFORE stopping so in-flight layoutstop handlers detect cancellation.
+      const prevLayout = activeLayout;
+      activeLayout = null;
+      activeOnStop = null;
+      prevLayout?.stop();
 
       if (levelIndex(level) <= levelIndex(currentLevel)) {
         // Going shallower or same: collapse everything and start fresh.
@@ -552,6 +551,13 @@ export function setupExpandCollapse(
       const layoutOpts = { ...layout.expandCollapse(), randomize: false };
       const layoutInstance = cy.layout(layoutOpts);
       activeLayout = layoutInstance;
+
+      layoutInstance.on('layoutstop', () => {
+        if (activeLayout === layoutInstance) {
+          separateSiblingCompounds(cy);
+        }
+      });
+
       layoutInstance.run();
     },
 
