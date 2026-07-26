@@ -1,3 +1,9 @@
+## [1.8.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.7.0...v1.8.0) (2026-07-26)
+
+### Features
+
+* add dependency-cruiser configuration ([3887d5f](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/3887d5f2dfbeae29f04d3d800afd7deab22fcc34))
+
 ## [1.7.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.6.1...v1.7.0) (2026-07-01)
 
 ### Features
