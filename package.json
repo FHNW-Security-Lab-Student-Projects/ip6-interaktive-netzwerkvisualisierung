@@ -11,7 +11,8 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint src",
     "generate:types": "openapi-ts",
-    "prepare": "husky && (pnpm run generate:types || true)"
+    "prepare": "husky && (pnpm run generate:types || true)",
+    "diagram": "depcruise src/visualizations src/layout-providers --output-type dot --config .dependency-cruiser.cjs | dot -Tsvg > docs/architecture.svg"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -45,6 +46,7 @@
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.1",
     "conventional-changelog-conventionalcommits": "^9.2.0",
+    "dependency-cruiser": "^18.1.0",
     "eslint": "^9.20.1",
     "globals": "^15.15.0",
     "husky": "^9.1.7",
