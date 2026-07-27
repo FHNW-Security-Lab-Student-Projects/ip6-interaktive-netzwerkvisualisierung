@@ -1,3 +1,9 @@
+## [1.11.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.10.0...v1.11.0) (2026-07-27)
+
+### Features
+
+* implement new locate device button ([fd285ec](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/fd285ecbf128bfdd38cfe07b39f805bd6ba3384a)), closes [ip6-26bb_netviz/netviz-docs#32](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz-docs/issues/32)
+
 ## [1.10.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.9.0...v1.10.0) (2026-07-27)
 
 ### Features
