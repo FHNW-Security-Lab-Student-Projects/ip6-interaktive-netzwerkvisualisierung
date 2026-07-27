@@ -1,3 +1,9 @@
+## [1.9.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.8.0...v1.9.0) (2026-07-27)
+
+### Features
+
+* feat selection color ([f5088ec](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/f5088ecd2bee22901c4115a9a7ad23c5bad771bd))
+
 ## [1.8.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.7.0...v1.8.0) (2026-07-26)
 
 ### Features
