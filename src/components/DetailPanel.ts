@@ -85,6 +85,7 @@ export function setupDetailPanel(
     updatePanel(nodeId);
   };
 
+  panel.setLocateHandler(nodeId => focusNodeFn?.(nodeId));
   panel.setNodeSelectHandler(selectNode);
   panel.setHideHandler(() => {
     cy.nodes().unselect();
@@ -154,6 +155,7 @@ export class DetailPanel {
   private neighTypeResolver: ((nodeId: string) => string | undefined) | null = null;
   private hintEl: HTMLElement | null = null;
   private resizeHandle: HTMLElement | null = null;
+  private onLocate?: (nodeId: string) => void;
 
   setMockDeviceData(map: Map<string, DeviceInfoOutput>): void {
     this.mockDeviceData = map;
@@ -215,6 +217,10 @@ export class DetailPanel {
   private revealPanel(): void {
     this.container.removeAttribute('hidden');
     this.resizeHandle?.removeAttribute('hidden');
+  }
+
+  setLocateHandler(fn: (nodeId: string) => void): void {
+    this.onLocate = fn;
   }
 
   setNodeSelectHandler(fn: (nodeId: string) => void): void {
@@ -354,6 +360,15 @@ export class DetailPanel {
       const chips = header.querySelector('.panel-chips-row');
       if (chips) chips.after(this.hintEl);
       else header.append(this.hintEl);
+    }
+    const locateId = device.data.id;
+    if (this.onLocate && locateId) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'panel-locate-btn';
+      btn.textContent = 'Locate device';
+      btn.addEventListener('click', () => this.onLocate!(locateId));
+      header.append(btn);
     }
     wrapper.append(
       header,

@@ -507,7 +507,7 @@ export function setupExpandCollapse(
       const selectAndPan = () => {
         const target = cy.$id(nodeId) as cytoscape.NodeSingular;
         if (target.length) {
-          cy.animate({ center: { eles: target }, duration: 400 });
+          cy.animate({ zoom: Math.max(cy.zoom(), 1.5), center: { eles: target }, duration: 400 });
           cy.nodes().unselect();
           target.select();
           target.emit('tap');
