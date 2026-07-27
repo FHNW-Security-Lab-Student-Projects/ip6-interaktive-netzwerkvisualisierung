@@ -189,7 +189,7 @@ export function setupLegend(): void {
 
   // ── helpers ──────────────────────────────────────────────────────────────
 
-  function carbonSvg(name: string, color = '#fff', size = 14): string {
+  function carbonSvg(name: string, color = '#fff', size = 11): string {
     const data = getIconData(carbonIcons, name);
     if (!data) return '';
     const { attributes, body } = iconToSVG(data, { height: 'auto' });
@@ -197,63 +197,73 @@ export function setupLegend(): void {
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${size}" height="${size}">${body.replace(/currentColor/g, color)}</svg>`;
   }
 
-  function nodeRow(label: string, color: string, icon: string): string {
-    return `<div style="display:flex;align-items:center;gap:9px;padding:4px 14px;">
-      <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:${color};flex-shrink:0;">${carbonSvg(icon)}</span>
-      <span style="font-size:0.82rem;color:#222;">${label}</span>
+  // svgShape: the full SVG element string, e.g. 'polygon points="..."'
+  function nodeRow(label: string, color: string, icon: string, svgShape: string): string {
+    return `<div style="display:flex;align-items:center;gap:7px;padding:3px 10px;">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:22px;flex-shrink:0;position:relative;">
+        <svg width="26" height="22" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;"><${svgShape} fill="${color}"/></svg>
+        <span style="position:relative;z-index:1;">${carbonSvg(icon)}</span>
+      </span>
+      <span style="font-size:0.8rem;color:#222;">${label}</span>
     </div>`;
   }
 
-  function edgeRow(label: string, lineSvg: string): string {
-    return `<div style="display:flex;align-items:center;gap:9px;padding:4px 14px;">
-      <span style="display:inline-flex;align-items:center;flex-shrink:0;">${lineSvg}</span>
-      <span style="font-size:0.82rem;color:#222;">${label}</span>
+  function edgeRow(label: string, edgeSvg: string): string {
+    return `<div style="display:flex;align-items:center;gap:7px;padding:3px 10px;">
+      <span style="display:inline-flex;align-items:center;flex-shrink:0;">${edgeSvg}</span>
+      <span style="font-size:0.8rem;color:#222;">${label}</span>
     </div>`;
   }
 
   function stateRow(label: string, color: string): string {
-    return `<div style="display:flex;align-items:center;gap:9px;padding:4px 14px;">
-      <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:${lighten(color, 0.7)};border:2px solid ${color};flex-shrink:0;"></span>
-      <span style="font-size:0.82rem;color:#222;">${label}</span>
+    return `<div style="display:flex;align-items:center;gap:7px;padding:3px 10px;">
+      <span style="display:inline-flex;width:14px;height:14px;border-radius:50%;background:${lighten(color, 0.65)};border:2px solid ${color};flex-shrink:0;"></span>
+      <span style="font-size:0.8rem;color:#222;">${label}</span>
     </div>`;
   }
 
-  function section(title: string, first = false): string {
-    const border = first ? '' : 'border-top:1px solid #eee;margin-top:4px;';
-    return `<div style="padding:7px 14px 2px;font-size:0.69rem;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;${border}">${title}</div>`;
+  function colHeader(title: string): string {
+    return `<div style="padding:6px 10px 3px;font-size:0.68rem;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;">${title}</div>`;
   }
 
-  function lineSvg(color: string, dashArray = '', double_ = false, arrow = false): string {
-    const w = 36; const h = 12; const mid = h / 2;
+  function mkLine(color: string, dashArray = '', strokeWidth = 2, arrow = false): string {
+    const w = 34; const h = 10; const mid = h / 2;
     const dash = dashArray ? ` stroke-dasharray="${dashArray}"` : '';
-    let paths = `<line x1="2" y1="${mid}" x2="${w - 2}" y2="${mid}" stroke="${color}" stroke-width="2"${dash}/>`;
-    if (double_) paths += `<line x1="2" y1="${mid - 3}" x2="${w - 2}" y2="${mid - 3}" stroke="${color}" stroke-width="2"${dash}/>`;
-    if (arrow)   paths += `<polyline points="${w - 7},${mid - 3} ${w - 2},${mid} ${w - 7},${mid + 3}" fill="none" stroke="${color}" stroke-width="1.5"/>`;
+    let paths = `<line x1="1" y1="${mid}" x2="${w - 1}" y2="${mid}" stroke="${color}" stroke-width="${strokeWidth}"${dash}/>`;
+    if (arrow) paths += `<polyline points="${w - 6},${mid - 3} ${w - 1},${mid} ${w - 6},${mid + 3}" fill="none" stroke="${color}" stroke-width="1.5"/>`;
     return `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">${paths}</svg>`;
   }
 
   const C = Colors;
-  const html = [
-    `<div style="padding:7px 14px 3px;font-size:0.82rem;font-weight:700;color:#333;">Legend</div>`,
-    section('Node Types', true),
-    nodeRow('Router',  C.ROUTER,  'router'),
-    nodeRow('Switch',  C.SWITCH,  'switch-layer-2'),
-    nodeRow('Host',    C.HOST,    'laptop'),
-    nodeRow('Unknown', C.UNKNOWN, 'help'),
-    section('Edge Types'),
-    edgeRow('Physical', lineSvg(C.EDGE)),
-    edgeRow('LAG',      lineSvg(C.EDGE, '', true)),
-    edgeRow('Logical',  lineSvg(C.EDGE, '5,3')),
-    edgeRow('Uplink',   lineSvg(C.STATE_HIGHLIGHT, '5,3')),
-    edgeRow('Routed',   lineSvg(C.ROUTER, '', false, true)),
-    section('States'),
-    stateRow('Warning',   C.STATE_WARNING),
-    stateRow('Down',      C.STATE_DOWN),
-    stateRow('Disabled',  C.STATE_DISABLED),
-    stateRow('Highlight', C.STATE_HIGHLIGHT),
-    stateRow('Selected',  C.SELECTED),
-    `<div style="height:6px;"></div>`,
-  ].join('');
+  const colStyle = 'display:flex;flex-direction:column;padding-bottom:6px;';
+  const divStyle = 'border-right:1px solid #eee;';
+
+  const html = `<div style="display:flex;align-items:flex-start;">
+    <div style="${colStyle}${divStyle}">
+      ${colHeader('Node Types')}
+      ${nodeRow('Router',  C.ROUTER,  'router',         'polygon points="13,1 25,7 25,15 13,21 1,15 1,7"')}
+      ${nodeRow('Switch',  C.SWITCH,  'switch-layer-2', 'rect x="1" y="5" width="24" height="12" rx="2"')}
+      ${nodeRow('Host',    C.HOST,    'laptop',         'ellipse cx="13" cy="11" rx="12" ry="11"')}
+      ${nodeRow('Custom',  C.CUSTOM,  'lightning',      'polygon points="13,1 25,11 13,21 1,11"')}
+      ${nodeRow('Unknown', C.UNKNOWN, 'help',           'ellipse cx="13" cy="11" rx="12" ry="11"')}
+    </div>
+    <div style="${colStyle}${divStyle}">
+      ${colHeader('Edge Types')}
+      ${edgeRow('Physical', mkLine(C.EDGE))}
+      ${edgeRow('LAG',      mkLine(C.EDGE, '', 4))}
+      ${edgeRow('Logical',  mkLine(C.EDGE, '5,3'))}
+      ${edgeRow('Uplink',   mkLine(C.STATE_HIGHLIGHT, '5,3'))}
+      ${edgeRow('Routed',   mkLine(C.ROUTER, '', 2, true))}
+    </div>
+    <div style="${colStyle}">
+      ${colHeader('States')}
+      ${stateRow('Warning',   C.STATE_WARNING)}
+      ${stateRow('Down',      C.STATE_DOWN)}
+      ${stateRow('Disabled',  C.STATE_DISABLED)}
+      ${stateRow('Highlight', C.STATE_HIGHLIGHT)}
+      ${stateRow('Selected',  C.SELECTED)}
+    </div>
+  </div>`;
 
   // ── button ───────────────────────────────────────────────────────────────
 
@@ -273,7 +283,7 @@ export function setupLegend(): void {
 
     const p = document.createElement('div');
     p.className = 'ctx-menu';
-    p.style.cssText = 'position:fixed;min-width:190px;';
+    p.style.cssText = 'position:fixed;';
     p.innerHTML = html;
     panel = p;
     document.body.append(p);
