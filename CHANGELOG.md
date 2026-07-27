@@ -1,3 +1,9 @@
+## [1.10.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.9.0...v1.10.0) (2026-07-27)
+
+### Features
+
+* legend in toolbar ([bccc7d5](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/bccc7d5d8fc7c678c419ea286f80c2c0a0cda782))
+
 ## [1.9.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.8.0...v1.9.0) (2026-07-27)
 
 ### Features
