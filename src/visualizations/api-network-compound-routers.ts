@@ -8,7 +8,7 @@ import type { AnyTypedNode } from '../node-factory.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
 import { loadBasegraph } from '../graph-loader.ts';
 import { groupByUpstreamNode } from '../graph-transforms.ts';
-import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton } from '../components/index.ts';
+import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend } from '../components/index.ts';
 
 export const title = 'API Network: Compound Graph - Routers Expanded';
 export const description =
@@ -66,5 +66,6 @@ export async function mount(container: HTMLElement): Promise<void> {
   setupToolbar(ctrl, NODE_HIERARCHY, 'router');
   setupSearch(ctrl, nodes);
   setupZoomFitButton(cy);
+  setupLegend();
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);
 }

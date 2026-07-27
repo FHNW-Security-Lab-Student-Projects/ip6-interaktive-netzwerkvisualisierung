@@ -6,7 +6,7 @@ import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
 import { loadBasegraph } from '../graph-loader.ts';
-import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton } from '../components/index.ts';
+import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend } from '../components/index.ts';
 
 export const title = 'API Network: Original Graph';
 export const description =
@@ -36,5 +36,6 @@ export async function mount(container: HTMLElement): Promise<void> {
   setupToolbar(ctrl, NODE_HIERARCHY, 'none');
   setupSearch(ctrl, nodes);
   setupZoomFitButton(cy);
+  setupLegend();
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);
 }
