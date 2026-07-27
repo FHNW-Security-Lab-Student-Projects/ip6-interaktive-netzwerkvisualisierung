@@ -1,6 +1,9 @@
 import type cytoscape from 'cytoscape';
 import type { ExpandCollapseController } from '../expand-collapse.ts';
 import type { HierarchyLevel, AnyTypedNode } from '../node-factory.ts';
+import { getIconData, iconToSVG } from '@iconify/utils';
+import { icons as carbonIcons } from '@iconify-json/carbon';
+import { Colors, lighten } from '../network-styles.ts';
 
 export function setupToolbar(
   ctrl: ExpandCollapseController,
@@ -178,4 +181,112 @@ export function setupSearch(
   });
 
   input.addEventListener('blur', () => { setTimeout(() => { dropdown.hidden = true; }, 100); });
+}
+
+export function setupLegend(): void {
+  const el = document.getElementById('toolbar');
+  if (!el) return;
+
+  // ── helpers ──────────────────────────────────────────────────────────────
+
+  function carbonSvg(name: string, color = '#fff', size = 14): string {
+    const data = getIconData(carbonIcons, name);
+    if (!data) return '';
+    const { attributes, body } = iconToSVG(data, { height: 'auto' });
+    const vb = (attributes as Record<string, string>).viewBox ?? '0 0 32 32';
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${size}" height="${size}">${body.replace(/currentColor/g, color)}</svg>`;
+  }
+
+  function nodeRow(label: string, color: string, icon: string): string {
+    return `<div style="display:flex;align-items:center;gap:9px;padding:4px 14px;">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:${color};flex-shrink:0;">${carbonSvg(icon)}</span>
+      <span style="font-size:0.82rem;color:#222;">${label}</span>
+    </div>`;
+  }
+
+  function edgeRow(label: string, lineSvg: string): string {
+    return `<div style="display:flex;align-items:center;gap:9px;padding:4px 14px;">
+      <span style="display:inline-flex;align-items:center;flex-shrink:0;">${lineSvg}</span>
+      <span style="font-size:0.82rem;color:#222;">${label}</span>
+    </div>`;
+  }
+
+  function stateRow(label: string, color: string): string {
+    return `<div style="display:flex;align-items:center;gap:9px;padding:4px 14px;">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:${lighten(color, 0.7)};border:2px solid ${color};flex-shrink:0;"></span>
+      <span style="font-size:0.82rem;color:#222;">${label}</span>
+    </div>`;
+  }
+
+  function section(title: string, first = false): string {
+    const border = first ? '' : 'border-top:1px solid #eee;margin-top:4px;';
+    return `<div style="padding:7px 14px 2px;font-size:0.69rem;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.07em;${border}">${title}</div>`;
+  }
+
+  function lineSvg(color: string, dashArray = '', double_ = false, arrow = false): string {
+    const w = 36; const h = 12; const mid = h / 2;
+    const dash = dashArray ? ` stroke-dasharray="${dashArray}"` : '';
+    let paths = `<line x1="2" y1="${mid}" x2="${w - 2}" y2="${mid}" stroke="${color}" stroke-width="2"${dash}/>`;
+    if (double_) paths += `<line x1="2" y1="${mid - 3}" x2="${w - 2}" y2="${mid - 3}" stroke="${color}" stroke-width="2"${dash}/>`;
+    if (arrow)   paths += `<polyline points="${w - 7},${mid - 3} ${w - 2},${mid} ${w - 7},${mid + 3}" fill="none" stroke="${color}" stroke-width="1.5"/>`;
+    return `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">${paths}</svg>`;
+  }
+
+  const C = Colors;
+  const html = [
+    `<div style="padding:7px 14px 3px;font-size:0.82rem;font-weight:700;color:#333;">Legend</div>`,
+    section('Node Types', true),
+    nodeRow('Router',  C.ROUTER,  'router'),
+    nodeRow('Switch',  C.SWITCH,  'switch-layer-2'),
+    nodeRow('Host',    C.HOST,    'laptop'),
+    nodeRow('Unknown', C.UNKNOWN, 'help'),
+    section('Edge Types'),
+    edgeRow('Physical', lineSvg(C.EDGE)),
+    edgeRow('LAG',      lineSvg(C.EDGE, '', true)),
+    edgeRow('Logical',  lineSvg(C.EDGE, '5,3')),
+    edgeRow('Uplink',   lineSvg(C.STATE_HIGHLIGHT, '5,3')),
+    edgeRow('Routed',   lineSvg(C.ROUTER, '', false, true)),
+    section('States'),
+    stateRow('Warning',   C.STATE_WARNING),
+    stateRow('Down',      C.STATE_DOWN),
+    stateRow('Disabled',  C.STATE_DISABLED),
+    stateRow('Highlight', C.STATE_HIGHLIGHT),
+    stateRow('Selected',  C.SELECTED),
+    `<div style="height:6px;"></div>`,
+  ].join('');
+
+  // ── button ───────────────────────────────────────────────────────────────
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'toolbar-icon-btn';
+  btn.title = 'Legend';
+  btn.style.cssText = 'font-weight:700;font-size:13px;';
+  btn.textContent = '?';
+  el.append(btn);
+
+  let panel: HTMLElement | null = null;
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    if (panel) { panel.remove(); panel = null; return; }
+
+    const p = document.createElement('div');
+    p.className = 'ctx-menu';
+    p.style.cssText = 'position:fixed;min-width:190px;';
+    p.innerHTML = html;
+    panel = p;
+    document.body.append(p);
+
+    const rect = btn.getBoundingClientRect();
+    const left = Math.max(4, Math.min(rect.right - p.offsetWidth, window.innerWidth - p.offsetWidth - 4));
+    p.style.left = `${left}px`;
+    p.style.top  = `${rect.bottom + 6}px`;
+
+    const onKey  = (ev: KeyboardEvent) => { if (ev.key === 'Escape') cleanup(); };
+    const onDown = (ev: MouseEvent)    => { if (!p.contains(ev.target as Node) && ev.target !== btn) cleanup(); };
+    function cleanup() { p.remove(); panel = null; document.removeEventListener('keydown', onKey); document.removeEventListener('mousedown', onDown); }
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onDown);
+  });
 }
