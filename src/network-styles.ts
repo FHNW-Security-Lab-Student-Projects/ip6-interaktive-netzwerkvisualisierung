@@ -71,7 +71,7 @@ export const Colors = {
   STATE_DISABLED:  '#2e3d4c',  // near-black slate
 
   // Selection
-  SELECTED: '#d4a820',  // gold
+  SELECTED: '#60a5fa',  // light blue
 } as const;
 
 // Edge type class names
