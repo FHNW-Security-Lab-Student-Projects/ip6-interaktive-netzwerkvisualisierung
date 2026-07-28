@@ -78,9 +78,15 @@ export function setupLegend(): void {
       ${colHeader('Node Types')}
       ${nodeRow('Router',  C.ROUTER,  'router',         'polygon points="25,11 19,1 7,1 1,11 7,21 19,21"',          26, 22, 15, { x: 0, y: -1 })}
       ${nodeRow('Switch',  C.SWITCH,  'switch-layer-2', 'rect x="1" y="1" width="24" height="11" rx="2"',           26, 13)}
-      ${nodeRow('Host',    C.HOST,    'laptop',         'ellipse cx="11" cy="11" rx="10" ry="10"',                  22, 22)}
+      ${nodeRow('Host',    C.HOST,    'laptop',         'ellipse cx="11" cy="11" rx="10" ry="10"',                  22, 22, 11, { x: 0, y: -1 })}
       ${nodeRow('Custom',  C.CUSTOM,  'lightning',      'polygon points="11,1 21,11 11,21 1,11"',                   22, 22)}
-      ${nodeRow('Unknown', C.UNKNOWN, 'help',           'ellipse cx="11" cy="11" rx="10" ry="10"',                  22, 22)}
+      ${nodeRow('Unknown', C.UNKNOWN, 'help',           'ellipse cx="11" cy="11" rx="10" ry="10"',                  22, 22, 11, { x: 0, y: -1 })}
+    </div>
+    <div style="${colStyle}${divStyle}">
+      ${colHeader('Compounds')}
+      ${compoundRow('Node',   C.COMPOUND, 'ellipse cx="11" cy="11" rx="10" ry="10"',                  22, 22)}
+      ${compoundRow('Router', C.ROUTER,   'polygon points="25,11 19,1 7,1 1,11 7,21 19,21"',          26, 22)}
+      ${compoundRow('Switch', C.SWITCH,   'rect x="1" y="1" width="24" height="11" rx="2"',           26, 13)}
     </div>
     <div style="${colStyle}${divStyle}">
       ${colHeader('Edge Types')}
@@ -89,12 +95,6 @@ export function setupLegend(): void {
       ${edgeRow('Logical',  mkLine(C.EDGE, '5,3'))}
       ${edgeRow('Uplink',   mkLine(C.STATE_HIGHLIGHT, '5,3'))}
       ${edgeRow('Routed',   mkLine(C.ROUTER, '', 2, true))}
-    </div>
-    <div style="${colStyle}${divStyle}">
-      ${colHeader('Compounds')}
-      ${compoundRow('Node',   C.COMPOUND, 'ellipse cx="11" cy="11" rx="10" ry="10"',                  22, 22)}
-      ${compoundRow('Router', C.ROUTER,   'polygon points="25,11 19,1 7,1 1,11 7,21 19,21"',          26, 22)}
-      ${compoundRow('Switch', C.SWITCH,   'rect x="1" y="1" width="24" height="11" rx="2"',           26, 13)}
     </div>
     <div style="${colStyle}">
       ${colHeader('States')}
