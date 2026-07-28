@@ -3,7 +3,6 @@ import type { AnyTypedNode, TypedCytoscapeEdge, HierarchyLevel, NodeData } from 
 import type { LayoutProvider } from './layout-utils.ts';
 
 let activeLayout: cytoscape.Layouts | null = null;
-let activeOnStop: (() => void) | null = null;
 
 // Iteratively nudges sibling compound bounding boxes apart until no overlaps remain,
 // then animates from the pre-separation positions to the final ones.
@@ -68,6 +67,25 @@ function separateSiblingCompounds(cy: cytoscape.Core): void {
   });
 }
 
+// After expanding, bring the opened compound into focus: always center it,
+// and zoom out (never in) only enough to show the whole compound if it doesn't
+// already fit at the current zoom.
+function focusOnCompound(cy: cytoscape.Core, anchorId: string): void {
+  const anchor = cy.$id(anchorId);
+  if (!anchor.length) return;
+  const eles = anchor.union(anchor.descendants());
+  const bb = eles.boundingBox();
+  const ext = cy.extent(); // viewport in model coords
+  cy.stop(); // cancel any in-flight viewport pan (e.g. a prior selection) so we don't jump there first
+  if (bb.w <= ext.w && bb.h <= ext.h) {
+    // Already fits: keep zoom, just re-center.
+    cy.animate({ center: { eles }, duration: 400 });
+  } else {
+    // Too big for the current zoom: zoom out just enough to fit it, centered.
+    cy.animate({ fit: { eles, padding: 40 }, duration: 400 });
+  }
+}
+
 function capturePositions(cy: cytoscape.Core): Map<string, cytoscape.Position> {
   const positions = new Map<string, cytoscape.Position>();
   cy.nodes(':visible').forEach(n => {
@@ -81,13 +99,9 @@ function runExpandCollapseLayout(
   layout: LayoutProvider,
   snapshot: Map<string, cytoscape.Position>,
   anchorId: string,
+  focusOnExpand: boolean,
   onStop?: () => void,
 ): void {
-  // Register the new callback before stopping the old layout so the old layoutstop
-  // handler can detect it was superseded and skip its post-processing.
-  activeOnStop = onStop ?? null;
-  const myOnStop = activeOnStop;
-
   layout.register();
 
   // Bubble zone: all visible nodes inside the anchor's immediate parent compound.
@@ -120,7 +134,7 @@ function runExpandCollapseLayout(
     locked.push(nodeId);
   });
 
-  const options = { ...layout.expandCollapse(), randomize: false };
+  const options = { ...layout.expandCollapse(), randomize: false, fit: false };
   const layoutInstance = cy.layout(options);
 
   layoutInstance.on('layoutstop', () => {
@@ -130,15 +144,20 @@ function runExpandCollapseLayout(
       if (node.length) (node as cytoscape.NodeSingular).unlock();
     });
     // Only run post-processing if this layout wasn't cancelled by a newer one.
-    if (activeOnStop === myOnStop) {
+    if (activeLayout === layoutInstance) {
       separateSiblingCompounds(cy);
-      activeOnStop = null;
-      myOnStop?.();
+      onStop?.();
+      if (focusOnExpand) {
+        focusOnCompound(cy, anchorId);
+      }
     }
   });
 
-  activeLayout?.stop();
+  // Claim active before stopping the previous layout, so its re-emitted
+  // layoutstop sees it's been superseded and skips its post-processing.
+  const prev = activeLayout;
   activeLayout = layoutInstance;
+  prev?.stop();
   layoutInstance.run();
 }
 
@@ -355,7 +374,7 @@ export function setupExpandCollapse(
         closeMenu();
         const snapshot = capturePositions(cy);
         targets.forEach(t => doExpandAll(t));
-        runExpandCollapseLayout(cy, layout, snapshot, node.id());
+        runExpandCollapseLayout(cy, layout, snapshot, node.id(), true);
         options?.onExpand?.(node.id());
       });
 
@@ -365,7 +384,7 @@ export function setupExpandCollapse(
         closeMenu();
         const snapshot = capturePositions(cy);
         targets.forEach(t => doCollapseAll(t));
-        runExpandCollapseLayout(cy, layout, snapshot, node.id());
+        runExpandCollapseLayout(cy, layout, snapshot, node.id(), false);
       });
 
       menu.addEventListener('mousedown', e => e.stopPropagation());
@@ -451,7 +470,7 @@ export function setupExpandCollapse(
     if (node.hasClass('collapsed')) {
       const snapshot = capturePositions(cy);
       doExpand(node);
-      runExpandCollapseLayout(cy, layout, snapshot, node.id());
+      runExpandCollapseLayout(cy, layout, snapshot, node.id(), true);
       options?.onExpand?.(node.id());
       return;
     }
@@ -521,14 +540,13 @@ export function setupExpandCollapse(
       }
 
       const anchorId = chain.at(-1) ?? nodeId;
-      runExpandCollapseLayout(cy, layout, snapshot, anchorId, selectAndPan);
+      runExpandCollapseLayout(cy, layout, snapshot, anchorId, false, selectAndPan);
     },
 
     expandToLevel(level: string | 'all' | 'none'): void {
-      // Null sentinels BEFORE stopping so in-flight layoutstop handlers detect cancellation.
+      // Null the sentinel BEFORE stopping so in-flight layoutstop handlers detect cancellation.
       const prevLayout = activeLayout;
       activeLayout = null;
-      activeOnStop = null;
       prevLayout?.stop();
 
       if (levelIndex(level) <= levelIndex(currentLevel)) {
