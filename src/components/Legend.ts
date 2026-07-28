@@ -116,7 +116,7 @@ export function setupLegend(): void {
   btn.type = 'button';
   btn.className = 'toolbar-icon-btn';
   btn.title = 'Legend';
-  btn.style.cssText = 'font-weight:700;font-size:13px;';
+  btn.style.cssText = 'font-weight:700;font-size:13px;margin-left:0;';
   btn.textContent = '?';
   el.append(btn);
 
