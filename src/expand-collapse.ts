@@ -77,6 +77,7 @@ function focusOnCompound(cy: cytoscape.Core, anchorId: string): void {
   const eles = anchor.union(anchor.descendants());
   const bb = eles.boundingBox();
   const ext = cy.extent(); // viewport in model coords
+  cy.stop(); // cancel any in-flight viewport pan (e.g. a prior selection) so we don't jump there first
   if (bb.w <= ext.w && bb.h <= ext.h) {
     // Already fits: keep zoom, just re-center.
     cy.animate({ center: { eles }, duration: 400 });
