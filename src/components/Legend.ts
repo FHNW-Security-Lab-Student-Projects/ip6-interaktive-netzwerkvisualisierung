@@ -16,23 +16,28 @@ export function setupLegend(): void {
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${size}" height="${size}">${body.replace(/currentColor/g, color)}</svg>`;
   }
 
-  // svgShape: the full SVG element string, e.g. 'polygon points="..."'
   // w/h: swatch dimensions — each node type uses its own to match actual proportions.
-  function nodeRow(label: string, color: string, icon: string, svgShape: string, w: number, h: number): string {
+  // iconSize: optional override for the Carbon icon size inside the shape.
+  function nodeRow(label: string, color: string, icon: string, svgShape: string, w: number, h: number, iconSize = 11): string {
     return `<div style="display:flex;align-items:center;gap:7px;padding:3px 10px;">
       <span style="display:inline-flex;align-items:center;justify-content:center;width:${w}px;height:${h}px;flex-shrink:0;position:relative;">
         <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;"><${svgShape} fill="${color}"/></svg>
-        <span style="position:relative;z-index:1;">${carbonSvg(icon)}</span>
+        <span style="position:relative;z-index:1;">${carbonSvg(icon, '#fff', iconSize)}</span>
       </span>
       <span style="font-size:0.8rem;color:#222;">${label}</span>
     </div>`;
   }
 
-  function compoundRow(label: string, color: string): string {
-    const border = lighten(color, 0.45);
-    const fill   = lighten(color, 0.9);
+  // Same shape logic as nodeRow but with dashed stroke and lighter fill (collapsed compound style).
+  function compoundRow(label: string, color: string, svgShape: string, w: number, h: number): string {
+    const stroke = lighten(color, 0.35);
+    const fill   = lighten(color, 0.55);
     return `<div style="display:flex;align-items:center;gap:7px;padding:3px 10px;">
-      <span style="display:inline-block;width:32px;height:15px;border-radius:3px;border:2px dashed ${border};background:${fill};flex-shrink:0;"></span>
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:${w}px;height:${h}px;flex-shrink:0;">
+        <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+          <${svgShape} fill="${fill}" stroke="${stroke}" stroke-width="2" stroke-dasharray="3,2"/>
+        </svg>
+      </span>
       <span style="font-size:0.8rem;color:#222;">${label}</span>
     </div>`;
   }
@@ -70,7 +75,7 @@ export function setupLegend(): void {
   const html = `<div style="display:flex;align-items:flex-start;">
     <div style="${colStyle}${divStyle}">
       ${colHeader('Node Types')}
-      ${nodeRow('Router',  C.ROUTER,  'router',         'polygon points="25,11 19,1 7,1 1,11 7,21 19,21"',          26, 22)}
+      ${nodeRow('Router',  C.ROUTER,  'router',         'polygon points="25,11 19,1 7,1 1,11 7,21 19,21"',          26, 22, 15)}
       ${nodeRow('Switch',  C.SWITCH,  'switch-layer-2', 'rect x="1" y="1" width="24" height="11" rx="2"',           26, 13)}
       ${nodeRow('Host',    C.HOST,    'laptop',         'ellipse cx="11" cy="11" rx="10" ry="10"',                  22, 22)}
       ${nodeRow('Custom',  C.CUSTOM,  'lightning',      'polygon points="11,1 21,11 11,21 1,11"',                   22, 22)}
@@ -86,9 +91,9 @@ export function setupLegend(): void {
     </div>
     <div style="${colStyle}${divStyle}">
       ${colHeader('Compounds')}
-      ${compoundRow('Node',   C.COMPOUND)}
-      ${compoundRow('Router', C.ROUTER)}
-      ${compoundRow('Switch', C.SWITCH)}
+      ${compoundRow('Node',   C.COMPOUND, 'ellipse cx="11" cy="11" rx="10" ry="10"',                  22, 22)}
+      ${compoundRow('Router', C.ROUTER,   'polygon points="25,11 19,1 7,1 1,11 7,21 19,21"',          26, 22)}
+      ${compoundRow('Switch', C.SWITCH,   'rect x="1" y="1" width="24" height="11" rx="2"',           26, 13)}
     </div>
     <div style="${colStyle}">
       ${colHeader('States')}
@@ -124,9 +129,8 @@ export function setupLegend(): void {
     document.body.append(p);
 
     const rect = btn.getBoundingClientRect();
-    const left = Math.max(4, Math.min(rect.right - p.offsetWidth, window.innerWidth - p.offsetWidth - 4));
-    p.style.left = `${left}px`;
-    p.style.top  = `${rect.bottom + 6}px`;
+    p.style.right = `${Math.max(4, window.innerWidth - rect.right)}px`;
+    p.style.top   = `${rect.bottom + 6}px`;
 
     const onKey  = (ev: KeyboardEvent) => { if (ev.key === 'Escape') cleanup(); };
     const onDown = (ev: MouseEvent)    => { if (!p.contains(ev.target as Node) && ev.target !== btn) cleanup(); };
