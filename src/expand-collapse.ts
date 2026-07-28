@@ -200,6 +200,10 @@ export function setupExpandCollapse(
     return getDirectChildren(nodeId).length > 0;
   }
 
+  function setCollapsedCount(node: cytoscape.NodeSingular): void {
+    node.data('collapsedChildCount', getDirectChildren(node.id()).length);
+  }
+
   // Returns the deepest visible ancestor of nodeId, or null. Used to lift edges into collapsed compounds.
   function getRepresentative(nodeId: string): string | null {
     if (cy.$id(nodeId).length > 0) return nodeId;
@@ -270,7 +274,10 @@ export function setupExpandCollapse(
         const jitter = () => (Math.random() - 0.5) * 20;
         const pos = savedPositions.get(child.data.id) ?? { x: parentPos.x + jitter(), y: parentPos.y + jitter() };
         (cy.$id(child.data.id) as cytoscape.NodeSingular).position(pos);
-        if (isExpandable(child.data.id)) cy.$id(child.data.id).addClass('collapsed');
+        if (isExpandable(child.data.id)) {
+          cy.$id(child.data.id).addClass('collapsed');
+          setCollapsedCount(cy.$id(child.data.id) as cytoscape.NodeSingular);
+        }
       });
       node.removeClass('collapsed');
     });
@@ -300,6 +307,7 @@ export function setupExpandCollapse(
         cy.$id(desc.data.id).remove();
       });
       node.addClass('collapsed');
+      setCollapsedCount(node);
     });
     syncEdges();
   }
@@ -396,7 +404,11 @@ export function setupExpandCollapse(
   const rootNodes = getInitialNodes(allRootNodes, hierarchy);
   cy.add(rootNodes as cytoscape.ElementDefinition[]);
   rootNodes.forEach(n => {
-    if (isExpandable(n.data.id)) cy.$id(n.data.id).addClass('collapsed');
+    if (isExpandable(n.data.id)) {
+      const cyNode = cy.$id(n.data.id) as cytoscape.NodeSingular;
+      cyNode.addClass('collapsed');
+      setCollapsedCount(cyNode);
+    }
   });
   syncEdges();
 

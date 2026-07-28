@@ -130,6 +130,32 @@ function nodeTypeColor(ele: cytoscape.NodeSingular): string {
 // A device not seen within this window is treated as down.
 export const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000;
 
+// Generates a small SVG data URL showing a "+" icon and child count, centered on a collapsed compound.
+function collapsedBadgeUrl(count: number): string {
+  const text   = String(count);
+  const iconSz = 10;
+  const gap    = 2;
+  const charW  = 6.5;
+  const padX   = 1;
+  const padY   = 1;
+  const textW  = Math.ceil(text.length * charW);
+  const w = padX + iconSz + gap + textW + padX;
+  const h = iconSz + padY * 2;
+
+  let iconPart = '';
+  const iconData = getIconData(carbonIcons, 'add');
+  if (iconData) {
+    const { attributes, body } = iconToSVG(iconData, { height: 'auto' });
+    const vb = (attributes as Record<string, string>).viewBox ?? '0 0 32 32';
+    iconPart = `<svg x="${padX}" y="${padY}" width="${iconSz}" height="${iconSz}" viewBox="${vb}">${body.replace(/currentColor/g, 'rgba(255,255,255,0.9)')}</svg>`;
+  }
+
+  const textX = padX + iconSz + gap + textW / 2;
+  const textY = padY + iconSz * 0.82;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${iconPart}<text x="${textX}" y="${textY}" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="bold" fill="rgba(255,255,255,0.9)">${text}</text></svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 // Generates a data URL for the compound node label badge: colored rect + optional Carbon icon + text.
 // Handles multi-line labels (newline-separated) by stacking lines vertically, centered horizontally.
 function compoundBadgeUrl(label: string, iconName: string | null, bgColor: string, borderColor: string): string {
@@ -325,7 +351,11 @@ export function createNetworkStyles(): any[] {
       selector: 'node.collapsed',
       style: {
         'background-opacity': 1,
-        'background-image': 'none',
+        'background-image': (ele: cytoscape.NodeSingular) => collapsedBadgeUrl((ele.data('collapsedChildCount') as number | undefined) ?? 0),
+        'background-width': 'auto',
+        'background-height': '40%',
+        'background-position-x': '50%',
+        'background-position-y': '50%',
         'border-width': 2.5,
         'border-style': 'dashed',
         'border-color': (ele: cytoscape.NodeSingular) => lighten(nodeTypeColor(ele), 0.45),
