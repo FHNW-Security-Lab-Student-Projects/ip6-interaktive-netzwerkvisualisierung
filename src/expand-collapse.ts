@@ -3,7 +3,6 @@ import type { AnyTypedNode, TypedCytoscapeEdge, HierarchyLevel, NodeData } from 
 import type { LayoutProvider } from './layout-utils.ts';
 
 let activeLayout: cytoscape.Layouts | null = null;
-let activeOnStop: (() => void) | null = null;
 
 // Iteratively nudges sibling compound bounding boxes apart until no overlaps remain,
 // then animates from the pre-separation positions to the final ones.
@@ -103,11 +102,6 @@ function runExpandCollapseLayout(
   focusOnExpand: boolean,
   onStop?: () => void,
 ): void {
-  // Register the new callback before stopping the old layout so the old layoutstop
-  // handler can detect it was superseded and skip its post-processing.
-  activeOnStop = onStop ?? null;
-  const myOnStop = activeOnStop;
-
   layout.register();
 
   // Bubble zone: all visible nodes inside the anchor's immediate parent compound.
@@ -150,18 +144,20 @@ function runExpandCollapseLayout(
       if (node.length) (node as cytoscape.NodeSingular).unlock();
     });
     // Only run post-processing if this layout wasn't cancelled by a newer one.
-    if (activeOnStop === myOnStop) {
+    if (activeLayout === layoutInstance) {
       separateSiblingCompounds(cy);
-      activeOnStop = null;
-      myOnStop?.();
+      onStop?.();
       if (focusOnExpand) {
         focusOnCompound(cy, anchorId);
       }
     }
   });
 
-  activeLayout?.stop();
+  // Claim active before stopping the previous layout, so its re-emitted
+  // layoutstop sees it's been superseded and skips its post-processing.
+  const prev = activeLayout;
   activeLayout = layoutInstance;
+  prev?.stop();
   layoutInstance.run();
 }
 
@@ -548,10 +544,9 @@ export function setupExpandCollapse(
     },
 
     expandToLevel(level: string | 'all' | 'none'): void {
-      // Null sentinels BEFORE stopping so in-flight layoutstop handlers detect cancellation.
+      // Null the sentinel BEFORE stopping so in-flight layoutstop handlers detect cancellation.
       const prevLayout = activeLayout;
       activeLayout = null;
-      activeOnStop = null;
       prevLayout?.stop();
 
       if (levelIndex(level) <= levelIndex(currentLevel)) {
