@@ -352,7 +352,12 @@ export function createNetworkStyles(): any[] {
       style: {
         'background-opacity': 1,
         'background-image': (ele: cytoscape.NodeSingular) => collapsedBadgeUrl((ele.data('collapsedChildCount') as number | undefined) ?? 0),
-        'background-width': 'auto',
+        'background-width': (ele: cytoscape.NodeSingular) => {
+          const count = (ele.data('collapsedChildCount') as number | undefined) ?? 0;
+          const svgW = 2 + 8 + 1 + Math.ceil(String(count).length * 4.5); // padX*2 + iconSz + gap + textW
+          const svgH = 10; // iconSz(8) + padY*2(2)
+          return `${Math.round(ele.height() * 0.40 * svgW / svgH)}px`;
+        },
         'background-height': '40%',
         'background-position-x': '0%',
         'background-position-y': '50%',
