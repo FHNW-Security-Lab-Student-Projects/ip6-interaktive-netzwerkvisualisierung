@@ -1,3 +1,9 @@
+## [1.14.1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.14.0...v1.14.1) (2026-07-28)
+
+### Bug Fixes
+
+* prevent legend button from pushing zoom-fit button under search ([f94f553](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/f94f553cf9450f20b240229a60899d82078fc143))
+
 ## [1.14.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.13.0...v1.14.0) (2026-07-28)
 
 ### Features
