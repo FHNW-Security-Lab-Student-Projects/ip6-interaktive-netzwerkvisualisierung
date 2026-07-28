@@ -354,7 +354,7 @@ export function createNetworkStyles(): any[] {
         'background-image': (ele: cytoscape.NodeSingular) => collapsedBadgeUrl((ele.data('collapsedChildCount') as number | undefined) ?? 0),
         'background-width': 'auto',
         'background-height': '40%',
-        'background-position-x': '50%',
+        'background-position-x': '0%',
         'background-position-y': '50%',
         'border-width': 2.5,
         'border-style': 'dashed',
