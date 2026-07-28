@@ -1,3 +1,24 @@
+## [1.14.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.13.0...v1.14.0) (2026-07-28)
+
+### Features
+
+* redesign legend to horizontal 3-column layout with accurate node shapes and LAG edge ([43bad1b](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/43bad1ba92b0820612de223b4264dd8792a663ae))
+
+### Bug Fixes
+
+* adjust router icon offset to x:+1 y:-1 ([74c9eaa](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/74c9eaab6b43b4ea7bef1f7cef6b235515e8cfb8))
+* adjust router icon offset to x:0 y:-1 ([2363099](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/236309954b5fa67bd37fe31881e10f29d5c0fa0b))
+* align all legend swatches in fixed-width column so labels line up ([8bd4f2a](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/8bd4f2af359eb63cadd1d07759df88a24748234e))
+* compound legend colors match netmap and router icon centering ([2d5869c](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/2d5869cb19cf22d47be16f11538a588be67c59b2))
+* correct node swatch proportions and add Group/compound to legend ([fc9493c](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/fc9493cbf5a8a05df4cef1ac332c467beabfba4a))
+* flat-top router hexagon and add Compounds column to legend ([dd1e639](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/dd1e6393071f1750c9598ad4239203e246e91a5f))
+* legend compound shapes, opaque fill, larger router icon, right-anchor positioning ([17d2256](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/17d225687e1ef08e2dca3341253adb23a9fd1339))
+* move Compounds column next to Node Types, center Host/Unknown icons ([2a8560f](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/2a8560f3e7b9ea2329ddbf3f2dfd313cbbb57550))
+
+### Refactoring
+
+* extract Legend into its own component ([182f9fc](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/182f9fcde773387426f23f036c3276393765e869))
+
 ## [1.13.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.12.0...v1.13.0) (2026-07-28)
 
 ### Features
