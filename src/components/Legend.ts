@@ -18,24 +18,25 @@ export function setupLegend(): void {
 
   // w/h: swatch dimensions — each node type uses its own to match actual proportions.
   // iconSize: optional override for the Carbon icon size inside the shape.
-  function nodeRow(label: string, color: string, icon: string, svgShape: string, w: number, h: number, iconSize = 11): string {
+  // iconOffset: optional {x,y} shift (px) for icons that visually appear off-center.
+  function nodeRow(label: string, color: string, icon: string, svgShape: string, w: number, h: number, iconSize = 11, iconOffset?: { x: number; y: number }): string {
+    const translate = iconOffset ? `transform:translate(${iconOffset.x}px,${iconOffset.y}px);` : '';
     return `<div style="display:flex;align-items:center;gap:7px;padding:3px 10px;">
-      <span style="display:inline-flex;align-items:center;justify-content:center;width:${w}px;height:${h}px;flex-shrink:0;position:relative;">
-        <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;"><${svgShape} fill="${color}"/></svg>
-        <span style="position:relative;z-index:1;">${carbonSvg(icon, '#fff', iconSize)}</span>
+      <span style="position:relative;display:inline-block;width:${w}px;height:${h}px;flex-shrink:0;">
+        <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" style="display:block;"><${svgShape} fill="${color}"/></svg>
+        <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;${translate}">${carbonSvg(icon, '#fff', iconSize)}</span>
       </span>
       <span style="font-size:0.8rem;color:#222;">${label}</span>
     </div>`;
   }
 
-  // Same shape logic as nodeRow but with dashed stroke and lighter fill (collapsed compound style).
+  // Matches collapsed compound style: full solid fill + lighter dashed border (mirrors Cytoscape).
   function compoundRow(label: string, color: string, svgShape: string, w: number, h: number): string {
-    const stroke = lighten(color, 0.35);
-    const fill   = lighten(color, 0.55);
+    const stroke = lighten(color, 0.45);
     return `<div style="display:flex;align-items:center;gap:7px;padding:3px 10px;">
-      <span style="display:inline-flex;align-items:center;justify-content:center;width:${w}px;height:${h}px;flex-shrink:0;">
-        <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-          <${svgShape} fill="${fill}" stroke="${stroke}" stroke-width="2" stroke-dasharray="3,2"/>
+      <span style="display:inline-block;width:${w}px;height:${h}px;flex-shrink:0;">
+        <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+          <${svgShape} fill="${color}" stroke="${stroke}" stroke-width="2" stroke-dasharray="3,2"/>
         </svg>
       </span>
       <span style="font-size:0.8rem;color:#222;">${label}</span>
@@ -75,7 +76,7 @@ export function setupLegend(): void {
   const html = `<div style="display:flex;align-items:flex-start;">
     <div style="${colStyle}${divStyle}">
       ${colHeader('Node Types')}
-      ${nodeRow('Router',  C.ROUTER,  'router',         'polygon points="25,11 19,1 7,1 1,11 7,21 19,21"',          26, 22, 15)}
+      ${nodeRow('Router',  C.ROUTER,  'router',         'polygon points="25,11 19,1 7,1 1,11 7,21 19,21"',          26, 22, 15, { x: -1, y: -1 })}
       ${nodeRow('Switch',  C.SWITCH,  'switch-layer-2', 'rect x="1" y="1" width="24" height="11" rx="2"',           26, 13)}
       ${nodeRow('Host',    C.HOST,    'laptop',         'ellipse cx="11" cy="11" rx="10" ry="10"',                  22, 22)}
       ${nodeRow('Custom',  C.CUSTOM,  'lightning',      'polygon points="11,1 21,11 11,21 1,11"',                   22, 22)}
