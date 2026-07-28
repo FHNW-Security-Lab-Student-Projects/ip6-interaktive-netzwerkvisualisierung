@@ -135,7 +135,7 @@ function collapsedBadgeUrl(count: number): string {
   const text   = String(count);
   const iconSz = 8;
   const gap    = 1;
-  const charW  = 5.5;
+  const charW  = 4.5;
   const padX   = 1;
   const padY   = 1;
   const textW  = Math.ceil(text.length * charW);
@@ -152,7 +152,7 @@ function collapsedBadgeUrl(count: number): string {
 
   const textX = padX + iconSz + gap + textW / 2;
   const textY = padY + iconSz * 0.82;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${iconPart}<text x="${textX}" y="${textY}" text-anchor="middle" font-family="sans-serif" font-size="8" font-weight="bold" fill="rgba(255,255,255,0.9)">${text}</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${iconPart}<text x="${textX}" y="${textY}" text-anchor="middle" font-family="sans-serif" font-size="7" font-weight="bold" fill="rgba(255,255,255,0.9)">${text}</text></svg>`;
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
