@@ -16,16 +16,16 @@ type Row = {
 };
 
 const rows: Row[] = [
-  { name: 'physical', desc: 'Default connection', left: 'router', right: 'switch' },
-  { name: 'logical', desc: 'VLAN / VPN / GRE', left: 'router', right: 'switch', classes: 'logical' },
-  { name: 'lag', desc: 'Link Aggregation', left: 'router', right: 'switch', classes: 'lag' },
-  { name: 'uplink', desc: 'Redundant uplink', left: 'router', right: 'router', classes: 'uplink' },
-  { name: 'routed', desc: 'L3 / BGP', left: 'router', right: 'router', classes: 'routed' },
-  { name: 'down', desc: 'Port down', left: 'router', right: 'switch', classes: 'down' },
-  { name: 'disabled', desc: 'STP blocked', left: 'router', right: 'switch', classes: 'disabled' },
-  { name: 'warning', desc: 'Errors / high load', left: 'router', right: 'switch', classes: 'warning' },
-  { name: 'highlight', desc: 'Search / path', left: 'router', right: 'switch', classes: 'highlight' },
-  { name: 'lag + warning', desc: 'LAG with warning', left: 'router', right: 'switch', classes: 'lag warning' },
+  { name: 'R1', desc: 'Default Connection', left: 'router', right: 'switch' },
+  { name: 'R1', desc: 'VLAN / VPN / GRE', left: 'router', right: 'switch', classes: 'logical' },
+  { name: 'R1', desc: 'Link Aggregation', left: 'router', right: 'switch', classes: 'lag' },
+  { name: 'R1', desc: 'Redundant Uplink', left: 'router', right: 'router', classes: 'uplink' },
+  { name: 'R1', desc: 'L3 / Routed', left: 'router', right: 'router', classes: 'routed' },
+  { name: 'R1', desc: 'Port Down', left: 'router', right: 'switch', classes: 'down' },
+  { name: 'R1', desc: 'STP Blocked', left: 'router', right: 'switch', classes: 'disabled' },
+  { name: 'R1', desc: 'Errors / Warning', left: 'router', right: 'switch', classes: 'warning' },
+  { name: 'R1', desc: 'Selected Edge', left: 'router', right: 'switch', classes: 'highlight' },
+  { name: 'R1', desc: 'LAG with Warning', left: 'router', right: 'switch', classes: 'lag warning' },
 ];
 
 const X_LEFT = 200;
