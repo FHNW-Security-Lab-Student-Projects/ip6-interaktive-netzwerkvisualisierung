@@ -1,3 +1,12 @@
+## [1.14.2](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.14.1...v1.14.2) (2026-07-28)
+
+### Refactoring
+
+* cancel in-flight viewport pan when focusing on compound ([de819f2](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/de819f20584d176aa4fa95e42207eaf726e50cc1))
+* change node expand zoom behavior ([ed5d9c1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/ed5d9c1c89578c55fc669bcee2c4684e7ef97750))
+* refactor node zoom ([a5bf95b](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/a5bf95bfb8ff1e89a46e0854600042390b437165))
+* streamline layout stop handling in expand/collapse logic ([0abb0b8](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/0abb0b81baff0361ed2f6dbfbaca83ca76496337))
+
 ## [1.14.1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.14.0...v1.14.1) (2026-07-28)
 
 ### Bug Fixes
