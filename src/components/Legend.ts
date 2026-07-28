@@ -17,12 +17,22 @@ export function setupLegend(): void {
   }
 
   // svgShape: the full SVG element string, e.g. 'polygon points="..."'
-  function nodeRow(label: string, color: string, icon: string, svgShape: string): string {
+  // w/h: swatch dimensions — each node type uses its own to match actual proportions.
+  function nodeRow(label: string, color: string, icon: string, svgShape: string, w: number, h: number): string {
     return `<div style="display:flex;align-items:center;gap:7px;padding:3px 10px;">
-      <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:22px;flex-shrink:0;position:relative;">
-        <svg width="26" height="22" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;"><${svgShape} fill="${color}"/></svg>
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:${w}px;height:${h}px;flex-shrink:0;position:relative;">
+        <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;"><${svgShape} fill="${color}"/></svg>
         <span style="position:relative;z-index:1;">${carbonSvg(icon)}</span>
       </span>
+      <span style="font-size:0.8rem;color:#222;">${label}</span>
+    </div>`;
+  }
+
+  function compoundRow(label: string, color: string): string {
+    const border = lighten(color, 0.45);
+    const fill   = lighten(color, 0.9);
+    return `<div style="display:flex;align-items:center;gap:7px;padding:3px 10px;">
+      <span style="display:inline-block;width:32px;height:15px;border-radius:3px;border:2px dashed ${border};background:${fill};flex-shrink:0;"></span>
       <span style="font-size:0.8rem;color:#222;">${label}</span>
     </div>`;
   }
@@ -60,11 +70,12 @@ export function setupLegend(): void {
   const html = `<div style="display:flex;align-items:flex-start;">
     <div style="${colStyle}${divStyle}">
       ${colHeader('Node Types')}
-      ${nodeRow('Router',  C.ROUTER,  'router',         'polygon points="13,1 25,7 25,15 13,21 1,15 1,7"')}
-      ${nodeRow('Switch',  C.SWITCH,  'switch-layer-2', 'rect x="1" y="5" width="24" height="12" rx="2"')}
-      ${nodeRow('Host',    C.HOST,    'laptop',         'ellipse cx="13" cy="11" rx="12" ry="11"')}
-      ${nodeRow('Custom',  C.CUSTOM,  'lightning',      'polygon points="13,1 25,11 13,21 1,11"')}
-      ${nodeRow('Unknown', C.UNKNOWN, 'help',           'ellipse cx="13" cy="11" rx="12" ry="11"')}
+      ${nodeRow('Router',  C.ROUTER,  'router',         'polygon points="13,1 24,6 24,16 13,21 2,16 2,6"',         26, 22)}
+      ${nodeRow('Switch',  C.SWITCH,  'switch-layer-2', 'rect x="1" y="1" width="24" height="11" rx="2"',           26, 13)}
+      ${nodeRow('Host',    C.HOST,    'laptop',         'ellipse cx="11" cy="11" rx="10" ry="10"',                  22, 22)}
+      ${nodeRow('Custom',  C.CUSTOM,  'lightning',      'polygon points="11,1 21,11 11,21 1,11"',                   22, 22)}
+      ${nodeRow('Unknown', C.UNKNOWN, 'help',           'ellipse cx="11" cy="11" rx="10" ry="10"',                  22, 22)}
+      ${compoundRow('Group', C.COMPOUND)}
     </div>
     <div style="${colStyle}${divStyle}">
       ${colHeader('Edge Types')}
