@@ -1,3 +1,9 @@
+## [1.12.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.11.0...v1.12.0) (2026-07-28)
+
+### Features
+
+* add new edge visualizations ([62cfd18](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/62cfd18b3ef0ac7acf69bbd2ece043c1f668c14d))
+
 ## [1.11.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.10.0...v1.11.0) (2026-07-27)
 
 ### Features
