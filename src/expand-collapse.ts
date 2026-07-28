@@ -68,18 +68,6 @@ function separateSiblingCompounds(cy: cytoscape.Core): void {
   });
 }
 
-// True if the just-expanded compound extends beyond the current viewport.
-// Checks the anchor's own bounding box, not the whole graph: expanding any
-// compound grows the total graph past the edge, but we only want to zoom out
-// when the expanded compound itself doesn't fit at the current zoom.
-function compoundOverflowsViewport(cy: cytoscape.Core, anchorId: string): boolean {
-  const anchor = cy.$id(anchorId);
-  if (!anchor.length) return false;
-  const bb = anchor.boundingBox({ includeLabels: true });
-  const ext = cy.extent();
-  return bb.x1 < ext.x1 || bb.y1 < ext.y1 || bb.x2 > ext.x2 || bb.y2 > ext.y2;
-}
-
 function capturePositions(cy: cytoscape.Core): Map<string, cytoscape.Position> {
   const positions = new Map<string, cytoscape.Position>();
   cy.nodes(':visible').forEach(n => {
@@ -93,7 +81,6 @@ function runExpandCollapseLayout(
   layout: LayoutProvider,
   snapshot: Map<string, cytoscape.Position>,
   anchorId: string,
-  fitOnOverflow: boolean,
   onStop?: () => void,
 ): void {
   // Register the new callback before stopping the old layout so the old layoutstop
@@ -147,9 +134,6 @@ function runExpandCollapseLayout(
       separateSiblingCompounds(cy);
       activeOnStop = null;
       myOnStop?.();
-      if (fitOnOverflow && compoundOverflowsViewport(cy, anchorId)) {
-        cy.animate({ fit: { eles: cy.elements(), padding: 40 }, duration: 400 });
-      }
     }
   });
 
@@ -371,7 +355,7 @@ export function setupExpandCollapse(
         closeMenu();
         const snapshot = capturePositions(cy);
         targets.forEach(t => doExpandAll(t));
-        runExpandCollapseLayout(cy, layout, snapshot, node.id(), true);
+        runExpandCollapseLayout(cy, layout, snapshot, node.id());
         options?.onExpand?.(node.id());
       });
 
@@ -381,7 +365,7 @@ export function setupExpandCollapse(
         closeMenu();
         const snapshot = capturePositions(cy);
         targets.forEach(t => doCollapseAll(t));
-        runExpandCollapseLayout(cy, layout, snapshot, node.id(), false);
+        runExpandCollapseLayout(cy, layout, snapshot, node.id());
       });
 
       menu.addEventListener('mousedown', e => e.stopPropagation());
@@ -467,7 +451,7 @@ export function setupExpandCollapse(
     if (node.hasClass('collapsed')) {
       const snapshot = capturePositions(cy);
       doExpand(node);
-      runExpandCollapseLayout(cy, layout, snapshot, node.id(), true);
+      runExpandCollapseLayout(cy, layout, snapshot, node.id());
       options?.onExpand?.(node.id());
       return;
     }
@@ -537,7 +521,7 @@ export function setupExpandCollapse(
       }
 
       const anchorId = chain.at(-1) ?? nodeId;
-      runExpandCollapseLayout(cy, layout, snapshot, anchorId, false, selectAndPan);
+      runExpandCollapseLayout(cy, layout, snapshot, anchorId, selectAndPan);
     },
 
     expandToLevel(level: string | 'all' | 'none'): void {
