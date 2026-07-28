@@ -1,3 +1,13 @@
+## [1.13.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.12.0...v1.13.0) (2026-07-28)
+
+### Features
+
+* add all layout demos ([3d5f02e](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/3d5f02e5177a7fd8e1310fc0090b75ed23fc8a51))
+
+### Refactoring
+
+* improve edge demos ([610a0a0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/610a0a00e7a0fa6129c95ea71966f0c44090bbb5))
+
 ## [1.12.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.11.0...v1.12.0) (2026-07-28)
 
 ### Features
