@@ -76,7 +76,7 @@ export function setupLegend(): void {
   const html = `<div style="display:flex;align-items:flex-start;">
     <div style="${colStyle}${divStyle}">
       ${colHeader('Node Types')}
-      ${nodeRow('Router',  C.ROUTER,  'router',         'polygon points="25,11 19,1 7,1 1,11 7,21 19,21"',          26, 22, 15, { x: -1, y: -1 })}
+      ${nodeRow('Router',  C.ROUTER,  'router',         'polygon points="25,11 19,1 7,1 1,11 7,21 19,21"',          26, 22, 15, { x: 1, y: -1 })}
       ${nodeRow('Switch',  C.SWITCH,  'switch-layer-2', 'rect x="1" y="1" width="24" height="11" rx="2"',           26, 13)}
       ${nodeRow('Host',    C.HOST,    'laptop',         'ellipse cx="11" cy="11" rx="10" ry="10"',                  22, 22)}
       ${nodeRow('Custom',  C.CUSTOM,  'lightning',      'polygon points="11,1 21,11 11,21 1,11"',                   22, 22)}
