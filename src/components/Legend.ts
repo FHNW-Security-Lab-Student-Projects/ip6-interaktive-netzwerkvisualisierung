@@ -16,15 +16,19 @@ export function setupLegend(): void {
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${size}" height="${size}">${body.replace(/currentColor/g, color)}</svg>`;
   }
 
-  // w/h: swatch dimensions — each node type uses its own to match actual proportions.
-  // iconSize: optional override for the Carbon icon size inside the shape.
-  // iconOffset: optional {x,y} shift (px) for icons that visually appear off-center.
+  // Fixed swatch column width so all symbols align regardless of individual shape dimensions.
+  const SWATCH_W = 26;
+
+  // w/h: actual shape dimensions; the shape is centered in the fixed SWATCH_W container.
+  // iconOffset: optional {x,y} shift (px) for icons that visually appear off-center within their shape.
   function nodeRow(label: string, color: string, icon: string, svgShape: string, w: number, h: number, iconSize = 11, iconOffset?: { x: number; y: number }): string {
     const translate = iconOffset ? `transform:translate(${iconOffset.x}px,${iconOffset.y}px);` : '';
     return `<div style="display:flex;align-items:center;gap:7px;padding:3px 10px;">
-      <span style="position:relative;display:inline-block;width:${w}px;height:${h}px;flex-shrink:0;">
-        <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" style="display:block;"><${svgShape} fill="${color}"/></svg>
-        <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;${translate}">${carbonSvg(icon, '#fff', iconSize)}</span>
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:${SWATCH_W}px;flex-shrink:0;">
+        <span style="position:relative;display:inline-block;width:${w}px;height:${h}px;">
+          <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" style="display:block;"><${svgShape} fill="${color}"/></svg>
+          <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;${translate}">${carbonSvg(icon, '#fff', iconSize)}</span>
+        </span>
       </span>
       <span style="font-size:0.8rem;color:#222;">${label}</span>
     </div>`;
@@ -34,7 +38,7 @@ export function setupLegend(): void {
   function compoundRow(label: string, color: string, svgShape: string, w: number, h: number): string {
     const stroke = lighten(color, 0.45);
     return `<div style="display:flex;align-items:center;gap:7px;padding:3px 10px;">
-      <span style="display:inline-block;width:${w}px;height:${h}px;flex-shrink:0;">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:${SWATCH_W}px;flex-shrink:0;">
         <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" style="display:block;">
           <${svgShape} fill="${color}" stroke="${stroke}" stroke-width="2" stroke-dasharray="3,2"/>
         </svg>
