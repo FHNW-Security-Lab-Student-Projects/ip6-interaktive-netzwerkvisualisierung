@@ -374,7 +374,10 @@ export function createNetworkStyles(): any[] {
     },
 
     // Badge on collapsed compounds — specificity (0,2,0) beats the type-icon rules at same specificity
-    // because this rule comes later in the array. Uses contain so the pill scales to 60% of the node.
+    // because this rule comes later in the array.
+    // background-fit:'none' + explicit px-computed percentages so the pill keeps its natural aspect
+    // ratio regardless of node shape. background-height is fixed at 45% of node height; background-width
+    // is derived from the SVG's aspect ratio so it never stretches.
     {
       selector: 'node.collapsed[node_type]',
       style: {
@@ -382,9 +385,22 @@ export function createNetworkStyles(): any[] {
           const count = (ele.data('collapsedChildCount') as number | undefined) ?? 0;
           return collapsedBadgeUrl(count, nodeTypeColor(ele));
         },
-        'background-width': '60%',
-        'background-height': '60%',
-        'background-fit': 'contain',
+        'background-width': (ele: cytoscape.NodeSingular) => {
+          const count = (ele.data('collapsedChildCount') as number | undefined) ?? 0;
+          const nt = ele.data('node_type') as string;
+          const dt = ele.data('device_type') as string;
+          // Known model dimensions from the type-style rules
+          const nodeH = (nt === 'device' && dt === 'router') ? 44 : (nt === 'device' && dt === 'switch') ? 28 : 40;
+          const nodeW = (nt === 'device' && dt === 'router') ? 50 : (nt === 'device' && dt === 'switch') ? 54 : 40;
+          // SVG intrinsic dimensions (must match collapsedBadgeUrl: padX=5, padY=2, fontSize=9, charW=5.5)
+          const svgW = 10 + Math.ceil(`+${count}`.length * 5.5);
+          const svgH = 13;
+          // Target display height = 45% of node height; derive width to preserve aspect ratio
+          const displayW = (nodeH * 0.45) * svgW / svgH;
+          return `${Math.round(displayW / nodeW * 100)}%`;
+        },
+        'background-height': '45%',
+        'background-fit': 'none',
         'background-position-x': '50%',
         'background-position-y': '50%',
       },
