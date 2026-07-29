@@ -130,29 +130,17 @@ function nodeTypeColor(ele: cytoscape.NodeSingular): string {
 // A device not seen within this window is treated as down.
 export const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000;
 
-// Generates a small SVG data URL showing a "+" icon and child count, centered on a collapsed compound.
-function collapsedBadgeUrl(count: number): string {
-  const text   = String(count);
-  const iconSz = 8;
-  const gap    = 1;
-  const charW  = 4.5;
-  const padX   = 1;
-  const padY   = 1;
-  const textW  = Math.ceil(text.length * charW);
-  const w = padX + iconSz + gap + textW + padX;
-  const h = iconSz + padY * 2;
-
-  let iconPart = '';
-  const iconData = getIconData(carbonIcons, 'add');
-  if (iconData) {
-    const { attributes, body } = iconToSVG(iconData, { height: 'auto' });
-    const vb = (attributes as Record<string, string>).viewBox ?? '0 0 32 32';
-    iconPart = `<svg x="${padX}" y="${padY}" width="${iconSz}" height="${iconSz}" viewBox="${vb}">${body.replace(/currentColor/g, 'rgba(255,255,255,0.9)')}</svg>`;
-  }
-
-  const textX = padX + iconSz + gap + textW / 2;
-  const textY = padY + iconSz * 0.82;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${iconPart}<text x="${textX}" y="${textY}" text-anchor="middle" font-family="sans-serif" font-size="7" font-weight="bold" fill="rgba(255,255,255,0.9)">${text}</text></svg>`;
+function collapsedBadgeUrl(count: number, color: string): string {
+  const text = `+${count}`;
+  const fontSize = 9;
+  const padX = 5;
+  const padY = 2;
+  const charW = 5.5;
+  const w = padX * 2 + Math.ceil(text.length * charW);
+  const h = fontSize + padY * 2;
+  const rx = h / 2;
+  const fill = lighten(color, 0.3);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect rx="${rx}" ry="${rx}" width="${w}" height="${h}" fill="${fill}"/><text x="${w / 2}" y="${padY + Math.round(fontSize * 0.82)}" text-anchor="middle" font-family="sans-serif" font-size="${fontSize}" font-weight="bold" fill="#fff">${text}</text></svg>`;
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
@@ -351,16 +339,7 @@ export function createNetworkStyles(): any[] {
       selector: 'node.collapsed',
       style: {
         'background-opacity': 1,
-        'background-image': (ele: cytoscape.NodeSingular) => collapsedBadgeUrl((ele.data('collapsedChildCount') as number | undefined) ?? 0),
-        'background-width': (ele: cytoscape.NodeSingular) => {
-          const count = (ele.data('collapsedChildCount') as number | undefined) ?? 0;
-          const svgW = 2 + 8 + 1 + Math.ceil(String(count).length * 4.5); // padX*2 + iconSz + gap + textW
-          const svgH = 10; // iconSz(8) + padY*2(2)
-          return `${Math.round(ele.height() * 0.40 * svgW / svgH)}px`;
-        },
-        'background-height': '40%',
-        'background-position-x': '0%',
-        'background-position-y': '50%',
+        'background-image': 'none',
         'border-width': 2.5,
         'border-style': 'dashed',
         'border-color': (ele: cytoscape.NodeSingular) => lighten(nodeTypeColor(ele), 0.45),
