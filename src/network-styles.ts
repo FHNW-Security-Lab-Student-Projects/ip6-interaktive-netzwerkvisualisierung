@@ -395,11 +395,16 @@ export function createNetworkStyles(): any[] {
           // SVG intrinsic dimensions (must match collapsedBadgeUrl: padX=5, padY=2, fontSize=9, charW=5.5)
           const svgW = 10 + Math.ceil(`+${count}`.length * 5.5);
           const svgH = 13;
-          // Target display height = 45% of node height; derive width to preserve aspect ratio
-          const displayW = (nodeH * 0.45) * svgW / svgH;
+          // Switch is very short (28px) so needs a larger fraction; others use 45%
+          const hFrac = (nt === 'device' && dt === 'switch') ? 0.62 : 0.45;
+          const displayW = (nodeH * hFrac) * svgW / svgH;
           return `${Math.round(displayW / nodeW * 100)}%`;
         },
-        'background-height': '45%',
+        'background-height': (ele: cytoscape.NodeSingular) => {
+          const nt = ele.data('node_type') as string;
+          const dt = ele.data('device_type') as string;
+          return (nt === 'device' && dt === 'switch') ? '62%' : '45%';
+        },
         'background-fit': 'none',
         'background-position-x': '50%',
         'background-position-y': '50%',
