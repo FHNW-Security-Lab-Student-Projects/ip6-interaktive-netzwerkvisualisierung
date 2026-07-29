@@ -373,6 +373,23 @@ export function createNetworkStyles(): any[] {
       },
     },
 
+    // Badge on collapsed compounds — specificity (0,2,0) beats the type-icon rules at same specificity
+    // because this rule comes later in the array. Uses contain so the pill scales to 60% of the node.
+    {
+      selector: 'node.collapsed[node_type]',
+      style: {
+        'background-image': (ele: cytoscape.NodeSingular) => {
+          const count = (ele.data('collapsedChildCount') as number | undefined) ?? 0;
+          return collapsedBadgeUrl(count, nodeTypeColor(ele));
+        },
+        'background-width': '60%',
+        'background-height': '60%',
+        'background-fit': 'contain',
+        'background-position-x': '50%',
+        'background-position-y': '50%',
+      },
+    },
+
     // Node state overrides, ascending priority: disabled < down < warning < highlight
     {
       selector: 'node.disabled',
