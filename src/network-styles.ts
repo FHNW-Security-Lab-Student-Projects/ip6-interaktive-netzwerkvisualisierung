@@ -396,14 +396,14 @@ export function createNetworkStyles(): any[] {
           const svgW = 10 + Math.ceil(`+${count}`.length * 5.5);
           const svgH = 13;
           // Switch is very short (28px) so needs a larger fraction; others use 45%
-          const hFrac = (nt === 'device' && dt === 'switch') ? 0.62 : 0.45;
+          const hFrac = (nt === 'device' && dt === 'switch') ? 0.70 : 0.45;
           const displayW = (nodeH * hFrac) * svgW / svgH;
           return `${Math.round(displayW / nodeW * 100)}%`;
         },
         'background-height': (ele: cytoscape.NodeSingular) => {
           const nt = ele.data('node_type') as string;
           const dt = ele.data('device_type') as string;
-          return (nt === 'device' && dt === 'switch') ? '62%' : '45%';
+          return (nt === 'device' && dt === 'switch') ? '70%' : '45%';
         },
         'background-fit': 'none',
         'background-position-x': '50%',
