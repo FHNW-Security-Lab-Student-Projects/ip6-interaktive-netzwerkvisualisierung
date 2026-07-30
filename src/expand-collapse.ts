@@ -183,6 +183,7 @@ export interface ExpandCollapseOptions {
   onNodeClick?: (nodeId: string, isCompound: boolean) => void;
   onExpand?: (nodeId: string) => void;
   onCollapse?: (nodeId: string) => void;
+  onCompare?: (nodeId: string, nodeType: string) => void;
 }
 
 export interface ExpandCollapseController {
@@ -351,44 +352,65 @@ export function setupExpandCollapse(
       closeMenu();
 
       const node = event.target as cytoscape.NodeSingular;
-      if (!node.isParent() && !node.hasClass('collapsed')) return;
+      const isCompound = node.isParent() || node.hasClass('collapsed');
+      const nodeType = (node.data('node_type') as string | undefined) ?? 'device';
 
       const container = cy.container();
       if (!container) return;
 
       const rp = event.renderedPosition as { x: number; y: number };
 
-      // Use all selected compound nodes; fall back to just the right-clicked node.
-      const selectedCompounds = cy.nodes(':selected').filter(
-        n => (n as cytoscape.NodeSingular).isParent() || (n as cytoscape.NodeSingular).hasClass('collapsed')
-      ).toArray() as cytoscape.NodeSingular[];
-      const targets = selectedCompounds.length > 0 ? selectedCompounds : [node];
-
       const menu = document.createElement('div');
       menu.className = 'ctx-menu';
       activeMenu = menu;
 
-      const expandBtn = document.createElement('button');
-      expandBtn.textContent = 'Expand all';
-      expandBtn.addEventListener('click', () => {
-        closeMenu();
-        const snapshot = capturePositions(cy);
-        targets.forEach(t => doExpandAll(t));
-        runExpandCollapseLayout(cy, layout, snapshot, node.id(), true);
-        options?.onExpand?.(node.id());
-      });
+      if (isCompound) {
+        // Use all selected compound nodes; fall back to just the right-clicked node.
+        const selectedCompounds = cy.nodes(':selected').filter(
+          n => (n as cytoscape.NodeSingular).isParent() || (n as cytoscape.NodeSingular).hasClass('collapsed')
+        ).toArray() as cytoscape.NodeSingular[];
+        const targets = selectedCompounds.length > 0 ? selectedCompounds : [node];
 
-      const collapseBtn = document.createElement('button');
-      collapseBtn.textContent = 'Collapse all';
-      collapseBtn.addEventListener('click', () => {
-        closeMenu();
-        const snapshot = capturePositions(cy);
-        targets.forEach(t => doCollapseAll(t));
-        runExpandCollapseLayout(cy, layout, snapshot, node.id(), false);
-      });
+        const expandBtn = document.createElement('button');
+        expandBtn.textContent = 'Expand all';
+        expandBtn.addEventListener('click', () => {
+          closeMenu();
+          const snapshot = capturePositions(cy);
+          targets.forEach(t => doExpandAll(t));
+          runExpandCollapseLayout(cy, layout, snapshot, node.id(), true);
+          options?.onExpand?.(node.id());
+        });
+
+        const collapseBtn = document.createElement('button');
+        collapseBtn.textContent = 'Collapse all';
+        collapseBtn.addEventListener('click', () => {
+          closeMenu();
+          const snapshot = capturePositions(cy);
+          targets.forEach(t => doCollapseAll(t));
+          runExpandCollapseLayout(cy, layout, snapshot, node.id(), false);
+        });
+
+        menu.append(expandBtn, collapseBtn);
+      }
+
+      if (options?.onCompare && nodeType !== 'group') {
+        if (isCompound) {
+          const sep = document.createElement('div');
+          sep.style.cssText = 'height:1px;background:#eee;margin:2px 0;';
+          menu.append(sep);
+        }
+        const compareBtn = document.createElement('button');
+        compareBtn.textContent = 'Add to comparison';
+        compareBtn.addEventListener('click', () => {
+          closeMenu();
+          options.onCompare!(node.id(), nodeType);
+        });
+        menu.append(compareBtn);
+      }
+
+      if (!menu.children.length) return;
 
       menu.addEventListener('mousedown', e => e.stopPropagation());
-      menu.append(expandBtn, collapseBtn);
 
       container.style.position = 'relative';
       container.append(menu);

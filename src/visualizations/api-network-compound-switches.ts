@@ -8,7 +8,7 @@ import type { AnyTypedNode } from '../node-factory.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
 import { loadBasegraph } from '../graph-loader.ts';
 import { groupByUpstreamNode } from '../graph-transforms.ts';
-import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend } from '../components/index.ts';
+import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend, setupComparePanel } from '../components/index.ts';
 
 export const title = 'API Network: Compound Graph - Switches Expanded';
 export const description =
@@ -58,8 +58,9 @@ export async function mount(container: HTMLElement): Promise<void> {
   setupZoom(cy);
 
   cy.style().update();
+  const compare = setupComparePanel({ networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
   const panelOpts = setupDetailPanel(cy, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
-  const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'switch', panelOpts);
+  const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'switch', { ...panelOpts, onCompare: compare.add });
   panelOpts.setFocusNode(id => ctrl.focusNode(id));
   panelOpts.setChildCountResolver(id => ctrl.getDirectChildCount(id));
   panelOpts.setChildrenResolver(id => ctrl.getDirectChildren(id));

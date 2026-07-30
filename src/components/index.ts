@@ -5,3 +5,5 @@ export { setupToolbar, setupSearch, setupZoomFitButton } from './Toolbar.ts';
 export { setupLegend } from './Legend.ts';
 export { setupStpEnrichment } from './StpEnrichment.ts';
 export type { StpEnrichmentController } from './StpEnrichment.ts';
+export { setupComparePanel } from './ComparePanel.ts';
+export type { CompareController } from './ComparePanel.ts';
