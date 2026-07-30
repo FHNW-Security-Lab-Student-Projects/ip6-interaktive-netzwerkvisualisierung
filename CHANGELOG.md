@@ -1,3 +1,9 @@
+## [1.14.3](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.14.2...v1.14.3) (2026-07-30)
+
+### Refactoring
+
+* update routers and switch expansions to match parent graph ([1b72334](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/1b7233456e350e5988a27cf5e5bc96d99277df7d))
+
 ## [1.14.2](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.14.1...v1.14.2) (2026-07-28)
 
 ### Refactoring
