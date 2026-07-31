@@ -5,6 +5,7 @@ import { STALE_THRESHOLD_MS } from '../network-styles.ts';
 
 export interface CompareController {
   add: (nodeId: string, nodeType?: string) => void;
+  has: (nodeId: string) => boolean;
 }
 
 type DeviceEntry = {
@@ -297,10 +298,14 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
   }
 
   return {
+    has(nodeId: string): boolean {
+      return entries.some(e => e.id === nodeId);
+    },
     add(nodeId: string, nodeType = 'device'): void {
       const existing = entries.findIndex(e => e.id === nodeId);
       if (existing !== -1) {
-        // already in comparison — just open/focus
+        entries.splice(existing, 1);
+        if (entries.length === 0) { close(); return; }
         render();
         return;
       }

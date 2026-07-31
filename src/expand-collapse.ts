@@ -184,6 +184,7 @@ export interface ExpandCollapseOptions {
   onExpand?: (nodeId: string) => void;
   onCollapse?: (nodeId: string) => void;
   onCompare?: (nodeId: string, nodeType: string) => void;
+  onCompareHas?: (nodeId: string) => boolean;
 }
 
 export interface ExpandCollapseController {
@@ -400,7 +401,8 @@ export function setupExpandCollapse(
           menu.append(sep);
         }
         const compareBtn = document.createElement('button');
-        compareBtn.textContent = 'Add to comparison';
+        const inCompare = options.onCompareHas?.(node.id()) ?? false;
+        compareBtn.textContent = inCompare ? 'Remove from comparison' : 'Add to comparison';
         compareBtn.addEventListener('click', () => {
           closeMenu();
           options.onCompare!(node.id(), nodeType);
