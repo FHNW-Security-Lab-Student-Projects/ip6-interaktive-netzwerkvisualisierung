@@ -56,7 +56,6 @@ export async function mount(container: HTMLElement): Promise<void> {
     style: createNetworkStyles(),
   });
   setupZoom(cy);
-
   cy.style().update();
   const compare = setupComparePanel({ networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
   const panelOpts = setupDetailPanel(cy, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
@@ -68,5 +67,6 @@ export async function mount(container: HTMLElement): Promise<void> {
   setupSearch(ctrl, nodes);
   setupZoomFitButton(cy);
   setupLegend();
+  stpCtrl.start(panelOpts);
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);
 }
