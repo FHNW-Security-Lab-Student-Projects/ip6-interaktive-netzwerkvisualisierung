@@ -60,6 +60,7 @@ footer p {
   color: #555;
   min-height: 48px;
   position: relative;
+  z-index: 1;
 }
 
 #toolbar:empty {
