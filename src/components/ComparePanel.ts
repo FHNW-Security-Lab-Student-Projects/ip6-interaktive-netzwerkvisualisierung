@@ -75,28 +75,33 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
       'background:#fff', 'display:flex', 'flex-direction:column',
       'width:100%', 'max-width:1200px', 'margin:24px',
       'border-radius:10px', 'box-shadow:0 8px 32px rgba(0,0,0,0.18)',
-      'overflow:hidden', 'position:relative',
+      'overflow:hidden',
     ].join(';');
+
+    // ── Button row (non-scrolling, always above table content) ──────��────────
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = [
+      'display:flex', 'align-items:center', 'justify-content:flex-end',
+      'gap:8px', 'padding:6px 10px 4px', 'flex-shrink:0',
+      'border-bottom:1px solid #f0f0f0',
+    ].join(';');
+
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.style.cssText = 'font-size:0.75rem;color:#999;background:none;border:none;cursor:pointer;padding:2px 4px;font-family:inherit;';
+    clearBtn.textContent = 'Clear all';
+    clearBtn.addEventListener('click', () => { entries.splice(0); close(); });
 
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'panel-close-btn';
     closeBtn.setAttribute('aria-label', 'Close comparison');
     closeBtn.textContent = '×';
-    closeBtn.style.cssText = 'position:absolute;top:8px;right:10px;z-index:10;';
+    closeBtn.style.cssText = 'position:static;';
     closeBtn.addEventListener('click', close);
 
-    const clearBtn = document.createElement('button');
-    clearBtn.type = 'button';
-    clearBtn.style.cssText = [
-      'position:absolute', 'top:10px', 'right:44px', 'z-index:10',
-      'font-size:0.75rem', 'color:#999', 'background:none',
-      'border:none', 'cursor:pointer', 'padding:0', 'font-family:inherit',
-    ].join(';');
-    clearBtn.textContent = 'Clear all';
-    clearBtn.addEventListener('click', () => { entries.splice(0); close(); });
-
-    panel.append(clearBtn, closeBtn);
+    btnRow.append(clearBtn, closeBtn);
+    panel.append(btnRow);
 
     // ── Table ────────────────────────────────────────────────────────────────
     const scrollWrap = document.createElement('div');
