@@ -1,3 +1,11 @@
+## [1.15.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.14.3...v1.15.0) (2026-08-02)
+
+### Features
+
+* comparisson ([6e9a560](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/6e9a560722f3a92a0ed001cfd699d33f1c427219))
+* device comparisson ([cb6d38c](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/cb6d38c432851495d0c57213b8bc530288914850))
+* n-device comparison via right-click context menu ([2a2df81](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/2a2df81a05b15167b0e5db4be169cf39134f726f))
+
 ## [1.14.3](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.14.2...v1.14.3) (2026-07-30)
 
 ### Refactoring
