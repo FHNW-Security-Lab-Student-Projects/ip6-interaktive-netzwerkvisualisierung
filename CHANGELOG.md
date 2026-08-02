@@ -1,3 +1,9 @@
+## [1.17.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.16.0...v1.17.0) (2026-08-02)
+
+### Features
+
+* use buttons for compound level expansion ([a9648b9](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/a9648b9e0d589ba636099f0b9db678125febf620)), closes [ip6-26bb_netviz/netviz-docs#36](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz-docs/issues/36)
+
 ## [1.16.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.15.0...v1.16.0) (2026-08-02)
 
 ### Features
