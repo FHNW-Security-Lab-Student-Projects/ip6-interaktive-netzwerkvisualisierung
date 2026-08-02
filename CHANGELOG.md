@@ -1,3 +1,42 @@
+## [1.17.1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.17.0...v1.17.1) (2026-08-02)
+
+### Bug Fixes
+
+* add z-index to footer paragraph for proper stacking context ([808cd45](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/808cd45f8845a3a38a5a097bca6c73f599b0fab1)), closes [ip6-26bb_netviz/netviz-docs#28](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz-docs/issues/28)
+
+## [1.17.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.16.0...v1.17.0) (2026-08-02)
+
+### Features
+
+* use buttons for compound level expansion ([a9648b9](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/a9648b9e0d589ba636099f0b9db678125febf620)), closes [ip6-26bb_netviz/netviz-docs#36](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz-docs/issues/36)
+
+## [1.16.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.15.0...v1.16.0) (2026-08-02)
+
+### Features
+
+* show +N badge on collapsed compound nodes ([66fcae1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/66fcae1c15610b852ca60ca7754ce293c0fbde3a))
+* show child count badge on collapsed compound nodes ([5bb025a](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/5bb025af7ec6f7a2337509083a42ddd53cdd9892))
+
+### Bug Fixes
+
+* compute exact badge width from SVG aspect ratio to prevent distortion ([0571318](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/05713184077d2a99b001e36e10bd43a9529c40d5))
+* increase collapsed badge size for switch nodes to 62% ([2126aa0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/2126aa07827e9510ad10ff403d149920f23df660))
+* increase switch badge fraction to 70% for uniform physical size ([7cc2d58](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/7cc2d589f7ca330e88eef866a06186ed35299f53))
+* made chip a little smaller ([51cca90](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/51cca90ad061ad0c4d8fc0e12f4f9cc4839305dc))
+* position collapsed badge left-center instead of centered ([4d1e7b9](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/4d1e7b98d440b9872b3a824914c71723289863f1))
+* reduce collapsed badge font size to 7px ([286b4d6](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/286b4d68c5fd044c5de5ee67b275f18655d82f63))
+* restore correct pill badge after bad merge ([df34ed9](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/df34ed9d803f2ef49c27894759a1f5bdc87098dc))
+* smaller text and tighter spacing in collapsed compound badge ([8b82bed](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/8b82bedcefc16af375796d1d2561a8f7a4bc26a7))
+* use background-fit:none with aspect-ratio-correct dimensions for badge ([68b0088](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/68b0088d47f1d23f6a0b2cc16c87677c0e5286f6))
+
+## [1.15.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.14.3...v1.15.0) (2026-08-02)
+
+### Features
+
+* comparisson ([6e9a560](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/6e9a560722f3a92a0ed001cfd699d33f1c427219))
+* device comparisson ([cb6d38c](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/cb6d38c432851495d0c57213b8bc530288914850))
+* n-device comparison via right-click context menu ([2a2df81](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/2a2df81a05b15167b0e5db4be169cf39134f726f))
+
 ## [1.14.3](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.14.2...v1.14.3) (2026-07-30)
 
 ### Refactoring

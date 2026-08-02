@@ -60,6 +60,7 @@ footer p {
   color: #555;
   min-height: 48px;
   position: relative;
+  z-index: 1;
 }
 
 #toolbar:empty {
@@ -82,24 +83,6 @@ footer p {
   flex: none;
 }
 
-#toolbar select {
-  appearance: none;
-  padding: 3px 22px 3px 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  color: #333;
-  background-color: #fff;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 7px center;
-  cursor: pointer;
-}
-
-#toolbar select:focus {
-  outline: none;
-  border-color: #3a6ea5;
-}
 
 .search-wrapper {
   position: absolute;

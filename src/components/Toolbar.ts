@@ -10,29 +10,32 @@ export function setupToolbar(
   const el = document.getElementById('toolbar');
   if (!el) return;
 
-  const label = document.createElement('span');
-  label.className = 'toolbar-label';
-  label.textContent = 'Expand to level';
-
-  const select = document.createElement('select');
-  const opts: Array<{ value: string; text: string }> = [
+  const levels: Array<{ value: string; text: string }> = [
     { value: 'none', text: 'None' },
     ...hierarchy.map(h => ({ value: h.label, text: h.label.charAt(0).toUpperCase() + h.label.slice(1) })),
     { value: 'all', text: 'All' },
   ];
-  opts.forEach(({ value, text }) => {
-    const opt = document.createElement('option');
-    opt.value = value;
-    opt.textContent = text;
-    if (value === initialLevel) opt.selected = true;
-    select.appendChild(opt);
+
+  const group = document.createElement('div');
+  group.className = 'toolbar-level-group';
+
+  const buttons = levels.map(({ value, text }) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'toolbar-toggle';
+    btn.textContent = text;
+    btn.title = `Expand all nodes down to the "${text}" level`;
+    if (value === initialLevel) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      ctrl.expandToLevel(value);
+    });
+    group.appendChild(btn);
+    return btn;
   });
 
-  select.title = 'Expand all nodes down to the selected hierarchy level';
-  select.addEventListener('change', () => ctrl.expandToLevel(select.value));
-
-  el.appendChild(label);
-  el.appendChild(select);
+  el.appendChild(group);
 }
 
 export function setupCompareButton(onOpen: () => void): void {

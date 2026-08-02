@@ -130,6 +130,20 @@ function nodeTypeColor(ele: cytoscape.NodeSingular): string {
 // A device not seen within this window is treated as down.
 export const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000;
 
+function collapsedBadgeUrl(count: number, color: string): string {
+  const text = `+${count}`;
+  const fontSize = 9;
+  const padX = 5;
+  const padY = 2;
+  const charW = 5.5;
+  const w = padX * 2 + Math.ceil(text.length * charW);
+  const h = fontSize + padY * 2;
+  const rx = h / 2;
+  const fill = lighten(color, 0.3);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><rect rx="${rx}" ry="${rx}" width="${w}" height="${h}" fill="${fill}"/><text x="${w / 2}" y="${padY + Math.round(fontSize * 0.82)}" text-anchor="middle" font-family="sans-serif" font-size="${fontSize}" font-weight="bold" fill="#fff">${text}</text></svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 // Generates a data URL for the compound node label badge: colored rect + optional Carbon icon + text.
 // Handles multi-line labels (newline-separated) by stacking lines vertically, centered horizontally.
 function compoundBadgeUrl(label: string, iconName: string | null, bgColor: string, borderColor: string): string {
@@ -335,6 +349,44 @@ export function createNetworkStyles(): any[] {
         'font-size': '9px',
         'cursor': 'pointer',
         'z-index': 2,
+      },
+    },
+
+    // Badge on collapsed compounds — specificity (0,2,0) beats the type-icon rules at same specificity
+    // because this rule comes later in the array.
+    // background-fit:'none' + explicit px-computed percentages so the pill keeps its natural aspect
+    // ratio regardless of node shape. background-height is fixed at 45% of node height; background-width
+    // is derived from the SVG's aspect ratio so it never stretches.
+    {
+      selector: 'node.collapsed[node_type]',
+      style: {
+        'background-image': (ele: cytoscape.NodeSingular) => {
+          const count = (ele.data('collapsedChildCount') as number | undefined) ?? 0;
+          return collapsedBadgeUrl(count, nodeTypeColor(ele));
+        },
+        'background-width': (ele: cytoscape.NodeSingular) => {
+          const count = (ele.data('collapsedChildCount') as number | undefined) ?? 0;
+          const nt = ele.data('node_type') as string;
+          const dt = ele.data('device_type') as string;
+          // Known model dimensions from the type-style rules
+          const nodeH = (nt === 'device' && dt === 'router') ? 44 : (nt === 'device' && dt === 'switch') ? 28 : 40;
+          const nodeW = (nt === 'device' && dt === 'router') ? 50 : (nt === 'device' && dt === 'switch') ? 54 : 40;
+          // SVG intrinsic dimensions (must match collapsedBadgeUrl: padX=5, padY=2, fontSize=9, charW=5.5)
+          const svgW = 10 + Math.ceil(`+${count}`.length * 5.5);
+          const svgH = 13;
+          // Switch is very short (28px) so needs a larger fraction; others use 45%
+          const hFrac = (nt === 'device' && dt === 'switch') ? 0.70 : 0.38;
+          const displayW = (nodeH * hFrac) * svgW / svgH;
+          return `${Math.round(displayW / nodeW * 100)}%`;
+        },
+        'background-height': (ele: cytoscape.NodeSingular) => {
+          const nt = ele.data('node_type') as string;
+          const dt = ele.data('device_type') as string;
+          return (nt === 'device' && dt === 'switch') ? '70%' : '38%';
+        },
+        'background-fit': 'none',
+        'background-position-x': '50%',
+        'background-position-y': '50%',
       },
     },
 
