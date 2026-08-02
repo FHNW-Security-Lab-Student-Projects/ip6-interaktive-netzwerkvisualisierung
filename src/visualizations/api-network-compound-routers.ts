@@ -8,7 +8,7 @@ import type { AnyTypedNode } from '../node-factory.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
 import { loadBasegraph } from '../graph-loader.ts';
 import { groupByUpstreamNode } from '../graph-transforms.ts';
-import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend, setupComparePanel } from '../components/index.ts';
+import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend, setupComparePanel, setupCompareButton, setupStpEnrichment } from '../components/index.ts';
 
 export const title = 'API Network: Compound Graph - Routers Expanded';
 export const description =
@@ -58,14 +58,25 @@ export async function mount(container: HTMLElement): Promise<void> {
   setupZoom(cy);
   cy.style().update();
   const compare = setupComparePanel({ networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
-  const panelOpts = setupDetailPanel(cy, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
+  const deviceNodeIds = raw.nodes
+    .filter(n => n.data.node_type === 'device')
+    .map(n => n.data.id as string);
+  const stpCtrl = setupStpEnrichment(cy, deviceNodeIds, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
+  const panelOpts = setupDetailPanel(cy, {
+    networkId: NETWORK_ID,
+    snapshotId: SNAPSHOT_ID,
+    getStpInstanceKey: stpCtrl.getSelectedKey,
+    resolveBridgeMac: stpCtrl.resolveBridgeMac,
+  });
   const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'router', { ...panelOpts, onCompare: compare.add, onCompareHas: compare.has });
+  compare.setLocate(id => ctrl.focusNode(id));
   panelOpts.setFocusNode(id => ctrl.focusNode(id));
   panelOpts.setChildCountResolver(id => ctrl.getDirectChildCount(id));
   panelOpts.setChildrenResolver(id => ctrl.getDirectChildren(id));
   setupToolbar(ctrl, NODE_HIERARCHY, 'router');
   setupSearch(ctrl, nodes);
   setupZoomFitButton(cy);
+  setupCompareButton(compare.open);
   setupLegend();
   stpCtrl.start(panelOpts);
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);

@@ -8,7 +8,7 @@ import type { AnyTypedNode } from '../node-factory.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
 import { loadBasegraph } from '../graph-loader.ts';
 import { groupByUpstreamNode } from '../graph-transforms.ts';
-import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend, setupStpEnrichment } from '../components/index.ts';
+import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend, setupStpEnrichment, setupComparePanel, setupCompareButton } from '../components/index.ts';
 
 export const title = 'API Network: Compound Graph';
 export const description =
@@ -62,6 +62,7 @@ export async function mount(container: HTMLElement): Promise<void> {
     .filter(n => n.data.node_type === 'device')
     .map(n => n.data.id as string);
 
+  const compare = setupComparePanel({ networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
   const stpCtrl = setupStpEnrichment(cy, deviceNodeIds, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
   const panelOpts = setupDetailPanel(cy, {
     networkId: NETWORK_ID,
@@ -69,13 +70,15 @@ export async function mount(container: HTMLElement): Promise<void> {
     getStpInstanceKey: stpCtrl.getSelectedKey,
     resolveBridgeMac: stpCtrl.resolveBridgeMac,
   });
-  const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'none', panelOpts);
+  const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'none', { ...panelOpts, onCompare: compare.add, onCompareHas: compare.has });
+  compare.setLocate(id => ctrl.focusNode(id));
   panelOpts.setFocusNode(id => ctrl.focusNode(id));
   panelOpts.setChildCountResolver(id => ctrl.getDirectChildCount(id));
   panelOpts.setChildrenResolver(id => ctrl.getDirectChildren(id));
   setupToolbar(ctrl, NODE_HIERARCHY, 'none');
   setupSearch(ctrl, nodes);
   setupZoomFitButton(cy);
+  setupCompareButton(compare.open);
   setupLegend();
   stpCtrl.start(panelOpts);
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);

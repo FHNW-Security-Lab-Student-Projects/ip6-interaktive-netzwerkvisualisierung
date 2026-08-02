@@ -6,6 +6,8 @@ import { STALE_THRESHOLD_MS } from '../network-styles.ts';
 export interface CompareController {
   add: (nodeId: string, nodeType?: string) => void;
   has: (nodeId: string) => boolean;
+  open: () => void;
+  setLocate: (fn: (nodeId: string) => void) => void;
 }
 
 type DeviceEntry = {
@@ -30,6 +32,8 @@ function val(v: string | null | undefined): string {
 export function setupComparePanel(opts?: { networkId?: number; snapshotId?: number }): CompareController {
   const entries: DeviceEntry[] = [];
   let overlay: HTMLElement | null = null;
+  let locateFn: ((nodeId: string) => void) | null = null;
+  const expandedSections = new Set<string>();
 
   function getOrCreateOverlay(): HTMLElement {
     if (overlay) return overlay;
@@ -71,30 +75,28 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
       'background:#fff', 'display:flex', 'flex-direction:column',
       'width:100%', 'max-width:1200px', 'margin:24px',
       'border-radius:10px', 'box-shadow:0 8px 32px rgba(0,0,0,0.18)',
-      'overflow:hidden',
+      'overflow:hidden', 'position:relative',
     ].join(';');
-
-    // ── Header bar ──────────────────────────────────────────────────────────
-    const bar = document.createElement('div');
-    bar.style.cssText = [
-      'display:flex', 'align-items:center', 'justify-content:space-between',
-      'padding:14px 20px', 'border-bottom:1px solid #e8eaed',
-      'background:#f8f9fb', 'flex-shrink:0',
-    ].join(';');
-
-    const title = document.createElement('span');
-    title.style.cssText = 'font-size:0.95rem;font-weight:700;color:#1a1a2e;';
-    title.textContent = `Device Comparison (${entries.length})`;
 
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'panel-close-btn';
     closeBtn.setAttribute('aria-label', 'Close comparison');
     closeBtn.textContent = '×';
+    closeBtn.style.cssText = 'position:absolute;top:8px;right:10px;z-index:10;';
     closeBtn.addEventListener('click', close);
 
-    bar.append(title, closeBtn);
-    panel.append(bar);
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.style.cssText = [
+      'position:absolute', 'top:10px', 'right:44px', 'z-index:10',
+      'font-size:0.75rem', 'color:#999', 'background:none',
+      'border:none', 'cursor:pointer', 'padding:0', 'font-family:inherit',
+    ].join(';');
+    clearBtn.textContent = 'Clear all';
+    clearBtn.addEventListener('click', () => { entries.splice(0); close(); });
+
+    panel.append(clearBtn, closeBtn);
 
     // ── Table ────────────────────────────────────────────────────────────────
     const scrollWrap = document.createElement('div');
@@ -140,8 +142,18 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
       }
 
       const nameSpan = document.createElement('span');
-      nameSpan.style.cssText = 'font-weight:700;color:#1a1a2e;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
-      nameSpan.textContent = entry.loading ? 'Loading…' : entry.error ? entry.id : (entry.data?.name ?? entry.hostData?.data.hw_id ?? entry.id);
+      const displayName = entry.loading ? 'Loading…' : entry.error ? entry.id : (entry.data?.name ?? entry.hostData?.data.hw_id ?? entry.id);
+      nameSpan.textContent = displayName;
+      if (!entry.loading && !entry.error && locateFn) {
+        nameSpan.style.cssText = 'font-weight:700;color:#1a5cff;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;text-decoration:underline;text-underline-offset:2px;';
+        nameSpan.title = 'Jump to node in graph';
+        nameSpan.addEventListener('click', () => {
+          close();
+          locateFn!(entry.id);
+        });
+      } else {
+        nameSpan.style.cssText = 'font-weight:700;color:#1a1a2e;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+      }
       nameRow.append(nameSpan);
 
       if (!entry.loading && !entry.error && entry.data?.version?.vendor) {
@@ -240,6 +252,119 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
       tbody.append(tr);
     }
 
+    // Accordion section: shows count per device, expands to a per-item cross-device mini-table.
+    // `getItems` returns per-device item lists; `getKey` extracts the merge key; `cols` are
+    // sub-column headers; `getVals` returns cell values for a given item (or null if missing).
+    function accordionSection<T>(
+      key: string,
+      label: string,
+      getItems: (d: DeviceInfoOutput) => T[],
+      getKey: (item: T) => string,
+      cols: string[],
+      getVals: (item: T | undefined) => string[],
+    ): void {
+      const perDev = entries.map(e => (e.data ? getItems(e.data) : []));
+      const counts = perDev.map(items => items.length);
+      const isOpen = expandedSections.has(key);
+
+      // ── header row ────────────────────────────────────────────────────────
+      const htr = document.createElement('tr');
+      htr.style.cursor = 'pointer';
+      htr.addEventListener('click', () => {
+        if (expandedSections.has(key)) expandedSections.delete(key);
+        else expandedSections.add(key);
+        render();
+      });
+
+      const lbl = document.createElement('td');
+      lbl.style.cssText = [
+        'padding:7px 14px', 'font-weight:600', 'color:#444', 'font-size:0.78rem',
+        'white-space:nowrap', 'position:sticky', 'left:0', 'background:#f8f9fb',
+        'border-bottom:1px solid #eee', 'user-select:none',
+      ].join(';');
+      lbl.textContent = `${isOpen ? '▾' : '▸'} ${label}`;
+      htr.append(lbl);
+
+      const allSameCount = counts.every(c => c === counts[0]);
+      counts.forEach(c => {
+        const td = document.createElement('td');
+        td.style.cssText = [
+          'padding:7px 14px', 'border-left:1px solid #eee', 'border-bottom:1px solid #eee',
+          'font-size:0.78rem', 'color:#444', 'background:#f8f9fb',
+        ].join(';');
+        if (!allSameCount) td.style.background = '#fffbeb';
+        td.textContent = c > 0 ? String(c) : '—';
+        htr.append(td);
+      });
+      tbody.append(htr);
+
+      if (!isOpen) return;
+
+      // ── sub-column header ─────────────────────────────────────────────────
+      const shr = document.createElement('tr');
+      const shLabel = document.createElement('td');
+      shLabel.style.cssText = [
+        'padding:4px 14px 4px 28px', 'font-size:0.69rem', 'font-weight:700',
+        'color:#bbb', 'background:#fcfcfc', 'border-bottom:1px solid #eee',
+        'position:sticky', 'left:0',
+      ].join(';');
+      shLabel.textContent = cols[0] ?? '';
+      shr.append(shLabel);
+
+      entries.forEach((_, ei) => {
+        const devCols = cols.slice(1);
+        const td = document.createElement('td');
+        td.style.cssText = [
+          'padding:4px 14px', 'font-size:0.69rem', 'font-weight:700', 'color:#bbb',
+          'background:#fcfcfc', 'border-left:1px solid #eee', 'border-bottom:1px solid #eee',
+        ].join(';');
+        td.textContent = devCols.join(' · ');
+        void ei;
+        shr.append(td);
+      });
+      tbody.append(shr);
+
+      // ── data rows: union of all keys across all devices ───────────────────
+      const allKeys = [...new Set(perDev.flatMap(items => items.map(getKey)))];
+      allKeys.forEach(itemKey => {
+        const byDev = perDev.map(items => items.find(it => getKey(it) === itemKey));
+        const valsByDev = byDev.map(it => getVals(it));
+        // compare all values concatenated to detect differences
+        const flatVals = valsByDev.map(vs => vs.join('\0'));
+        const allSame = flatVals.every(v => v === flatVals[0]);
+
+        const dtr = document.createElement('tr');
+        if (!allSame) dtr.style.background = '#fffbeb';
+        dtr.addEventListener('mouseenter', () => { dtr.style.background = allSame ? '#f6f8fa' : '#fff3cd'; });
+        dtr.addEventListener('mouseleave', () => { dtr.style.background = allSame ? '' : '#fffbeb'; });
+
+        const keyTd = document.createElement('td');
+        keyTd.style.cssText = [
+          'padding:5px 14px 5px 28px', 'font-size:0.78rem', 'color:#666',
+          'white-space:nowrap', 'position:sticky', 'left:0',
+          'background:inherit', 'border-bottom:1px solid #f4f4f4',
+        ].join(';');
+        if (!allSame) keyTd.style.background = '#fffbeb';
+        keyTd.textContent = itemKey;
+        dtr.append(keyTd);
+
+        valsByDev.forEach(vs => {
+          const td = document.createElement('td');
+          td.style.cssText = [
+            'padding:5px 14px', 'font-size:0.78rem', 'color:#333',
+            'border-left:1px solid #eee', 'border-bottom:1px solid #f4f4f4',
+            'max-width:0', 'overflow:hidden', 'text-overflow:ellipsis', 'white-space:nowrap',
+          ].join(';');
+          const text = vs.filter(Boolean).join(' · ') || '—';
+          td.textContent = text;
+          td.title = text;
+          dtr.append(td);
+        });
+
+        tbody.append(dtr);
+      });
+    }
+
     const devs = entries.map(e => e.data);
     const hosts = entries.map(e => e.hostData);
 
@@ -257,15 +382,57 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
     const anyDevData = devs.some(Boolean);
     if (anyDevData) {
       sectionRow('Interfaces');
-      row('Ports',     devs.map(d => d?.ports?.length != null ? String(d.ports.length) : '—'));
-      row('LAGs',      devs.map(d => d?.lags?.length != null ? String(d.lags.length) : '—'));
-      row('Neighbors', devs.map(d => d?.neighbors?.length != null ? String(d.neighbors.length) : '—'));
+      accordionSection(
+        'ports', 'Ports',
+        d => Object.values(d.ports ?? {}),
+        p => p.if_no,
+        ['Interface', 'State · Type · VLAN'],
+        p => p ? [`${p.if_state ?? '?'} · ${p.port_type ?? '—'} · ${p.vlan_id ?? '—'}`] : [],
+      );
+      accordionSection(
+        'lags', 'LAGs',
+        d => Object.values(d.lags ?? {}),
+        l => l.name,
+        ['Name', 'Protocol · Members'],
+        l => l ? [`${l.protocol ?? '—'} · ${Object.values(l.members).map(m => m.if_no).join(', ') || '—'}`] : [],
+      );
+      accordionSection(
+        'neighbors', 'Neighbors',
+        d => Object.values(d.neighbors ?? {}),
+        n => n.neigh_id,
+        ['Neighbor', 'IP'],
+        n => n ? [n.name || n.ip_address || n.neigh_id, n.ip_address ?? '—'] : [],
+      );
 
       sectionRow('Network');
-      row('VLANs',    devs.map(d => d?.vlans?.length != null ? String(d.vlans.length) : '—'));
-      row('VRFs',     devs.map(d => d?.vrfs?.length != null ? String(d.vrfs.length) : '—'));
-      row('Routes',   devs.map(d => d?.routes?.length != null ? String(d.routes.length) : '—'));
-      row('IP Configs', devs.map(d => d?.ip_configs?.length != null ? String(d.ip_configs.length) : '—'));
+      accordionSection(
+        'vlans', 'VLANs',
+        d => Object.values(d.vlans ?? {}),
+        v => String(v.vlan_id),
+        ['VLAN ID', 'Name'],
+        v => v ? [v.vlan_name ?? '—'] : [],
+      );
+      accordionSection(
+        'vrfs', 'VRFs',
+        d => Object.values(d.vrfs ?? {}),
+        v => v.vrf_name,
+        ['VRF', 'RD'],
+        v => v ? [v.route_distinguisher ?? '—'] : [],
+      );
+      accordionSection(
+        'routes', 'Routes',
+        d => Object.values(d.routes ?? {}),
+        r => `${r.network}/${r.mask ?? ''}`,
+        ['Network', 'Protocol · Next-hop'],
+        r => r ? [`${r.protocol ?? '—'} · ${r.nexthop_ip || r.nexthop_if || '—'}`] : [],
+      );
+      accordionSection(
+        'ipconfigs', 'IP Configs',
+        d => Object.values(d.ip_configs ?? {}),
+        c => c.interface_name,
+        ['Interface', 'IPs · VRF'],
+        c => c ? [`${(c.ip_interfaces ?? []).join(', ') || '—'} · ${c.vrf || '—'}`] : [],
+      );
     }
 
     void hosts; // host data currently only contributes IP/name above
@@ -300,6 +467,12 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
   return {
     has(nodeId: string): boolean {
       return entries.some(e => e.id === nodeId);
+    },
+    open(): void {
+      if (entries.length > 0) render();
+    },
+    setLocate(fn: (nodeId: string) => void): void {
+      locateFn = fn;
     },
     add(nodeId: string, nodeType = 'device'): void {
       const existing = entries.findIndex(e => e.id === nodeId);
