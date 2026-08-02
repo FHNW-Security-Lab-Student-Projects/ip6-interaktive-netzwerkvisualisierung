@@ -1,3 +1,9 @@
+## [1.17.1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.17.0...v1.17.1) (2026-08-02)
+
+### Bug Fixes
+
+* add z-index to footer paragraph for proper stacking context ([808cd45](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/808cd45f8845a3a38a5a097bca6c73f599b0fab1)), closes [ip6-26bb_netviz/netviz-docs#28](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz-docs/issues/28)
+
 ## [1.17.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.16.0...v1.17.0) (2026-08-02)
 
 ### Features
