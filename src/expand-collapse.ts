@@ -183,6 +183,8 @@ export interface ExpandCollapseOptions {
   onNodeClick?: (nodeId: string, isCompound: boolean) => void;
   onExpand?: (nodeId: string) => void;
   onCollapse?: (nodeId: string) => void;
+  onCompare?: (nodeId: string, nodeType: string) => void;
+  onCompareHas?: (nodeId: string) => boolean;
 }
 
 export interface ExpandCollapseController {
@@ -351,44 +353,77 @@ export function setupExpandCollapse(
       closeMenu();
 
       const node = event.target as cytoscape.NodeSingular;
-      if (!node.isParent() && !node.hasClass('collapsed')) return;
+      const isCompound = node.isParent() || node.hasClass('collapsed');
+      const nodeType = (node.data('node_type') as string | undefined) ?? 'device';
 
       const container = cy.container();
       if (!container) return;
 
       const rp = event.renderedPosition as { x: number; y: number };
 
-      // Use all selected compound nodes; fall back to just the right-clicked node.
-      const selectedCompounds = cy.nodes(':selected').filter(
-        n => (n as cytoscape.NodeSingular).isParent() || (n as cytoscape.NodeSingular).hasClass('collapsed')
-      ).toArray() as cytoscape.NodeSingular[];
-      const targets = selectedCompounds.length > 0 ? selectedCompounds : [node];
-
       const menu = document.createElement('div');
       menu.className = 'ctx-menu';
       activeMenu = menu;
 
-      const expandBtn = document.createElement('button');
-      expandBtn.textContent = 'Expand all';
-      expandBtn.addEventListener('click', () => {
-        closeMenu();
-        const snapshot = capturePositions(cy);
-        targets.forEach(t => doExpandAll(t));
-        runExpandCollapseLayout(cy, layout, snapshot, node.id(), true);
-        options?.onExpand?.(node.id());
-      });
+      if (isCompound) {
+        // Use all selected compound nodes; fall back to just the right-clicked node.
+        const selectedCompounds = cy.nodes(':selected').filter(
+          n => (n as cytoscape.NodeSingular).isParent() || (n as cytoscape.NodeSingular).hasClass('collapsed')
+        ).toArray() as cytoscape.NodeSingular[];
+        const targets = selectedCompounds.length > 0 ? selectedCompounds : [node];
 
-      const collapseBtn = document.createElement('button');
-      collapseBtn.textContent = 'Collapse all';
-      collapseBtn.addEventListener('click', () => {
-        closeMenu();
-        const snapshot = capturePositions(cy);
-        targets.forEach(t => doCollapseAll(t));
-        runExpandCollapseLayout(cy, layout, snapshot, node.id(), false);
-      });
+        const expandBtn = document.createElement('button');
+        expandBtn.textContent = 'Expand all';
+        expandBtn.addEventListener('click', () => {
+          closeMenu();
+          const snapshot = capturePositions(cy);
+          targets.forEach(t => doExpandAll(t));
+          runExpandCollapseLayout(cy, layout, snapshot, node.id(), true);
+          options?.onExpand?.(node.id());
+        });
+
+        const collapseBtn = document.createElement('button');
+        collapseBtn.textContent = 'Collapse all';
+        collapseBtn.addEventListener('click', () => {
+          closeMenu();
+          const snapshot = capturePositions(cy);
+          targets.forEach(t => doCollapseAll(t));
+          runExpandCollapseLayout(cy, layout, snapshot, node.id(), false);
+        });
+
+        menu.append(expandBtn, collapseBtn);
+      }
+
+      if (nodeType !== 'group') {
+        if (menu.children.length > 0) {
+          const sep = document.createElement('div');
+          sep.style.cssText = 'height:1px;background:#eee;margin:2px 0;';
+          menu.append(sep);
+        }
+
+        const locateBtn = document.createElement('button');
+        locateBtn.textContent = 'Locate device';
+        locateBtn.addEventListener('click', () => {
+          closeMenu();
+          focusNode(node.id());
+        });
+        menu.append(locateBtn);
+
+        if (options?.onCompare) {
+          const inCompare = options.onCompareHas?.(node.id()) ?? false;
+          const compareBtn = document.createElement('button');
+          compareBtn.textContent = inCompare ? 'Remove from comparison' : 'Add to comparison';
+          compareBtn.addEventListener('click', () => {
+            closeMenu();
+            options.onCompare!(node.id(), nodeType);
+          });
+          menu.append(compareBtn);
+        }
+      }
+
+      if (!menu.children.length) return;
 
       menu.addEventListener('mousedown', e => e.stopPropagation());
-      menu.append(expandBtn, collapseBtn);
 
       container.style.position = 'relative';
       container.append(menu);
@@ -494,54 +529,56 @@ export function setupExpandCollapse(
     }, 250);
   });
 
-  return {
-    focusNode(nodeId: string): void {
-      activeLayout?.stop();
-      cy.stop();
+  function focusNode(nodeId: string): void {
+    activeLayout?.stop();
+    cy.stop();
 
-      const chain: string[] = [];
-      let cur = nodes.find(n => n.data.id === nodeId);
-      while (cur?.data.parent) {
-        chain.unshift(cur.data.parent);
-        cur = nodes.find(n => n.data.id === cur!.data.parent);
-      }
+    const chain: string[] = [];
+    let cur = nodes.find(n => n.data.id === nodeId);
+    while (cur?.data.parent) {
+      chain.unshift(cur.data.parent);
+      cur = nodes.find(n => n.data.id === cur!.data.parent);
+    }
 
-      const snapshot = capturePositions(cy);
-      let didExpand = false;
-      chain.forEach(ancestorId => {
-        const ancestor = cy.$id(ancestorId) as cytoscape.NodeSingular;
-        if (ancestor.length && ancestor.hasClass('collapsed')) {
-          doExpand(ancestor);
-          didExpand = true;
-        }
-      });
-
-      // Expand the target itself if it's a collapsed compound, so the panel shows real info.
-      const selfNode = cy.$id(nodeId) as cytoscape.NodeSingular;
-      if (selfNode.length && selfNode.hasClass('collapsed')) {
-        doExpand(selfNode);
+    const snapshot = capturePositions(cy);
+    let didExpand = false;
+    chain.forEach(ancestorId => {
+      const ancestor = cy.$id(ancestorId) as cytoscape.NodeSingular;
+      if (ancestor.length && ancestor.hasClass('collapsed')) {
+        doExpand(ancestor);
         didExpand = true;
       }
+    });
 
-      const selectAndPan = () => {
-        const target = cy.$id(nodeId) as cytoscape.NodeSingular;
-        if (target.length) {
-          cy.animate({ zoom: Math.max(cy.zoom(), 1.5), center: { eles: target }, duration: 400 });
-          cy.nodes().unselect();
-          target.select();
-          target.emit('tap');
-        }
-      };
+    // Expand the target itself if it's a collapsed compound, so the panel shows real info.
+    const selfNode = cy.$id(nodeId) as cytoscape.NodeSingular;
+    if (selfNode.length && selfNode.hasClass('collapsed')) {
+      doExpand(selfNode);
+      didExpand = true;
+    }
 
-      if (!didExpand) {
-        // Node is already visible and expanded — skip layout, pan and select immediately.
-        selectAndPan();
-        return;
+    const selectAndPan = () => {
+      const target = cy.$id(nodeId) as cytoscape.NodeSingular;
+      if (target.length) {
+        cy.animate({ zoom: Math.max(cy.zoom(), 1.5), center: { eles: target }, duration: 400 });
+        cy.nodes().unselect();
+        target.select();
+        target.emit('tap');
       }
+    };
 
-      const anchorId = chain.at(-1) ?? nodeId;
-      runExpandCollapseLayout(cy, layout, snapshot, anchorId, false, selectAndPan);
-    },
+    if (!didExpand) {
+      // Node is already visible and expanded — skip layout, pan and select immediately.
+      selectAndPan();
+      return;
+    }
+
+    const anchorId = chain.at(-1) ?? nodeId;
+    runExpandCollapseLayout(cy, layout, snapshot, anchorId, false, selectAndPan);
+  }
+
+  return {
+    focusNode,
 
     expandToLevel(level: string | 'all' | 'none'): void {
       // Null the sentinel BEFORE stopping so in-flight layoutstop handlers detect cancellation.

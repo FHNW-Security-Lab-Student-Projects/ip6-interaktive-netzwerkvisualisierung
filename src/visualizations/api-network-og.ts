@@ -6,7 +6,7 @@ import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
 import { loadBasegraph } from '../graph-loader.ts';
-import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend } from '../components/index.ts';
+import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend, setupComparePanel, setupCompareButton } from '../components/index.ts';
 
 export const title = 'API Network: Original Graph';
 export const description =
@@ -28,14 +28,17 @@ export async function mount(container: HTMLElement): Promise<void> {
   setupZoom(cy);
 
   cy.style().update();
+  const compare = setupComparePanel({ networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
   const panelOpts = setupDetailPanel(cy, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
-  const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'all', panelOpts);
+  const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'all', { ...panelOpts, onCompare: compare.add, onCompareHas: compare.has });
+  compare.setLocate(id => ctrl.focusNode(id));
   panelOpts.setFocusNode(id => ctrl.focusNode(id));
   panelOpts.setChildCountResolver(id => ctrl.getDirectChildCount(id));
   panelOpts.setChildrenResolver(id => ctrl.getDirectChildren(id));
   setupToolbar(ctrl, NODE_HIERARCHY, 'none');
   setupSearch(ctrl, nodes);
   setupZoomFitButton(cy);
+  setupCompareButton(compare.open);
   setupLegend();
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);
 }

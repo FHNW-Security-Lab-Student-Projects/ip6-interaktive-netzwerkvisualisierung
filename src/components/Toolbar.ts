@@ -35,6 +35,20 @@ export function setupToolbar(
   el.appendChild(select);
 }
 
+export function setupCompareButton(onOpen: () => void): void {
+  const el = document.getElementById('toolbar');
+  if (!el) return;
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'toolbar-icon-btn';
+  btn.title = 'Open device comparison';
+  // two-column icon
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="8" height="18" rx="1"/><rect x="14" y="3" width="8" height="18" rx="1"/></svg>`;
+  btn.addEventListener('click', onOpen);
+  el.append(btn);
+}
+
 export function setupZoomFitButton(cy: cytoscape.Core): void {
   const el = document.getElementById('toolbar');
   if (!el) return;
