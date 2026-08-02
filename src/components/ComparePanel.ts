@@ -134,7 +134,7 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
       ].join(';');
 
       const nameRow = document.createElement('div');
-      nameRow.style.cssText = 'display:flex;align-items:center;gap:6px;';
+      nameRow.style.cssText = 'display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden;';
 
       if (!entry.loading && !entry.error && entry.data) {
         const dot = makeStatusDot(getStatus(entry.data));
@@ -145,14 +145,14 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
       const displayName = entry.loading ? 'Loading…' : entry.error ? entry.id : (entry.data?.name ?? entry.hostData?.data.hw_id ?? entry.id);
       nameSpan.textContent = displayName;
       if (!entry.loading && !entry.error && locateFn) {
-        nameSpan.style.cssText = 'font-weight:700;color:#1a5cff;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;text-decoration:underline;text-underline-offset:2px;';
+        nameSpan.style.cssText = 'font-weight:700;color:#1a5cff;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;text-decoration:underline;text-underline-offset:2px;min-width:0;flex:1;';
         nameSpan.title = 'Jump to node in graph';
         nameSpan.addEventListener('click', () => {
           close();
           locateFn!(entry.id);
         });
       } else {
-        nameSpan.style.cssText = 'font-weight:700;color:#1a1a2e;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+        nameSpan.style.cssText = 'font-weight:700;color:#1a1a2e;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1;';
       }
       nameRow.append(nameSpan);
 
@@ -260,7 +260,6 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
       label: string,
       getItems: (d: DeviceInfoOutput) => T[],
       getKey: (item: T) => string,
-      cols: string[],
       getVals: (item: T | undefined) => string[],
     ): void {
       const perDev = entries.map(e => (e.data ? getItems(e.data) : []));
@@ -299,30 +298,6 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
       tbody.append(htr);
 
       if (!isOpen) return;
-
-      // ── sub-column header ─────────────────────────────────────────────────
-      const shr = document.createElement('tr');
-      const shLabel = document.createElement('td');
-      shLabel.style.cssText = [
-        'padding:4px 14px 4px 28px', 'font-size:0.69rem', 'font-weight:700',
-        'color:#bbb', 'background:#fcfcfc', 'border-bottom:1px solid #eee',
-        'position:sticky', 'left:0',
-      ].join(';');
-      shLabel.textContent = cols[0] ?? '';
-      shr.append(shLabel);
-
-      entries.forEach((_, ei) => {
-        const devCols = cols.slice(1);
-        const td = document.createElement('td');
-        td.style.cssText = [
-          'padding:4px 14px', 'font-size:0.69rem', 'font-weight:700', 'color:#bbb',
-          'background:#fcfcfc', 'border-left:1px solid #eee', 'border-bottom:1px solid #eee',
-        ].join(';');
-        td.textContent = devCols.join(' · ');
-        void ei;
-        shr.append(td);
-      });
-      tbody.append(shr);
 
       // ── data rows: union of all keys across all devices ───────────────────
       const allKeys = [...new Set(perDev.flatMap(items => items.map(getKey)))];
@@ -386,22 +361,19 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
         'ports', 'Ports',
         d => Object.values(d.ports ?? {}),
         p => p.if_no,
-        ['Interface', 'State · Type · VLAN'],
-        p => p ? [`${p.if_state ?? '?'} · ${p.port_type ?? '—'} · ${p.vlan_id ?? '—'}`] : [],
+        p => p ? [`${p.if_state ?? '?'} · ${p.port_type ?? '—'} · VLAN ${p.vlan_id ?? '—'}`] : [],
       );
       accordionSection(
         'lags', 'LAGs',
         d => Object.values(d.lags ?? {}),
         l => l.name,
-        ['Name', 'Protocol · Members'],
         l => l ? [`${l.protocol ?? '—'} · ${Object.values(l.members).map(m => m.if_no).join(', ') || '—'}`] : [],
       );
       accordionSection(
         'neighbors', 'Neighbors',
         d => Object.values(d.neighbors ?? {}),
-        n => n.neigh_id,
-        ['Neighbor', 'IP'],
-        n => n ? [n.name || n.ip_address || n.neigh_id, n.ip_address ?? '—'] : [],
+        n => n.name || n.ip_address || n.neigh_id,
+        n => n ? [n.ip_address ?? '—'] : [],
       );
 
       sectionRow('Network');
@@ -409,37 +381,44 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
         'vlans', 'VLANs',
         d => Object.values(d.vlans ?? {}),
         v => String(v.vlan_id),
-        ['VLAN ID', 'Name'],
         v => v ? [v.vlan_name ?? '—'] : [],
       );
       accordionSection(
         'vrfs', 'VRFs',
         d => Object.values(d.vrfs ?? {}),
         v => v.vrf_name,
-        ['VRF', 'RD'],
         v => v ? [v.route_distinguisher ?? '—'] : [],
       );
       accordionSection(
         'routes', 'Routes',
         d => Object.values(d.routes ?? {}),
         r => `${r.network}/${r.mask ?? ''}`,
-        ['Network', 'Protocol · Next-hop'],
         r => r ? [`${r.protocol ?? '—'} · ${r.nexthop_ip || r.nexthop_if || '—'}`] : [],
       );
       accordionSection(
         'ipconfigs', 'IP Configs',
         d => Object.values(d.ip_configs ?? {}),
         c => c.interface_name,
-        ['Interface', 'IPs · VRF'],
         c => c ? [`${(c.ip_interfaces ?? []).join(', ') || '—'} · ${c.vrf || '—'}`] : [],
       );
     }
 
     void hosts; // host data currently only contributes IP/name above
 
-    table.append(tbody);
-    scrollWrap.append(table);
-    panel.append(scrollWrap);
+    if (entries.length === 0) {
+      const empty = document.createElement('div');
+      empty.style.cssText = [
+        'flex:1', 'display:flex', 'flex-direction:column',
+        'align-items:center', 'justify-content:center',
+        'padding:48px 24px', 'color:#aaa', 'font-size:0.85rem', 'text-align:center',
+      ].join(';');
+      empty.innerHTML = `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ddd" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:12px"><rect x="2" y="3" width="9" height="18" rx="1"/><line x1="4.5" y1="8" x2="8.5" y2="8"/><line x1="4.5" y1="11" x2="7" y2="11"/><line x1="4.5" y1="14" x2="8.5" y2="14"/><rect x="13" y="3" width="9" height="18" rx="1"/><line x1="15.5" y1="8" x2="19.5" y2="8"/><line x1="15.5" y1="11" x2="19.5" y2="11"/><line x1="15.5" y1="14" x2="17.5" y2="14"/></svg><span>No devices added yet.<br>Right-click a device and choose <strong style="color:#888">Add to comparison</strong>.</span>`;
+      panel.append(empty);
+    } else {
+      table.append(tbody);
+      scrollWrap.append(table);
+      panel.append(scrollWrap);
+    }
     el.append(panel);
   }
 
@@ -469,7 +448,7 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
       return entries.some(e => e.id === nodeId);
     },
     open(): void {
-      if (entries.length > 0) render();
+      render();
     },
     setLocate(fn: (nodeId: string) => void): void {
       locateFn = fn;

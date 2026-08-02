@@ -43,8 +43,7 @@ export function setupCompareButton(onOpen: () => void): void {
   btn.type = 'button';
   btn.className = 'toolbar-icon-btn';
   btn.title = 'Open device comparison';
-  // two-column icon
-  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="8" height="18" rx="1"/><rect x="14" y="3" width="8" height="18" rx="1"/></svg>`;
+  btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="9" height="18" rx="1"/><line x1="4.5" y1="8" x2="8.5" y2="8"/><line x1="4.5" y1="11" x2="7" y2="11"/><line x1="4.5" y1="14" x2="8.5" y2="14"/><rect x="13" y="3" width="9" height="18" rx="1"/><line x1="15.5" y1="8" x2="19.5" y2="8"/><line x1="15.5" y1="11" x2="19.5" y2="11"/><line x1="15.5" y1="14" x2="17.5" y2="14"/></svg>`;
   btn.addEventListener('click', onOpen);
   el.append(btn);
 }
@@ -52,6 +51,10 @@ export function setupCompareButton(onOpen: () => void): void {
 export function setupZoomFitButton(cy: cytoscape.Core): void {
   const el = document.getElementById('toolbar');
   if (!el) return;
+
+  const spacer = document.createElement('div');
+  spacer.className = 'toolbar-spacer';
+  el.append(spacer);
 
   const btn = document.createElement('button');
   btn.type = 'button';
