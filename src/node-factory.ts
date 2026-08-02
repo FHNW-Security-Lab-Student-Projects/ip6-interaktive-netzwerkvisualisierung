@@ -28,7 +28,7 @@ export const NODE_HIERARCHY: HierarchyLevel[] = [
   { label: 'group',  matches: d => d.node_type === 'group' },
   { label: 'router', matches: d => d.node_type === 'device' && (d as DeviceNodeData).device_type === 'router' },
   { label: 'switch', matches: d => d.node_type === 'device' && (d as DeviceNodeData).device_type === 'switch' },
-  { label: 'leaf',   matches: d => d.node_type === 'host' || d.node_type === 'custom' || (d.node_type === 'device' && (d as DeviceNodeData).device_type === 'unknown') },
+  { label: 'host',   matches: d => d.node_type === 'host' || d.node_type === 'custom' || (d.node_type === 'device' && (d as DeviceNodeData).device_type === 'unknown') },
 ];
 
 export type TypedCytoscapeNode<T extends NodeData> = Omit<CytoscapeNode, 'data'> & { data: T };
