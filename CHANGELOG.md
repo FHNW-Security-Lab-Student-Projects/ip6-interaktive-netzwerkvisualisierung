@@ -1,3 +1,10 @@
+## [1.17.2](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.17.1...v1.17.2) (2026-08-03)
+
+### Bug Fixes
+
+* close button ([8952902](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/895290264754db5e250e7b9c00a9d2ea30489e9d))
+* fit to zoom ([1bd14f0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/1bd14f006c74271c624499c66fcfda906b6d59a2))
+
 ## [1.17.1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.17.0...v1.17.1) (2026-08-02)
 
 ### Bug Fixes
