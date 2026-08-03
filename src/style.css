@@ -807,10 +807,8 @@ footer p {
   color: #3a6ea5;
 }
 
-.toolbar-level-group {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.toolbar-spacer {
+  flex: 1;
 }
 
 .toolbar-icon-btn {
@@ -826,7 +824,6 @@ footer p {
   color: #555;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
-  margin-left: auto;
 }
 .toolbar-icon-btn:hover {
   background: #f0f5fb;
