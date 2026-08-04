@@ -1,3 +1,9 @@
+## [1.17.3](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.17.2...v1.17.3) (2026-08-04)
+
+### Bug Fixes
+
+* double click sync ([6f8d142](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/6f8d142e00b2716e6256791c256fb0f73e796b6e))
+
 ## [1.17.2](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.17.1...v1.17.2) (2026-08-03)
 
 ### Bug Fixes
