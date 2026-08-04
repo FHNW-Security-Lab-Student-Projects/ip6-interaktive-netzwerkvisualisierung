@@ -519,12 +519,14 @@ export function setupExpandCollapse(
       doExpand(node);
       runExpandCollapseLayout(cy, layout, snapshot, node.id(), true);
       options?.onExpand?.(node.id());
+      options?.onNodeClick?.(node.id(), true);
       return;
     }
 
     if (node.isParent()) {
       doCollapse(node);
       options?.onCollapse?.(node.id());
+      options?.onNodeClick?.(node.id(), true);
     }
   });
 
