@@ -1,3 +1,13 @@
+## [1.21.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.20.1...v1.21.0) (2026-08-06)
+
+### Features
+
+* add compare button to context menu ([fbabd3e](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/fbabd3eacebda3d6fa8322357d6fea7b9c64e1a6))
+
+### Refactoring
+
+* constrain compare modal to stage bounding box ([89e8300](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/89e830051f3706ca79a202e5a646d33e124fee2b))
+
 ## [1.20.1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.20.0...v1.20.1) (2026-08-06)
 
 ### Refactoring
