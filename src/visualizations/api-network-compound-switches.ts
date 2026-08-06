@@ -6,7 +6,7 @@ import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import type { AnyTypedNode } from '../node-factory.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
-import { loadBasegraph } from '../graph-loader.ts';
+import { loadBasegraph, loadDeviceInfo } from '../graph-loader.ts';
 import { groupByUpstreamNode } from '../graph-transforms.ts';
 import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend, setupComparePanel, setupCompareButton, setupStpEnrichment } from '../components/index.ts';
 
@@ -19,7 +19,10 @@ const NETWORK_ID = 2;
 const SNAPSHOT_ID = 1;
 
 export async function mount(container: HTMLElement): Promise<void> {
-  const raw = await loadBasegraph({ networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
+  const [raw, deviceInfo] = await Promise.all([
+    loadBasegraph({ networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID }),
+    loadDeviceInfo({ networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID }),
+  ]);
 
   // Two-pass grouping to handle intermediate unknown devices (e.g. MOXA converters):
   //
@@ -74,7 +77,7 @@ export async function mount(container: HTMLElement): Promise<void> {
   panelOpts.setChildCountResolver(id => ctrl.getDirectChildCount(id));
   panelOpts.setChildrenResolver(id => ctrl.getDirectChildren(id));
   setupToolbar(ctrl, NODE_HIERARCHY, 'switch');
-  setupSearch(ctrl, nodes);
+  setupSearch(ctrl, nodes, deviceInfo);
   setupZoomFitButton(cy);
   setupCompareButton(compare.open);
   setupLegend();

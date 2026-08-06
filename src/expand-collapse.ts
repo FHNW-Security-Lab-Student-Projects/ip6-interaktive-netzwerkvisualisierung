@@ -190,6 +190,8 @@ export interface ExpandCollapseOptions {
 export interface ExpandCollapseController {
   expandToLevel: (level: string | 'all' | 'none') => void;
   focusNode: (nodeId: string) => void;
+  highlightNodes: (ids: string[]) => void;
+  clearHighlights: () => void;
   getDirectChildCount: (nodeId: string) => number;
   getDirectChildren: (nodeId: string) => AnyTypedNode[];
 }
@@ -601,8 +603,6 @@ export function setupExpandCollapse(
     focusNode,
 
     expandToLevel(level: string | 'all' | 'none'): void {
-      if (level === currentLevel) return;
-
       // Null the sentinel BEFORE stopping so in-flight layoutstop handlers detect cancellation.
       const prevLayout = activeLayout;
       activeLayout = null;
@@ -643,6 +643,66 @@ export function setupExpandCollapse(
       });
 
       layoutInstance.run();
+    },
+
+    highlightNodes(ids: string[]): void {
+      activeLayout?.stop();
+      cy.stop();
+      cy.nodes().removeClass('highlight').unselect();
+
+      let didExpand = false;
+      const alreadyExpanded = new Set<string>();
+
+      for (const id of ids) {
+        const chain: string[] = [];
+        let cur = nodes.find(n => n.data.id === id);
+        while (cur?.data.parent) {
+          chain.unshift(cur.data.parent);
+          cur = nodes.find(n => n.data.id === cur!.data.parent);
+        }
+        for (const ancestorId of chain) {
+          if (alreadyExpanded.has(ancestorId)) continue;
+          alreadyExpanded.add(ancestorId);
+          const ancestor = cy.$id(ancestorId) as cytoscape.NodeSingular;
+          if (ancestor.length && ancestor.hasClass('collapsed')) {
+            doExpand(ancestor);
+            didExpand = true;
+          }
+        }
+      }
+
+      const applyHighlights = () => {
+        ids.forEach(id => {
+          const node = cy.$id(id) as cytoscape.NodeSingular;
+          if (node.length) node.addClass('highlight');
+        });
+        const highlighted = cy.nodes('.highlight');
+        if (highlighted.length > 0) {
+          cy.animate({ fit: { eles: highlighted, padding: 80 }, duration: 400 });
+        }
+      };
+
+      if (!didExpand) {
+        applyHighlights();
+        return;
+      }
+
+      // Full layout (no zone locking) since expansions may span multiple subtrees.
+      layout.register();
+      const layoutOpts = { ...layout.expandCollapse(), randomize: false, fit: false };
+      const layoutInstance = cy.layout(layoutOpts);
+      activeLayout = layoutInstance;
+      layoutInstance.on('layoutstop', () => {
+        if (activeLayout === layoutInstance) {
+          separateSiblingCompounds(cy);
+          applyHighlights();
+        }
+      });
+      layoutInstance.run();
+    },
+
+    clearHighlights(): void {
+      cy.nodes().removeClass('highlight');
     },
 
     getDirectChildCount(nodeId: string): number {
