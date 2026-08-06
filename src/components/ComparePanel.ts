@@ -41,11 +41,12 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
     const el = document.createElement('div');
     el.className = 'compare-overlay';
     el.style.cssText = [
-      'position:fixed', 'inset:0', 'z-index:2000',
+      'position:absolute', 'inset:0', 'z-index:2000',
       'background:rgba(0,0,0,0.45)',
       'display:flex', 'align-items:stretch', 'justify-content:center',
     ].join(';');
-    document.body.append(el);
+    const stage = document.getElementById('viz-wrapper') ?? document.body;
+    stage.append(el);
 
     el.addEventListener('click', e => {
       if (e.target === el) close();

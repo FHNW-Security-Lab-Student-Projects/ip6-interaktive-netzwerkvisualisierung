@@ -183,6 +183,7 @@ footer p {
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
 }
 
 #viz {
