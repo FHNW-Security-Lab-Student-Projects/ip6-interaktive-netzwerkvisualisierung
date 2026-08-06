@@ -8,7 +8,7 @@ import type { AnyTypedNode } from '../node-factory.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
 import { loadBasegraph, loadDeviceInfo } from '../graph-loader.ts';
 import { groupByUpstreamNode } from '../graph-transforms.ts';
-import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend, setupComparePanel, setupCompareButton, setupStpEnrichment } from '../components/index.ts';
+import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend, setupComparePanel, setupCompareButton, setupStpEnrichment, setupVlanOverlay } from '../components/index.ts';
 
 export const title = 'API Network: Compound Graph - Routers Expanded';
 export const description =
@@ -82,5 +82,6 @@ export async function mount(container: HTMLElement): Promise<void> {
   setupCompareButton(compare.open);
   setupLegend();
   stpCtrl.start(panelOpts);
+  setupVlanOverlay(cy, deviceNodeIds, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
   runLayout(cy, POSITIONS_KEY, fcoseLargeProvider, 0.2);
 }

@@ -56,7 +56,9 @@ export function setupVlanToggle(onToggle: (active: boolean) => void): void {
     onToggle(active);
   });
 
-  el.append(btn);
+  const divider = document.createElement('span');
+  divider.className = 'toolbar-divider';
+  el.append(divider, btn);
 }
 
 export function setupCompareButton(onOpen: () => void): void {
