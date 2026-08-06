@@ -766,6 +766,12 @@ footer p {
 
 /* ── Toolbar toggle button ────────────────────────────────── */
 
+.toolbar-level-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .toolbar-toggle {
   padding: 3px 10px;
   border: 1px solid #ccc;

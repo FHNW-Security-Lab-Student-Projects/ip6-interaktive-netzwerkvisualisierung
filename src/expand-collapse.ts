@@ -281,6 +281,12 @@ export function setupExpandCollapse(
   // Tracks the active dropdown level so expandToLevel can detect direction of change.
   let currentLevel: string | 'all' | 'none' = initialExpand ?? 'none';
 
+  // Snapshot of top-level node positions before any expand; used to restore 'none' state exactly.
+  const initialPositions: Record<string, cytoscape.Position> = {};
+  cy.nodes(':visible').forEach(n => {
+    initialPositions[(n as cytoscape.NodeSingular).id()] = (n as cytoscape.NodeSingular).position();
+  });
+
   // Expands a collapsed node and recursively restores previously-expanded children.
   function doExpand(node: cytoscape.NodeSingular): void {
     const children = getDirectChildren(node.id());
@@ -595,6 +601,8 @@ export function setupExpandCollapse(
     focusNode,
 
     expandToLevel(level: string | 'all' | 'none'): void {
+      if (level === currentLevel) return;
+
       // Null the sentinel BEFORE stopping so in-flight layoutstop handlers detect cancellation.
       const prevLayout = activeLayout;
       activeLayout = null;
@@ -611,10 +619,17 @@ export function setupExpandCollapse(
       // Going deeper: existing expanded compounds stay in place; applyInitialExpand
       // finds only the newly-visible collapsed nodes and expands them.
 
+      // Returning to 'none': restore the exact initial positions rather than re-running layout.
+      if (level === 'none') {
+        currentLevel = level;
+        cy.layout({ name: 'preset', positions: initialPositions }).run();
+        return;
+      }
+
       applyInitialExpand(level);
       currentLevel = level;
 
-      if (level === 'none') return;
+      // if (level === 'none') return;
 
       layout.register();
       const layoutOpts = { ...layout.expandCollapse(), randomize: false };
