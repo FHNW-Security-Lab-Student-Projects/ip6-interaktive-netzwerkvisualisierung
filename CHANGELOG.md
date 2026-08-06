@@ -1,3 +1,10 @@
+## [1.19.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.18.0...v1.19.0) (2026-08-06)
+
+### Features
+
+* seperat demo ([252147b](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/252147b9e31d7e045e260385e40fd962a3ac71b8))
+* vlan colors ([ff90c64](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/ff90c64d0182909ddfdee4ecc89b5dc4c394c219))
+
 ## [1.18.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.17.3...v1.18.0) (2026-08-06)
 
 ### Features
