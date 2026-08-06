@@ -1,3 +1,9 @@
+## [1.20.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.19.0...v1.20.0) (2026-08-06)
+
+### Features
+
+* add improved search by more attributes and make it fuzzy ([d20bdbe](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/d20bdbedfe6820b3bbad8b3ffd9822ae2b4bec75)), closes [ip6-26bb_netviz/netviz-docs#11](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz-docs/issues/11)
+
 ## [1.19.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.18.0...v1.19.0) (2026-08-06)
 
 ### Features
