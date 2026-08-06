@@ -104,12 +104,31 @@ footer p {
 }
 
 .search-wrapper input[type="text"] {
-  padding: 5px 12px 5px 30px;
+  padding: 5px 38px 5px 30px;
   border: 1px solid #ccc;
   border-radius: 20px;
   font-size: 0.85rem;
   outline: none;
   width: 260px;
+}
+
+.search-enter-hint {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  font-family: inherit;
+  color: #999;
+  background: #f0f0f0;
+  border: 1px solid #d4d4d4;
+  border-radius: 3px;
+  padding: 1px 5px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  line-height: 1.5;
+  white-space: nowrap;
 }
 
 .search-wrapper input[type="text"]:focus {

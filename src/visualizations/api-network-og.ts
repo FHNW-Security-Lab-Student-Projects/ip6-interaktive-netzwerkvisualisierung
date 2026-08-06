@@ -5,7 +5,7 @@ import { fcoseLargeProvider } from '../layout-providers/fcose.ts';
 import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import { NODE_HIERARCHY } from '../node-factory.ts';
-import { loadBasegraph } from '../graph-loader.ts';
+import { loadBasegraph, loadDeviceInfo } from '../graph-loader.ts';
 import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend, setupComparePanel, setupCompareButton } from '../components/index.ts';
 
 export const title = 'API Network: Original Graph';
@@ -17,7 +17,10 @@ const NETWORK_ID = 2;
 const SNAPSHOT_ID = 1;
 
 export async function mount(container: HTMLElement): Promise<void> {
-  const { nodes, edges } = await loadBasegraph({ networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
+  const [{ nodes, edges }, deviceInfo] = await Promise.all([
+    loadBasegraph({ networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID }),
+    loadDeviceInfo({ networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID }),
+  ]);
 
   const cy = cytoscape({
     container,
@@ -36,7 +39,7 @@ export async function mount(container: HTMLElement): Promise<void> {
   panelOpts.setChildCountResolver(id => ctrl.getDirectChildCount(id));
   panelOpts.setChildrenResolver(id => ctrl.getDirectChildren(id));
   setupToolbar(ctrl, NODE_HIERARCHY, 'none');
-  setupSearch(ctrl, nodes);
+  setupSearch(ctrl, nodes, deviceInfo);
   setupZoomFitButton(cy);
   setupCompareButton(compare.open);
   setupLegend();

@@ -1,5 +1,6 @@
-import { getBasegraph } from './generated/sdk.gen.ts';
+import { getBasegraph, getDevices } from './generated/sdk.gen.ts';
 import type { AnyTypedNode, TypedCytoscapeEdge } from './node-factory.ts';
+import type { DeviceInfoOutput } from './generated/types.gen.ts';
 
 export type BasegraphQuery = {
   networkId: number;
@@ -54,4 +55,20 @@ export async function loadBasegraph(query: BasegraphQuery): Promise<BasegraphDat
   }) as TypedCytoscapeEdge[];
 
   return { nodes, edges };
+}
+
+// Returns a map of device id -> DeviceInfoOutput for enriching search.
+// Indexes by all three candidate ID fields so callers don't need to know
+// which one the basegraph node uses as its id.
+export async function loadDeviceInfo(query: BasegraphQuery): Promise<Map<string, DeviceInfoOutput>> {
+  const { data } = await getDevices({
+    query: { explorer_network_id: query.networkId, snapshot_id: query.snapshotId },
+  });
+  const map = new Map<string, DeviceInfoOutput>();
+  for (const d of data?.data ?? []) {
+    map.set(d.unique_id, d.data);
+    if (d.data.id) map.set(d.data.id, d.data);
+    map.set(String(d.id), d.data);
+  }
+  return map;
 }
