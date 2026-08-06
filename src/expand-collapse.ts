@@ -192,6 +192,7 @@ export interface ExpandCollapseController {
   focusNode: (nodeId: string) => void;
   getDirectChildCount: (nodeId: string) => number;
   getDirectChildren: (nodeId: string) => AnyTypedNode[];
+  reset: (newNodes: AnyTypedNode[], newEdges: TypedCytoscapeEdge[], expandLevel?: string | 'all' | 'none') => void;
 }
 
 // Wires up interactive expand/collapse for compound nodes.
@@ -201,13 +202,16 @@ export interface ExpandCollapseController {
 // initialExpand: 'none' (default) | 'all' | HierarchyLevel label to expand down to on load.
 export function setupExpandCollapse(
   cy: cytoscape.Core,
-  nodes: AnyTypedNode[],
-  edges: TypedCytoscapeEdge[],
+  initialNodes: AnyTypedNode[],
+  initialEdges: TypedCytoscapeEdge[],
   layout: LayoutProvider,
   hierarchy?: HierarchyLevel[],
   initialExpand?: string | 'all' | 'none',
   options?: ExpandCollapseOptions,
 ): ExpandCollapseController {
+  let nodes = initialNodes;
+  let edges = initialEdges;
+
   function getDirectChildren(nodeId: string): AnyTypedNode[] {
     return nodes.filter(n => n.data.parent === nodeId);
   }
@@ -651,6 +655,31 @@ export function setupExpandCollapse(
 
     getDirectChildren(nodeId: string): AnyTypedNode[] {
       return getDirectChildren(nodeId);
+    },
+
+    reset(newNodes: AnyTypedNode[], newEdges: TypedCytoscapeEdge[], expandLevel: string | 'all' | 'none' = 'none'): void {
+      nodes = newNodes;
+      edges = newEdges;
+
+      activeLayout?.stop();
+      activeLayout = null;
+      cy.elements().remove();
+      savedExpanded.clear();
+      savedPositions.clear();
+      currentLevel = expandLevel;
+
+      const allRootNodes = nodes.filter(n => n.data.parent === undefined);
+      const rootNodes = getInitialNodes(allRootNodes, hierarchy);
+      cy.add(rootNodes as cytoscape.ElementDefinition[]);
+      rootNodes.forEach(n => {
+        if (isExpandable(n.data.id)) {
+          const cyNode = cy.$id(n.data.id) as cytoscape.NodeSingular;
+          cyNode.addClass('collapsed');
+          setCollapsedCount(cyNode);
+        }
+      });
+      syncEdges();
+      applyInitialExpand(expandLevel);
     },
   };
 }
