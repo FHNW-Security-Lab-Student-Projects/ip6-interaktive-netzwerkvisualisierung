@@ -1,3 +1,9 @@
+## [1.18.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.17.3...v1.18.0) (2026-08-06)
+
+### Features
+
+* enhance expand-collapse functionality and add toolbar layout styles ([5d4d290](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/5d4d2901b05a5251407f30fb28795317e06a495d))
+
 ## [1.17.3](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.17.2...v1.17.3) (2026-08-04)
 
 ### Bug Fixes
