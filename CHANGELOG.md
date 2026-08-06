@@ -1,3 +1,9 @@
+## [1.20.1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.20.0...v1.20.1) (2026-08-06)
+
+### Refactoring
+
+* adjust toolbar layout ([411331f](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/411331f846138e64074546e4d2b2160258856164))
+
 ## [1.20.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.19.0...v1.20.0) (2026-08-06)
 
 ### Features
