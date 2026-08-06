@@ -60,6 +60,7 @@ export const Colors = {
 
   // Compound / group nodes
   COMPOUND: '#3f5a78',  // steel-slate — border and label badge color
+  VLAN:     '#0f766e',  // teal — VLAN compound nodes
 
   // Physical / default edge
   EDGE:     '#68788a',  // medium slate
@@ -520,6 +521,16 @@ export function createNetworkStyles(): any[] {
     { selector: 'edge.lag.down',     style: { 'width': 5 } },
     { selector: 'edge.lag.disabled', style: { 'width': 5, 'opacity': 0.5 } },
     { selector: 'edge.lag.warning',  style: { 'line-style': 'double', 'width': 5, 'line-color': Colors.STATE_WARNING } },
+
+    // VLAN highlight — colored border ring when vlan_color data is set (VLAN toggle mode)
+    {
+      selector: 'node[vlan_color]',
+      style: {
+        'border-width': 3,
+        'border-color': (ele: cytoscape.NodeSingular) => ele.data('vlan_color') as string,
+        'border-opacity': 1,
+      },
+    },
 
     // :selected, defined last so it always wins
     {
