@@ -35,6 +35,8 @@ export async function mount(container: HTMLElement): Promise<void> {
   const panelOpts = setupDetailPanel(cy, { networkId: NETWORK_ID, snapshotId: SNAPSHOT_ID });
   const ctrl = setupExpandCollapse(cy, nodes, edges, fcoseLargeProvider, NODE_HIERARCHY, 'all', { ...panelOpts, onCompare: compare.add, onCompareHas: compare.has });
   compare.setLocate(id => ctrl.focusNode(id));
+  panelOpts.setCompareHandler(compare.add);
+  panelOpts.setCompareHasHandler(compare.has);
   panelOpts.setFocusNode(id => ctrl.focusNode(id));
   panelOpts.setChildCountResolver(id => ctrl.getDirectChildCount(id));
   panelOpts.setChildrenResolver(id => ctrl.getDirectChildren(id));

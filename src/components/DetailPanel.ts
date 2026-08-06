@@ -13,6 +13,8 @@ export type DetailPanelSetup = ExpandCollapseOptions & {
   setFocusNode: (fn: (nodeId: string) => void) => void;
   setChildCountResolver: (fn: (id: string) => number) => void;
   setChildrenResolver: (fn: (id: string) => AnyTypedNode[]) => void;
+  setCompareHandler: (fn: (nodeId: string, nodeType?: string) => void) => void;
+  setCompareHasHandler: (fn: (nodeId: string) => boolean) => void;
   refreshCurrentPanel: () => void;
 };
 
@@ -27,7 +29,7 @@ export function setupDetailPanel(
   },
 ): DetailPanelSetup {
   const panelEl = document.getElementById('device-panel');
-  if (!panelEl) return { setFocusNode: () => {}, setChildCountResolver: () => {}, setChildrenResolver: () => {}, refreshCurrentPanel: () => {} };
+  if (!panelEl) return { setFocusNode: () => {}, setChildCountResolver: () => {}, setChildrenResolver: () => {}, setCompareHandler: () => {}, setCompareHasHandler: () => {}, refreshCurrentPanel: () => {} };
 
   const panel = new DetailPanel(panelEl);
   if (opts?.mockDeviceData) panel.setMockDeviceData(opts.mockDeviceData);
@@ -47,6 +49,8 @@ export function setupDetailPanel(
   let focusNodeFn: ((nodeId: string) => void) | null = null;
   let childCountResolver: ((id: string) => number) | null = null;
   let childrenResolver: ((id: string) => AnyTypedNode[]) | null = null;
+  let compareAdd: ((nodeId: string, nodeType?: string) => void) | null = null;
+  let compareHas: ((nodeId: string) => boolean) | null = null;
 
   const updatePanel = (nodeId: string) => {
     const node = cy.$id(nodeId);
@@ -86,6 +90,8 @@ export function setupDetailPanel(
   };
 
   panel.setLocateHandler(nodeId => focusNodeFn?.(nodeId));
+  panel.setCompareHandler((nodeId, nodeType) => compareAdd?.(nodeId, nodeType));
+  panel.setCompareHasHandler(nodeId => compareHas?.(nodeId) ?? false);
   panel.setNodeSelectHandler(selectNode);
   panel.setHideHandler(() => {
     cy.nodes().unselect();
@@ -125,6 +131,8 @@ export function setupDetailPanel(
     setFocusNode: (fn) => { focusNodeFn = fn; },
     setChildCountResolver: (fn) => { childCountResolver = fn; },
     setChildrenResolver: (fn) => { childrenResolver = fn; },
+    setCompareHandler: (fn) => { compareAdd = fn; },
+    setCompareHasHandler: (fn) => { compareHas = fn; },
     refreshCurrentPanel: () => {
       if (selectedNodeId) updatePanel(selectedNodeId);
       else if (lastEdge) void panel.showEdge(lastEdge, cy, opts);
@@ -156,6 +164,8 @@ export class DetailPanel {
   private hintEl: HTMLElement | null = null;
   private resizeHandle: HTMLElement | null = null;
   private onLocate?: (nodeId: string) => void;
+  private onCompare?: (nodeId: string, nodeType?: string) => void;
+  private onCompareHas?: (nodeId: string) => boolean;
 
   setMockDeviceData(map: Map<string, DeviceInfoOutput>): void {
     this.mockDeviceData = map;
@@ -221,6 +231,14 @@ export class DetailPanel {
 
   setLocateHandler(fn: (nodeId: string) => void): void {
     this.onLocate = fn;
+  }
+
+  setCompareHandler(fn: (nodeId: string, nodeType?: string) => void): void {
+    this.onCompare = fn;
+  }
+
+  setCompareHasHandler(fn: (nodeId: string) => boolean): void {
+    this.onCompareHas = fn;
   }
 
   setNodeSelectHandler(fn: (nodeId: string) => void): void {
@@ -362,13 +380,32 @@ export class DetailPanel {
       else header.append(this.hintEl);
     }
     const locateId = device.data.id;
-    if (this.onLocate && locateId) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'panel-locate-btn';
-      btn.textContent = 'Locate device';
-      btn.addEventListener('click', () => this.onLocate!(locateId));
-      header.append(btn);
+    if ((this.onLocate || this.onCompare) && locateId) {
+      const row = document.createElement('div');
+      row.className = 'panel-action-row';
+      if (this.onLocate) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'panel-action-btn';
+        btn.textContent = 'Locate device';
+        btn.addEventListener('click', () => this.onLocate!(locateId));
+        row.append(btn);
+      }
+      if (this.onCompare) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'panel-action-btn';
+        const syncText = () => {
+          btn.textContent = this.onCompareHas?.(locateId) ? 'Remove from comparison' : 'Add to comparison';
+        };
+        syncText();
+        btn.addEventListener('click', () => {
+          this.onCompare!(locateId, context?.nodeType);
+          syncText();
+        });
+        row.append(btn);
+      }
+      header.append(row);
     }
     wrapper.append(
       header,
