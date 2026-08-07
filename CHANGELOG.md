@@ -1,3 +1,13 @@
+## [1.21.1](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.21.0...v1.21.1) (2026-08-07)
+
+### Refactoring
+
+* cleanup ([9014e1b](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/9014e1bb7b03529273abbde565e511c37ddfae27))
+* comments ([1a99e89](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/1a99e893b84b9ca2b51b2fc5fb4a28e92668349a))
+* homepage layout ([29f3256](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/29f325667b120a007561532c16a749880a6d89f5))
+* prototypes ([2abaafb](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/2abaafb85bd782aa6fc9e3587beac47d237e8c3a))
+* refactor code blocks ([7345a71](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/commit/7345a71ebe14c9a7592b87e8ac3ccc409ddbbd23))
+
 ## [1.21.0](https://gitlab.fhnw.ch/ip6-26bb_netviz/netviz/compare/v1.20.1...v1.21.0) (2026-08-06)
 
 ### Features
