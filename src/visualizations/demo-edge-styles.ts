@@ -2,10 +2,10 @@ import cytoscape from 'cytoscape';
 import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 
-export const title = 'Demo: Edge Styles';
+export const title = 'Edge Styles';
 export const description =
   'Overview of all edge types and states used in the Netmap. Each row shows an example pair with the ' +
-  'respective style; the label is shown on the left node.';
+  'respective style.';
 
 type Row = {
   name: string;

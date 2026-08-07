@@ -6,8 +6,6 @@ export function setupLegend(): void {
   const el = document.getElementById('toolbar');
   if (!el) return;
 
-  // ── helpers ──────────────────────────────────────────────────────────────
-
   function carbonSvg(name: string, color = '#fff', size = 11): string {
     const data = getIconData(carbonIcons, name);
     if (!data) return '';
@@ -109,8 +107,6 @@ export function setupLegend(): void {
       ${stateRow('Selected',  C.SELECTED)}
     </div>
   </div>`;
-
-  // ── button ───────────────────────────────────────────────────────────────
 
   const btn = document.createElement('button');
   btn.type = 'button';

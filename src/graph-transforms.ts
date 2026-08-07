@@ -5,7 +5,6 @@ export type GraphElements = {
   edges: TypedCytoscapeEdge[];
 };
 
-// groupByAttribute 
 export type AttributeGroupingOptions = {
   matches: (node: AnyTypedNode) => boolean;
   keyOf: (node: AnyTypedNode) => string;
@@ -63,7 +62,6 @@ export function groupByAttribute(
   return { nodes: [...rest, ...syntheticGroups, ...regrouped], edges };
 }
 
-// groupByUpstreamNode 
 export type UpstreamGroupingOptions = {
   isLeaf: (node: AnyTypedNode) => boolean;
   isUpstream: (node: AnyTypedNode) => boolean;

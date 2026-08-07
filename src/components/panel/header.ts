@@ -7,7 +7,6 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
   const header = document.createElement('div');
   header.className = 'panel-header';
 
-  // Row 1: status dot + device name + vendor badge
   const heroRow = document.createElement('div');
   heroRow.className = 'panel-hero-row';
 
@@ -42,7 +41,6 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
   }
   header.append(heroRow);
 
-  // Row 2: IP address
   if (info.ip_address) {
     const ipEl = document.createElement('div');
     ipEl.className = 'panel-hero-ip';
@@ -51,7 +49,6 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
     header.append(ipEl);
   }
 
-  // Row 3: Chips (horizontal row)
   const chips = document.createElement('div');
   chips.className = 'panel-chips-row';
   const addChip = (label: string, value: string) => {
@@ -67,7 +64,6 @@ export function buildHeader(device: DeviceResponse, context?: { nodeType?: strin
   if (info.version?.software) addChip('firmware', info.version.software);
   if (chips.children.length > 0) header.append(chips);
 
-  // Row 4: Info grid
   header.append(buildInfoGrid(device));
   return header;
 }

@@ -30,7 +30,6 @@ const asymmetricState: WarningRule = (entry, sp, tp) => {
 
 // Check for tagged VLAN mismatches between connected ports
 const taggedVlanMismatch: WarningRule = (entry, sp, tp) => {
-  // Use || null (not ??) so empty strings normalize to null, matching how Vlans.ts treats them.
   const a = sp?.tagged || null;
   const b = tp?.tagged || null;
   if ((a !== null || b !== null) && a !== b) {

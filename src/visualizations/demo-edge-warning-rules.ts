@@ -5,13 +5,9 @@ import { setupZoom } from '../zoom-handler.ts';
 import { setupDetailPanel } from '../components/index.ts';
 import { enrichEdges } from '../edge-enricher.ts';
 
-export const title = 'Demo: Edge Warning Rules';
+export const title = 'Edge Warning Rules';
 export const description =
-  'Synthetic graph demonstrating edge panel behaviour. ' +
-  'Pair A: click the edge to see typeMismatch, asymmetricState, speedMismatch, duplexMismatch, errDisabled, taggedVlanMismatch, nativeVlanMismatch. ' +
-  'Pair B: LAG with one member down (warn). ' +
-  'Pair C: LAG with both members down (down). ' +
-  'Pair D: routed ports on mismatched subnets (subnet mismatch warning).';
+  'Demonstrates edge panel behaviour for various link states and warning rules.';
 
 // Pair A — triggers 7 warning rules across 4 connection pairs:
 //   c1 (Gi0/1 <-> Gi1/1): typeMismatch (trunk/access), asymmetricState, speedMismatch, duplexMismatch

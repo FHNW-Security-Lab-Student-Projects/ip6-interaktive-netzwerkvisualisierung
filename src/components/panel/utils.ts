@@ -1,5 +1,7 @@
 import { getIconData, iconToSVG } from '@iconify/utils';
 import { icons as simpleIcons } from '@iconify-json/simple-icons';
+import type { PanelSection } from './types.ts';
+import { buildPaginatedTable } from './table.ts';
 
 export function vendorBadgeUrl(vendor: string): string | null {
   const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -105,4 +107,14 @@ export function makeStatusDot(status: StatusLevel, tooltip?: string): HTMLElemen
     : 'panel-status-dot';
   if (tooltip) el.title = tooltip;
   return el;
+}
+
+export function buildTableSection<T>(
+  label: string,
+  items: T[],
+  headers: (string | HTMLElement)[],
+  buildRow: (item: T) => HTMLTableRowElement,
+): PanelSection {
+  const rows = items.map(buildRow);
+  return { label, content: buildPaginatedTable(headers, rows), disabled: items.length === 0 };
 }

@@ -2,9 +2,7 @@ import type cytoscape from 'cytoscape';
 import { getIconData, iconToSVG } from '@iconify/utils';
 import { icons as carbonIcons } from '@iconify-json/carbon';
 
-// Pre-computes SVG data URLs from Iconify icon sets at module load time (synchronous).
 // color defaults to white so icons are visible on the colored node backgrounds.
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function iconUrl(set: any, name: string, color = '#ffffff'): string {
   const data = getIconData(set, name);
@@ -185,10 +183,9 @@ function compoundBadgeUrl(label: string, iconName: string | null, bgColor: strin
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
-// Stylesheet
 // Selector order: base -> type shapes -> compound box -> collapsed -> node states -> edge base -> edge types -> edge states -> :selected
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- cytoscape's Css types reject valid runtime props (e.g. shadow-blur)
 export function createNetworkStyles(): any[] {
   return [
     // Base node

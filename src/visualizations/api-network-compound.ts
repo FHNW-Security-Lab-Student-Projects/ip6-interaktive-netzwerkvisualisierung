@@ -10,7 +10,7 @@ import { loadBasegraph, loadDeviceInfo } from '../graph-loader.ts';
 import { groupByUpstreamNode } from '../graph-transforms.ts';
 import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend, setupStpEnrichment, setupComparePanel, setupCompareButton, setupVlanOverlay } from '../components/index.ts';
 
-export const title = 'API Network: Compound Graph';
+export const title = 'Compound Graph';
 export const description =
   'Real network data loaded live from the API. Renders the graph using our style and the fcose layout. The graph is preprocessed to group hosts under their direct upstream device, and to group unknown relay devices under their known parent device. This results in a more hierarchical, compound graph structure that reduces visual clutter and emphasizes the relationships between hosts and devices, as well as the network hierarchy they form.';
 

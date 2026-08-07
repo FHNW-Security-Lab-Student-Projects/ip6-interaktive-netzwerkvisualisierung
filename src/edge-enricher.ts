@@ -5,7 +5,7 @@ import type { BasegraphQuery } from './graph-loader.ts';
 import { findPort, pairStatus, type ConnEntry } from './components/panel/edge/Connections.ts';
 import { computeWarnings } from './components/panel/edge/rules.ts';
 
-// NOTES: fetches per-device data to enrich edge state and type classes. Super inefficient and doesn't scale.
+// NOTE: fetches per-device data to enrich edge state and type classes. Super inefficient and doesn't scale.
 // This is a temporary client-side workaround. Edge state (down/disabled/warning)
 // and type (lag, uplink, etc.) should be computed server-side and included in the
 // basegraph API response.

@@ -6,10 +6,10 @@ import { createNetworkStyles, EdgeClass } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import { createDeviceNode, createEdge, createGroupNode, createHostNode, NODE_HIERARCHY } from '../node-factory.ts';
 
-export const title = 'Hierarchy: Dual-Uplink Switches';
+export const title = 'Hierarchical Dual-Uplink Switches';
 export const description =
   'Demonstrates switches with uplinks to multiple routers (dual-homed). ' +
-  'S1 lives inside R1 but also connects to R2; S2 lives inside R2 but also connects to R3. ' +
+  'S1 lives inside R1 but also connects to R2. S2 lives inside R2 but also connects to R3. ' +
   'When a router is collapsed, the cross-router switch links are lifted to the router boundary — ' +
   'no connectivity information is lost at any zoom level.';
 

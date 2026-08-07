@@ -10,6 +10,13 @@ import type { LayoutProvider } from '../layout-utils.ts';
  * Best results on flat graphs or when groups are all collapsed.
  * https://github.com/cytoscape/cytoscape.js-dagre
  */
+const shared = {
+  rankDir: 'TB',
+  rankSep: 80,
+  nodeSep: 60,
+  ranker: 'network-simplex',
+};
+
 export const dagreProvider: LayoutProvider = {
   register() {
     cytoscape.use(dagre);
@@ -20,10 +27,7 @@ export const dagreProvider: LayoutProvider = {
       fit: true,
       padding: 40,
       animate: false,
-      rankDir: 'TB',
-      rankSep: 80,
-      nodeSep: 60,
-      ranker: 'network-simplex',
+      ...shared,
     } as cytoscape.LayoutOptions;
   },
   expandCollapse() {
@@ -32,10 +36,7 @@ export const dagreProvider: LayoutProvider = {
       fit: false,
       animate: true,
       animationDuration: 400,
-      rankDir: 'TB',
-      rankSep: 80,
-      nodeSep: 60,
-      ranker: 'network-simplex',
+      ...shared,
     } as cytoscape.LayoutOptions;
   },
 };
