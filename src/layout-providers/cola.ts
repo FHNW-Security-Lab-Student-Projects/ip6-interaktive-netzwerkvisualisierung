@@ -9,6 +9,14 @@ import type { LayoutProvider } from '../layout-utils.ts';
  * Good real network graphs with complex connectivity.
  * https://github.com/cytoscape/cytoscape.js-cola
  */
+const shared = {
+  nodeDimensionsIncludeLabels: true,
+  nodeSpacing: 60,
+  avoidOverlap: true,
+  handleDisconnected: true,
+  flow: { axis: 'y', minSeparation: 80 },
+};
+
 export const colaProvider: LayoutProvider = {
   register() {
     cytoscape.use(cola);
@@ -20,11 +28,7 @@ export const colaProvider: LayoutProvider = {
       fit: true,
       padding: 40,
       maxSimulationTime: 6000,
-      nodeDimensionsIncludeLabels: true,
-      nodeSpacing: 60,
-      avoidOverlap: true,
-      handleDisconnected: true,
-      flow: { axis: 'y', minSeparation: 80 },
+      ...shared,
     } as cytoscape.LayoutOptions;
   },
   expandCollapse() {
@@ -34,11 +38,7 @@ export const colaProvider: LayoutProvider = {
       animationDuration: 400,
       fit: false,
       maxSimulationTime: 2000,
-      nodeDimensionsIncludeLabels: true,
-      nodeSpacing: 60,
-      avoidOverlap: true,
-      handleDisconnected: true,
-      flow: { axis: 'y', minSeparation: 80 },
+      ...shared,
     } as cytoscape.LayoutOptions;
   },
 };

@@ -121,8 +121,6 @@ export function setupSearch(
   wrapper.append(iconEl, input, enterHint, dropdown);
   el.append(wrapper);
 
-  // ── helpers ──────────────────────────────────────────────────────────────
-
   const isExact = (text: string, q: string) =>
     text.split('\n').some(line => {
       const l = line.trim();
@@ -170,8 +168,6 @@ export function setupSearch(
       : n.data.node_type;
     return { name, meta: [type, ip].filter(Boolean).join(' · ') };
   }
-
-  // ── state ────────────────────────────────────────────────────────────────
 
   let results: AnyTypedNode[] = [];
   let activeIdx = -1;
@@ -242,8 +238,6 @@ export function setupSearch(
       dropdown.hidden = true;
     }
   }
-
-  // ── events ───────────────────────────────────────────────────────────────
 
   input.addEventListener('input', () => {
     const q = input.value.trim().toLowerCase();

@@ -79,7 +79,6 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
       'overflow:hidden',
     ].join(';');
 
-    // ── Button row (non-scrolling, always above table content) ──────��────────
     const btnRow = document.createElement('div');
     btnRow.style.cssText = [
       'display:flex', 'align-items:center', 'justify-content:flex-end',
@@ -104,7 +103,6 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
     btnRow.append(clearBtn, closeBtn);
     panel.append(btnRow);
 
-    // ── Table ────────────────────────────────────────────────────────────────
     const scrollWrap = document.createElement('div');
     scrollWrap.style.cssText = 'overflow:auto;flex:1;';
 
@@ -272,7 +270,6 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
       const counts = perDev.map(items => items.length);
       const isOpen = expandedSections.has(key);
 
-      // ── header row ────────────────────────────────────────────────────────
       const htr = document.createElement('tr');
       htr.style.cursor = 'pointer';
       htr.addEventListener('click', () => {
@@ -305,7 +302,6 @@ export function setupComparePanel(opts?: { networkId?: number; snapshotId?: numb
 
       if (!isOpen) return;
 
-      // ── data rows: union of all keys across all devices ───────────────────
       const allKeys = [...new Set(perDev.flatMap(items => items.map(getKey)))];
       allKeys.forEach(itemKey => {
         const byDev = perDev.map(items => items.find(it => getKey(it) === itemKey));

@@ -10,6 +10,14 @@ import type { LayoutProvider } from '../layout-utils.ts';
  * NOTE: Does not support compound nodes.
  * https://github.com/shichuanpo/cytoscape.js-d3-force
  */
+const shared = {
+  linkId: (d: { id: string }) => d.id,
+  linkDistance: 120,
+  manyBodyStrength: -300,
+  collideRadius: 40,
+  collideStrength: 0.7,
+};
+
 export const d3ForceProvider: LayoutProvider = {
   register() {
     cytoscape.use(d3Force);
@@ -20,11 +28,7 @@ export const d3ForceProvider: LayoutProvider = {
       animate: false,
       fit: true,
       padding: 40,
-      linkId: (d: { id: string }) => d.id,
-      linkDistance: 120,
-      manyBodyStrength: -300,
-      collideRadius: 40,
-      collideStrength: 0.7,
+      ...shared,
     } as cytoscape.LayoutOptions;
   },
   expandCollapse() {
@@ -33,11 +37,7 @@ export const d3ForceProvider: LayoutProvider = {
       animate: true,
       animationDuration: 400,
       fit: false,
-      linkId: (d: { id: string }) => d.id,
-      linkDistance: 120,
-      manyBodyStrength: -300,
-      collideRadius: 40,
-      collideStrength: 0.7,
+      ...shared,
     } as cytoscape.LayoutOptions;
   },
 };

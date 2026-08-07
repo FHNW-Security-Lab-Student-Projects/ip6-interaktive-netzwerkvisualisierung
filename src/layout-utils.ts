@@ -1,16 +1,13 @@
 import cytoscape from 'cytoscape';
 
-// Encapsulates everything needed to run a layout algorithm: plugin registration,
-// initial layout options, and expand/collapse re-layout options.
-// Pass to runLayout / setupExpandCollapse to switch algorithms without touching other code.
+// Bundles a layout algorithm's registration and options so it can be swapped without touching callers.
 export type LayoutProvider = {
   register(): void;     // must be idempotent; cytoscape.use is safe to call repeatedly
   initial(): cytoscape.LayoutOptions;
   expandCollapse(): cytoscape.LayoutOptions;
 };
 
-// Runs the initial layout and persists positions to localStorage; restores them on reload.
-// Clears stale cache and re-runs if new nodes are detected. Operates on visible nodes only.
+// Restores cached node positions from localStorage; re-runs the layout when new nodes appear.
 export function runLayout(
   cy: cytoscape.Core,
   positionsKey: string,
