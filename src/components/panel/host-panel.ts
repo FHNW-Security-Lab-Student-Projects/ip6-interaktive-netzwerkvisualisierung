@@ -82,7 +82,6 @@ export function buildHostPanelEl(
     : null;
   add('IP Address', ipText);
 
-  // Seen On and Port share a row (grid is 2 columns)
   if (info.seen_on_device) {
     const cell = document.createElement('div');
     cell.className = 'info-cell';
