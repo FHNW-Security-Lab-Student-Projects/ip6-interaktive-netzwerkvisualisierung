@@ -6,7 +6,7 @@ import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import { createEdge, createGroupNode, NODE_HIERARCHY } from '../node-factory.ts';
 
-export const title = 'Hierarchy: Groups';
+export const title = 'Hierarchical Groups';
 export const description = 'Demonstrates multiple groups with edges between them.';
 
 const hq = createGroupNode({ id: 'hq', title: 'HQ', label: 'HQ' });

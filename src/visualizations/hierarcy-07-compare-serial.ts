@@ -6,7 +6,7 @@ import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import { createDeviceNode, createEdge, createGroupNode, createHostNode, NODE_HIERARCHY } from '../node-factory.ts';
 
-export const title = 'Hierarchy: Comparison of Serial vs Nested Grouping';
+export const title = 'Serial vs. Nested Grouping';
 export const description = 'This visualization demonstrates the difference between approaches to displaying / grouping nodes in a hierarchical graph: serial, grouping and nested grouping. Both graphs contain the same set of nodes and edges, but the way they are grouped differs.';
 
 const group = createGroupNode({ id: 'group', title: 'Group', label: 'Group' });

@@ -6,8 +6,8 @@ import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import { createDeviceNode, createEdge, createGroupNode, createHostNode, NODE_HIERARCHY } from '../node-factory.ts';
 
-export const title = 'Nested Compound Nodes: HQ network hierarchy';
-export const description = 'Demonstrates progressive disclosure of a nested network hierarchy. Click an expanded group to collapse it.';
+export const title = 'HQ Network with Nested Compound Nodes';
+export const description = 'Demonstrates progressive disclosure of a nested network hierarchy.';
 
 const hq = createGroupNode({ id: 'hq', title: 'HQ', label: 'HQ' });
 

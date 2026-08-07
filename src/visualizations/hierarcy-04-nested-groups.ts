@@ -6,7 +6,7 @@ import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import { createDeviceNode, createEdge, createGroupNode, NODE_HIERARCHY } from '../node-factory.ts';
 
-export const title = 'Hierarchy: Nested Groups';
+export const title = 'Hierarchical Nested Groups';
 export const description = 'Demonstrates nested groups (groups within groups) with edges between leaf nodes in different branches of the hierarchy.';
 
 const switzerland = createGroupNode({ id: 'switzerland', title: 'Switzerland', label: 'Switzerland' });

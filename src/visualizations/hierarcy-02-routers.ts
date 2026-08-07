@@ -6,8 +6,8 @@ import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import { createDeviceNode, createEdge, NODE_HIERARCHY } from '../node-factory.ts';
 
-export const title = 'Hierarchy: Routers';
-export const description = 'Demonstrates multiple groups with edges between them.';
+export const title = 'Hierarchical Routers';
+export const description = 'Demonstrates multiple routers with edges between them.';
 
 const r1 = createDeviceNode({ id: 'r1', title: 'Router 1', label: 'R1', device_type: 'router'});
 const r2 = createDeviceNode({ id: 'r2', title: 'Router 2', label: 'R2', device_type: 'router'});

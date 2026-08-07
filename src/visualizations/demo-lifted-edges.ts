@@ -6,11 +6,11 @@ import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import { createDeviceNode, createEdge, createGroupNode, createHostNode, NODE_HIERARCHY } from '../node-factory.ts';
 
-export const title = 'Demo: Lifted Edges';
+export const title = 'Lifted Edges';
 export const description =
   'Shows how several connections between nested nodes in different groups are summarized into a single ' +
   'edge when the groups are collapsed. Both sites start collapsed: the three A↔B connections appear as ' +
-  'one lifted edge. Double-click a group to expand it and reveal the individual connections again.';
+  'one lifted edge.';
 
 const gA = createGroupNode({ id: 'gA', title: 'Site A', label: 'Site A' });
 const rA = createDeviceNode({ id: 'rA', title: 'Router A', label: 'R-A', device_type: 'router', parent: gA });

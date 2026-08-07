@@ -4,7 +4,7 @@ import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import { createDeviceNode, createEdge, createHostNode, type AnyTypedNode, type TypedCytoscapeEdge } from '../node-factory.ts';
 
-export const title = 'Demo: Compound Parent Edges';
+export const title = 'Compound Parent Edges';
 export const description =
   'The Netmap hides explicit edges that run from a child to its own parent compound, because the ' +
   'containment box already expresses that relationship. Left: those edges drawn explicitly (red) — ' +

@@ -6,7 +6,7 @@ import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import { createDeviceNode, createEdge, createGroupNode, NODE_HIERARCHY } from '../node-factory.ts';
 
-export const title = 'Hierarchy: Groups of Routers';
+export const title = 'Hierarchical Groups of Routers';
 export const description = 'Demonstrates multiple groups with routers inside, with edges between the routers.';
 
 const hq = createGroupNode({ id: 'hq', title: 'HQ', label: 'HQ' });

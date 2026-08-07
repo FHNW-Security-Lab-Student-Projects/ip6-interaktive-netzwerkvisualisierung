@@ -6,12 +6,12 @@ import { createNetworkStyles } from '../network-styles.ts';
 import { setupZoom } from '../zoom-handler.ts';
 import { createDeviceNode, createEdge, createGroupNode, createHostNode, NODE_HIERARCHY } from '../node-factory.ts';
 
-export const title = 'Demo: Lifted Edges vs. Normal';
+export const title = 'Lifted Edges vs. Normal';
 export const description =
   'Side-by-side comparison of the same network, both starting collapsed. Left: how Cytoscape renders ' +
   'without our lifted-edges logic — edges attached to hidden children simply drop, so the collapsed ' +
   'sites look disconnected. Right: with lifted edges the connections are re-attached to the groups and ' +
-  'summarized into a single edge. Double-click a group on either side to expand it.';
+  'summarized into a single edge.';
 
 function buildGraph() {
   const gA = createGroupNode({ id: 'gA', title: 'Site A', label: 'Site A' });

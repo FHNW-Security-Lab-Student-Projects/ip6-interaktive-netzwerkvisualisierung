@@ -5,9 +5,9 @@ import { setupZoom } from '../zoom-handler.ts';
 import { setupDetailPanel } from '../components/index.ts';
 import { enrichEdges } from '../edge-enricher.ts';
 
-export const title = 'Demo: Triangle with Warning Edge';
+export const title = 'Faulty Edge Warning';
 export const description =
-  'Three devices in a triangle. The bottom edge (Switch A ↔ Switch B) has a speed mismatch and duplex mismatch warning. Click the edge to inspect.';
+  'Simple network with a single edge that triggers a warning in the edge panel. Demonstrates how the edge panel displays warning information for a connection between two devices.';
 
 const mockRouter: DeviceInfoOutput = {
   serial: '',

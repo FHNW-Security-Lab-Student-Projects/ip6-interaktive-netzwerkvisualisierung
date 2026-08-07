@@ -8,7 +8,7 @@ import { NODE_HIERARCHY } from '../node-factory.ts';
 import { loadBasegraph, loadDeviceInfo } from '../graph-loader.ts';
 import { setupDetailPanel, setupToolbar, setupSearch, setupZoomFitButton, setupLegend, setupComparePanel, setupCompareButton } from '../components/index.ts';
 
-export const title = 'API Network: Original Graph';
+export const title = 'Original Graph';
 export const description =
   'Real network data loaded live from the API. Renders the graph using our style and the fcose layout. The graph is rendered in its original form, without any preprocessing or filtering.';
 
